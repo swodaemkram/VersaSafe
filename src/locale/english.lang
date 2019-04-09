@@ -1,0 +1,51 @@
+#english
+#Version 1.0 format, by GRC
+# no commas are allowed in the text
+# you can insert a carriage return with \r
+
+#usage
+#string getMessage(int msgID, int add_msgnum); // in locale.cpp
+# msg format in this file
+#struct lang_file
+#{
+#    int msgID;
+#    char cmd_desc[MSG_LINE_LEN];
+#    char cmd_string[MSG_LINE_LEN];
+#};
+
+
+50,x,CLOSE
+
+
+51,x,Sun
+52,x,Mon
+53,x,Tue
+54,x,Wed
+55,x,Thu
+56,x,Fri
+57,x,Sat
+
+60,x,Outter Door
+61,x,Inner Door
+62,x,Shutter
+63,x,Side Car
+64,x,Base Lock
+
+70,x,LOCK
+71,x,UNLOCK
+72,x,DAY
+73,x,All Days Same
+74,x,Time Lock
+75,x,Active
+
+101,x,TimeLock Configuration
+102,x,UTD Load Window
+
+120,x,Error writing lockrec struct to locks table
+
+
+
+200,x,Load
+201,x,STOP LOAD
+202,x,Unload ALL
+

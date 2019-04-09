@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mysql -uroot -p'v|per101' fking < fking.sql
+

@@ -1,0 +1,825 @@
+
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<comment val="this section is ignored by FlowForm OSL, it is instructional only">
+
+	FILE FORMAT INSTRUCTIONS
+	------------------------
+	XML HELP file format, created by Gary Conway, June 2012
+	This file is the help file for FlowForm OSL.
+	Each section should be formatted as shown below
+
+
+	<xx_window>
+		<Page>
+		<Title></Title>
+		<Header></Header>
+		<Body></Body>
+		<Footer></Footer>
+		</Page>
+	</xx_window>
+
+	Note that each section has opening and closing tags.
+	Within the main tag sections <xx_window></xx_window>, are permitted as many <Page></Page> sections as required
+	The <Title></Title> section holds the main title for that help page, displayed centered above the text window
+		the title is also used for displaying the table of contents pages
+	The <Header></Header> section holds the main title for that help page, displayed left justified above the text
+	The <Body></Body> section holds the main body of the help text
+	The <Footer></Footer> section holds any footer information for that page
+
+	Inside any of the tags where text will be displayed, you are allowed to use
+	certain formatting tags.
+	[b][/b] causes any text between the tags to be displayed in BOLD
+	[red][/red] causes any text between the tags to be displayed in RED
+	[green][/green] causes any text between the tags to be displayed in GREEN
+	[i][/i] causes any text between the tags to be displayed in ITALICS
+
+	&#x0D;	 these can be inserted to create a new line when displaying the text for vertical spacing
+	&amp;	displays an ampersand
+	&lt;	displays a less than sign
+	&gt;	displays a greater than sign
+	&quot;	displays a double quotation mark
+	&apos;	displays a single quotation mark
+
+	NOTE: none of the above tags are allowed in the <title></title> block
+
+</comment>
+
+
+
+<main_window name="Main Screen">
+	<Page>
+	<Title>FlowForm OSL Operations Screen</Title>
+	<Header>General Help</Header>
+	<Body>
+	&#x0D;
+		This is the main [red]FlowForm[/red] [i]Operations[/i] screen. When working with the
+		various screens in FlowForm OSL, you may press the F1 key to bring up
+		context-sensitive help for that particular task.
+	&#x0D;
+	&#x0D;
+		[green]FlowForm OSL[/green] is the software that provides all of the motion functionality for the FHS table.
+		It is written in C++ and all functionality is internal, no external libraries are necessary.
+		FlowForm [b]OSL[/b] allows automatically discovering and configuring all actuators connected to the system.
+		The software continuously monitors all actuators, their status and activity. 
+	&#x0D;
+	&#x0D;
+		FlowForm [b]OSL[/b] active system monitoring
+	&#x0D;
+	&#x0D;
+		FlowForm [b]OSL[/b] uses advanced mathematical analysis techniques on a number of parameters 
+		for each actuator in an effort to perform a predictive analysis and inform the operator 
+		[b]BEFORE[/b] errors occur. This is designed to be an aid to the operator by taking a preventatitive
+		approach to	problems by taking action during downtime and before it 
+		becomes a problem during production. 
+	&#x0D;
+	&#x0D;
+		As a backup plan, FlowForm [b]OSL[/b] utilizes good
+		old-fashioned current monitoring, watching for currents to rise and will inform the operator
+		when suspicious current draws are seen. When the current levels in the servo motors rise too high
+		or too quickly, it is ususally a sign of an impending mechanical problem, perhaps a worn nut on
+		the main screw, or contamination on the main actuator shaft; or anything that might be causing
+		the actuator to bind during motion, thus causing a higher current draw.
+	&#x0D;
+	&#x0D;
+
+		FlowForm [b]OSL[/b] communicates with the CMC during CMC/AUTOMATIC mode of operation. In this mode
+		FlowForm [b]OSL[/b] is prohibited from moving any actuators and those functions are therefore disabled, 
+		except as directed by the CMC.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Table Graphics</Title>
+	<Header>Hot Key Help</Header>
+	<Body>
+		There are keys that you may use to help navigate and manipulate the FHS table graphic image. Rolling the
+		mouse wheel will also zoom in/out. You can left-click on the table graphic and drag the image around 
+		the window to reposition a particular section.
+	&#x0D;
+	&#x0D;
+		[b]F[/b]  zoom FIT the image to the window
+	&#x0D;
+	&#x0D;
+		[b]+[/b]  fine zoom in (also may use the mouse wheel)
+	&#x0D;
+	&#x0D;
+		[b]-[/b]  fine zoom out (also may use the mous wheel)
+	&#x0D;
+	&#x0D;
+		[b]&gt;[/b]  coarse zoom in
+	&#x0D;
+	&#x0D;
+		[b]&lt;[/b]   coarse zoom out
+	&#x0D;
+	&#x0D;
+		[b]N[/b]   zoom reset
+	&#x0D;
+	&#x0D;
+		[b]V[/b]   flip image vertically
+	&#x0D;
+	&#x0D;
+		[b]H[/b]   flip image horizontally
+	&#x0D;
+	&#x0D;
+		
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>General</Title>
+	<Header>Shortcut Keys</Header>
+	<Body>
+		There are keys that you may use as shortcuts to various operations within FlowForm [b]OSL[/b]
+
+	&#x0D;
+	&#x0D;
+		[b]ESC[/b]  the ESCAPE key exits FlowForm [b]OSL[/b] with a prompt
+	&#x0D;
+	&#x0D;
+		[b]F1[/b]  brings up a context senstive help system
+	&#x0D;
+	&#x0D;
+		[b]F2[/b]  runs the NETWORK REFRESH FUNCTION
+	&#x0D;
+
+	&#x0D;
+		
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+
+
+	<Page>
+	<Title>Menu Functions</Title>
+	<Header>Operational Modes of FlowForm [b]OSL[/b]</Header>
+	<Body>
+	&#x0D;
+
+	[b]Part UnLoad[/b] - runs the recipe steps that are labelled for unloading the part, typically
+			this will be ducking actuators that would interfere with strapping or turning air ON to float the part 
+	&#x0D;
+	&#x0D;
+	[b]Part Load[/b] - runs the recipe steps that are labelled for loading the part, typically
+			this will be raising all actuators into recipe position, except perhaps those that might
+			interfere with strapping. This will also typically include turning air ON to float the part.
+	&#x0D;
+	&#x0D;
+	[b]CMC[/b] - this is automatic mode, where the FHS system turns control over to the CMC. All motion on the
+			FHS is prohibited, except as specifically directed by the CMC. This is the mode normally
+			used for machining. If the cutting head will come into contact with one of the actuators,
+			the CMC will direct the FHS to duck that particular actuator out of the way so that the
+			machining head may pass unobstructed.
+	&#x0D;
+	&#x0D;
+	[b]Manual[/b] - in this mode, the FHS and FlowForm OSl are free to manipulate actuators as needed. All 
+			motion is enabled and the operator may command any and all actuators into motion.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+</main_window>
+
+
+
+
+<config_window name="Configuration Screen">
+	<Page>
+	<Title>FlowForm OSL Configuration</Title>
+	<Header>General Configuration Help</Header>
+	<Body>
+	&#x0D;
+	This screen allows the operator to configure the actuator properties, map the actuators into the FHS table.
+	In addition, the operator may examine the recipe and I/O points. A number of buttons are provided that
+	allow the operator to command verious motion for the actuators, both individually or in selected groups.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+</config_window>
+
+
+
+
+<actuator_configuration_window name="Actuator Configuration Screen">
+	<Page>
+	<Title>Actuator Configuration</Title>
+	<Header>Actuator Configuration Functions</Header>
+	<Body>
+	&#x0D;
+	This screen allows the operator to configure a single actuator. There are four primary functions
+	associated with this screen. They are shown below and detailed in the following pages.
+	&#x0D;
+	&#x0D;
+	[b]PROPERTIES[/b] - shows certain properties of the actuator
+	&#x0D;
+	&#x0D;
+	[b]DIAGNOSTICS[/b] - allows certain motion commands
+	&#x0D;
+	&#x0D;
+	[b]SCREW COMPENSATION[/b] (calibration) - perform either CPI or SCREW COMP POINT calibration
+	&#x0D;
+	&#x0D;
+	[b]SERVO PROGRAM[/b] - upload a new motor program to the servo
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Actuator Properties</Title>
+	<Header>Actuator Property Functions</Header>
+	<Body>
+	&#x0D;
+	[b][red]PROPERTIES[/red][/b]
+	&#x0D;
+	&#x0D;
+	This function allows Enabling/Disabling the actuator. Once disabled, an actuator
+	will not be commanded by the FHS, it will essentially be ignored by FlowForm OSL. The screen
+	also displays some actuator status parameters.
+	&#x0D;
+	&#x0D;
+	[b]Flow S/N[/b] - this is the serial number as manufactured by Flow International
+	&#x0D;
+	&#x0D;
+	[b]Servo Serial[/b] - this is the serial number used by the motor manufacturer
+	&#x0D;
+	&#x0D;
+	[b]Node ID[/b] - this is the CANopen BUS ID assigned by FlowForm OSL during the AUTOADDRESS sequence
+	&#x0D;
+	&#x0D;
+	[b]Manufacture Date[/b] - this is the date the motor was manufactured
+	&#x0D;
+	&#x0D;
+	[b]Cycles[/b] - this is the total number of motion cycles for this actuator
+	&#x0D;
+	&#x0D;
+	[b]Home Offset[/b] - this is the home offset value for this actuator. This value will be in motor
+	counts for the older actuators (UM=5) and in microns for the newer actuators with an external scale.
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Actuator Diagnostics</Title>
+	<Header>Actuator Diagnostics Functions</Header>
+	<Body>
+	&#x0D;
+	[b][red]DIAGNOSTICS[/red][/b]
+	&#x0D;
+	&#x0D;
+	This function allows moving the actuator to a specified position, or homing the actuator.
+	It also allows sending commands to the actuator. This will require specific knowledge on the part of the
+	operator as to acceptable commands for the actuator.
+	&#x0D;
+	This function also shows various status parameters of the actuator.
+	&#x0D;
+	&#x0D;
+	[b]Drive Status[/b] - OK or ERROR
+	&#x0D;
+	&#x0D;
+	[b]Home Offset[/b] - the value of the home offset in this actuator, this value will be in motor counts for
+	older actuators (no external scale) or in microns for the newer actuators with the external scale.
+	&#x0D;
+	&#x0D;
+
+	[b]Motor Status[/b]
+	&#x0D;
+	&#x0D;
+	[b]Controller Status[/b]
+	&#x0D;
+	&#x0D;
+	[b]Servo Program Status[/b]
+	&#x0D;
+	&#x0D;
+	[b]CPU Status[/b]
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Actuator Screw Compensation</Title>
+	<Header>Actuator Screw Compensation Function - CPI</Header>
+	<Body>
+	&#x0D;
+	[b][red]SCREW COMPENSATION[/red][/b]
+	&#x0D;
+	&#x0D;
+	Actuators that do not have an external scale, need to be calibrated for accuracy. There are two basic
+	methods for accomplishing this, CPI or SCREW COMP POINTS. The various compensations are applied in the
+	following order. SCREW COMP first, since it is the most accurate, then falling back to CPI compensation.
+	If neither of these compensations has been applied to the actuator, we calculate position based on IDEAL counts.
+	&#x0D;
+	&#x0D;
+	[b]CPI COMPENSATION[/b]
+	&#x0D;
+	This method moves the actuator to the HOME position, and then awaits for the operator to input
+	the Z measurement taken at the HOME position. The function will then move the actuator to the
+	fully extended position and again wait for a Z measurement to be input by the operator.
+	Once the measurements are entered, the CPI compensation is calculated as follows.
+	&#x0D;
+	&#x0D;
+	[b]CPI[/b] = (full extension encoder counts - home encoder counts) / (full extension measurement - home measurement)
+	&#x0D;
+	&#x0D;
+	The above calculation determines an average CPI value for the entire length of the actuator. This
+	configuration works sufficiently on most actuators.
+	&#x0D;
+	&#x0D;
+	The lead screw used in the actuators is 10 turns per inch and since the motor has 16384 encoder counts per
+	revolution, this results in an IDEAL cpi value of 10 * 16384 = 163840 counts per inch. This ideal
+	value, however, doesn't take into consideration manfuacturing tolerances and build-up. The CPI
+	compensation allows for these tolerances and compensates the accuracy based on actual measurements.
+
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Actuator Screw Compensation</Title>
+	<Header>Actuator Screw Compensation Function - SCREW COMP POINTS</Header>
+	<Body>
+	&#x0D;
+	[b]SCREW COMP POINTS[/b]
+	&#x0D;
+	&#x0D;
+	Screw compensation points is the second method of actuator calibration. It allows the operator to command the
+	actuator to a position and then take a measurement at that position. This pair of data will be stored in
+	the actuator and used when a specific position is commanded during operation. 
+	&#x0D;
+	&#x0D;
+	FlowForm OSL will find two measurements in this table of data where the new commanded position lies between. The software
+	will then interpolate the measurements into an exact motor count for the commanded position.
+	&#x0D;
+	&#x0D;
+	[b]EXAMPLE:[/b]
+	&#x0D;
+	If we command the actuator to 250mm, we search the compensation table for the 200 and 300 mm entries.
+	Suppose the 200mm entry has a measured encoder count of 200000 and the 300mm point has an encoder count
+	of 300000. We would then interpolate and create a relation (proportion) between the measured values (200,300) and the
+	commanded value fo 250mm. We then apply this proportion to the encoder count values and find that our
+	new encoder count value is 250000. This makes sense, since 250 lies in the middle of 200-300, therefore, 
+	our commanded encoder count should lie in the middle of 200000 and 300000.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Actuator Home Offset</Title>
+	<Header>Setting Actuator Home Offset</Header>
+	<Body>
+	&#x0D;
+	[b]HOME OFFSET[/b]
+	&#x0D;
+	&#x0D;
+	The displayed value is the home offset value that is currently stored in the actuator. By clicking
+	the ENTER OFFSET button, the operator will be lead through a series of screens that allow setting 
+	a new home offset value.
+	&#x0D;
+	&#x0D;
+	The home offset value is calculated in encoder counts on the older actuators or microns on the
+	newer actuators with an external encoder. When an actuator is homed, it moves to the limit proximity
+	switch, stops, reverses direction (moving upward) and then stops on the zero-crossing of the motor
+	encoder. The home offset value is then applied, that is, the motor is moved upward by the home offset
+	amount. 
+	&#x0D;
+	&#x0D;
+	The FHS system is not designed for negative home offsets, there simply isn't enough mechanical 
+	movement downward from home in the actuator. This means that the CMC Z-axis must be ABOVE the
+	FHS Z-axis. This is an important point to keep in mind.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+
+	<Page>
+	<Title>Actuator Servo Program</Title>
+	<Header>Uploading A New Motor Program</Header>
+	<Body>
+	&#x0D;
+	Servo Program
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+</actuator_configuration_window>
+
+
+
+<actuator_config_window name="Display Actuator Configuration">
+	<Page>
+	<Title>Acutator Information Display</Title>
+	<Header>Actuator Information</Header>
+	<Body>
+	&#x0D;
+	This screen shows information about the actuators, header pockets and recipe. Additionally, it
+	shows it the actuator is active, how it's clocked and the spacer height (if any).
+	</Body>
+	<Footer></Footer>
+	</Page>
+</actuator_config_window>
+
+
+
+<network_refresh_window name="Network Refresh Screen">
+	<Page>
+	<Title>Network Refresh</Title>
+	<Header>Network Refresh Functions</Header>
+	<Body>
+	&#x0D;
+	This screen shows the progress as FlowForm OSL goes through the network setup functionality.
+	All servo controllers are configured, as well as all of the I/O points and the actuators
+	are polled for status.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>I/O Interface Connect</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section configures the I/O points for the main panel I/O. It is this I/O that communicates
+	with the CMC, allows restarting the servo controllers, monitoring the status of the power busses, 
+	ESTOP and power good signals.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Servo Network Controller Connect</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section configures the software on the servo controllers.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Stop Controller Program and Clear Resources</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section stops the servo controller for configuration. The resource file is cleared
+	and the program running on the servo controller is stopped.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Query for Servo Serial Numbers</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section polls the actuators for each servo controller and gets their serial numbers.
+	These numbers are then compared to the database of what was present in the table the last
+	time the Network Refresh was run. Any discrepances will be displayed.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Download Controller Resources</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section installs the software on each of the servo controllers, rebuilds the
+	resource file with information gained in the last step (Query for Servo Serial Numbers) and uploads 
+	it to the servo controller.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Poll Servo Network</Title>
+	<Header></Header>
+	<Body>
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Download Controller Program</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	Download the controller program to each of the servo controllers. This program handles PDO messaging, 
+	which is a CANopen type message. These messages are sent by the servo when one of two things occurs, 
+	a task completion or an error.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Initialize PDO Messaging</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section initializes the PDO messaging services. The program is started in the servo controller
+	and FlowForm OSL subsccribes to this service on each of the controllers.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>CMC Listener</Title>
+	<Header></Header>
+	<Body>
+	&#x0D;
+	This section sets up a listener socket on the ethernet that listens for connections from the CMC. This
+	connection is used to transmit messages from the CMC to FHS. This is how motion (primarily duck and unduck)
+	are accomplished between the two machines. Virtually any command that may be used in a recipe, may likewise
+	be sent through the ethernet connection.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+	<Page>
+	<Title>Airstand I/O</Title>
+	<Header>Airstand I/O Configuration</Header>
+	<Body>
+	&#x0D;
+	This section configures the I/O points on the airstand I/O block. This I/O block monitors both
+	air pressure and vacuum present on the FHS. It allows allows turning the air and vacuum on and off.
+	There is also a monitor for the pit sensor, which will show when the pit has become too full of liquid.
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+</network_refresh_window>
+
+
+
+
+<actuator_status_window name="Actuator Status Screen">
+	<Page>
+	<Title>Actuator Status</Title>
+	<Header>Actuator Status</Header>
+	<Body>
+	&#x0D;
+	This screen shows a lot of information about a single actuator. The information displayed shows the
+	current status of the actuator. All information is current at the time the window is displayed.
+	</Body>
+	<Footer></Footer>
+	</Page>
+</actuator_status_window>
+
+
+<airstand_window name="Airstand I/O Screen">
+	<Page>
+	<Title>Airstand I/O</Title>
+	<Header>Airstand I/O Information</Header>
+	<Body>
+	&#x0D;
+	This screen shows all of the I/O points and their mappings for the airstand. Displayed are the
+	digital outputs and the analog inputs. This screen also shows the IP for the
+	I/O block as well as its CONNECTION status and basic module status.
+	&#x0D;
+	&#x0D;
+	[b]DIGITAL OUTPUTS[/b]
+	&#x0D;
+	The digital outputs control the AIR and VAC solenoid valves on the airstand. They control whether or
+	not the AIR or VAC is on or off.
+	&#x0D;
+	&#x0D;
+	[b]ANALOG INPUTS[/b]
+	&#x0D;
+	The analog input is an input from the pit sensor. This is an analog sensor that provides the liquid
+	level in the pit underneath the actuators. If the level becomes too high, FlowForm OSL will alert
+	the operator.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer></Footer>
+	</Page>
+</airstand_window>
+
+
+
+
+
+<comp_point_window name="Compensation Point Screen">
+	<Page>
+	<Title>Actuator Screw Compensation</Title>
+	<Header>Actuator Screw Compensation Function - SCREW COMP POINTS</Header>
+	<Body>
+	&#x0D;
+	[b]SCREW COMP POINTS[/b]
+	&#x0D;
+	&#x0D;
+	Screw compensation points is the second method of actuator calibration. It allows the operator to command the
+	actuator to a position and then take a measurement at that position. This is done at several positions and
+	each pair of data will be stored in	the actuator and used when a specific position is commanded during operation. 
+	&#x0D;
+	&#x0D;
+	FlowForm OSL will find two measurements in this table of data where the new commanded position lies between. The software
+	will then interpolate the measurements into an exact motor count for the commanded position.
+	&#x0D;
+	&#x0D;
+	[b]EXAMPLE:[/b]
+	&#x0D;
+	If the actuator is commanded to 250mm, FlowForm OSL search the compensation table for the 200 and 300 mm entries
+	(if any). Suppose the 200mm entry has a measured encoder count of 200000 and the 300mm point has an encoder count
+	of 300000. We would then interpolate and create a relation (proportion) between the measured values (200,300) and the
+	commanded value fo 250mm. FlowForm OSL then applies this proportion to the encoder count values and finds that the
+	new encoder count value is 250000. This makes sense, since 250 lies in the middle of 200-300, therefore, 
+	the commanded encoder count should lie in the middle of 200000 and 300000.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+
+</comp_point_window>
+
+
+<cpi_comp_window name="CPI Compensation Screen">
+	<Page>
+	<Title>Actuator CPI Compensation</Title>
+	<Header>Actuator Screw Compensation Function - CPI</Header>
+	<Body>
+	&#x0D;
+	[b]CPI COMPENSATION[/b]
+	&#x0D;
+	This method moves the actuator to the HOME position, and then awaits for the operator to input
+	the Z measurement taken at the HOME position. The function will then move the actuator to the
+	fully extended position and again wait for a Z measurement to be input by the operator.
+	Once the measurements are entered, the CPI compensation is calculated as follows.
+	&#x0D;
+	&#x0D;
+	[b]CPI[/b] = (full extension encoder counts - home encoder counts) / (full extension measurement - home measurement)
+	&#x0D;
+	&#x0D;
+	The above calculation determines an average CPI value for the entire length of the actuator. This
+	configuration works sufficiently on most actuators.
+	&#x0D;
+	&#x0D;
+	The lead screw used in the actuators is 10 turns per inch and since the motor has 16384 encoder counts per
+	revolution, this results in an IDEAL cpi value of 10 * 16384 = 163840 counts per inch. This ideal
+	value, however, doesn't take into consideration manfuacturing tolerances and build-up. The CPI
+	compensation allows for these tolerances and compensates the accuracy based on actual measurements.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+
+
+
+</cpi_comp_window>
+
+
+<actuator_window name="Actuator Screen">
+	<Page>
+	<Title>Actuator Listing/Details</Title>
+	<Header>Actuator Listing</Header>
+	<Body>
+	&#x0D;
+	This screen shows a display of all actuators in the FHS system. The display shows important
+	parameters for each actuator.
+	&#x0D;
+	&#x0D;
+	[b]Node[/b] - this is the CANopen node ID for this actuator, assigned by FlowForm OSL
+	&#x0D;
+	&#x0D;
+	[b]Serial[/b] - this is the Flow serial number for this actuator (located on the tag on top of the actuator)
+	&#x0D;
+	&#x0D;
+	[b]ID[/b] - this is a composite number representing the controller index: CANopen index.
+	&#x0D;
+	[b]EXAMPLE:[/b] 2:12 would represent controller number 2, CANopen actuator number 12
+	&#x0D;
+	&#x0D;
+	[b]Position[/b] - shows the actuators current position
+	&#x0D;
+	&#x0D;
+	[b]Home Offset[/b] - shows the current home offset value stored in the actuator
+	&#x0D;
+	&#x0D;
+	[b]Cycles[/b] - shows the total number of motion cycles that have been performed by this actuator
+	&#x0D;
+	&#x0D;
+	[b]Motor[/b]
+	&#x0D;
+	&#x0D;
+	[b]UM[/b] - UM=4, the actuator has an external encoder (new style), UM=5, the actuator has no external encoder (old style)
+	&#x0D;
+	&#x0D;
+	[b]Index Mark[/b] - shows the current INDEX_MARK value for this actuator (only applies to UM=5 actuators).
+		NOTE: This value WILL vary, it is partially dependent upon a PROXIMITY sensor which will vary. This number
+		is used as an indicator for adjusting the limit switch (prox switch) and should be roughly in the range
+		of 8000 to 12000, denoting correct adjustment of the limit switch.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer></Footer>
+	</Page>
+
+
+	<Page>
+	<Title>Actuator Listing/Details</Title>
+	<Header>Actuator Listing Buttons</Header>
+	<Body>
+	&#x0D;
+	There are four buttons at the bottom of the display. These buttons determine just which actuators
+	are shown in the display.
+	&#x0D;
+	&#x0D;
+	[b]All[/b] - shows all actuators in the system
+	&#x0D;
+	&#x0D;
+	[b]Selected[/b] - shows all actuators that have been selected on the FHS table graphic
+	&#x0D;
+	&#x0D;
+	[b]Recipe[/b] - shows all actuators that are contained in the current recipe
+	&#x0D;
+	&#x0D;
+	[b]Active[/b] - shows all actuators that are marked as active
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer></Footer>
+	</Page>
+
+</actuator_window>
+
+
+
+
+<controller_window name="Servo Controller Screen">
+	<Page>
+	<Title>Servo Controllers</Title>
+	<Header>Servo Controller Status Information</Header>
+	<Body>
+	&#x0D;
+	This screen is brought up by a menu button on the I/O Status menu section. It shows the status
+	of the controllers in the system. The information displayed is detailed below. FlowForm OSL
+	continuously monitors these parameters and will alert the operation when there is a problem.
+	&#x0D;
+	&#x0D;
+	[b]Controller[/b] - the controller number in the system (assigned by FlowForm OSL)
+	&#x0D;
+	&#x0D;
+	[b]IP[/b] - the IP address assigned to this controller (defined in the config file)
+	&#x0D;
+	&#x0D;
+	[b]Connected[/b] - shows whether or not the controller is currently connected to FlowForm OSL
+	&#x0D;
+	&#x0D;
+	[b]Baud[/b] - shows the currently configured baud rate for the CANopen bus on this controller. This is
+	the communication rate at which the controller communicates with the servos.
+	&#x0D;
+	&#x0D;
+	[b]Power[/b] - shows whether or not this controller has power applied to it
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer></Footer>
+	</Page>
+</controller_window>
+
+
+
+<firmware_window name="Download Firmware">
+	<Page>
+	<Title>Download Firmware</Title>
+	<Header>Download firmware to a single actuator</Header>
+	<Body>
+	The download window displays the firmware version currently loaded in the actuator as well as
+	the version that would be downloaded if the [b]START[/b] button is clicked.
+	&#x0D;
+	&#x0D;
+	Once the process is started, a progress bar displays the time until the operation is either completed
+	or times out. In either case, a message will be displayed informing you of how the operation ended, 
+	either successfully or there was an error.
+	&#x0D;
+	&#x0D;
+	</Body>
+	<Footer>Copyright 2013 Flow International</Footer>
+	</Page>
+</firmware_window>
+
+

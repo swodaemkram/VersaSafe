@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Find all devices with VIDF:04d8 PID:000a"
+lsusb -d04d8:000a
+

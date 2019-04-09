@@ -1,0 +1,5 @@
+#/usr/lib/x86_64-linux-gnu/libserial.so
+#/usr/lib/x86_64-linux-gnu/libusb-1.0.so
+
+export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/
+

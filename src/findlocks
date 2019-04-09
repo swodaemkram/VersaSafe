@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# find all
+#/dev/input/event4 - Dell_Dell_USB_Keyboard
+#/dev/input/event5 - Logitech_USB_Optical_Mouse
+#/dev/input/mouse0 - Logitech_USB_Optical_Mouse
+#/dev/ttyACM0 - FKI_Security_Group_LLC._Apunix_LPM-01_10
+
+
+for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
+    (
+        syspath="${sysdevpath%/dev}"
+        devname="$(udevadm info -q name -p $syspath)"
+        [[ "$devname" == "bus/"* ]] && continue
+        eval "$(udevadm info -q property --export -p $syspath)"
+        [[ -z "$ID_SERIAL" ]] && continue
+        echo "/dev/$devname - $ID_SERIAL" | grep  "FKI"
+    )
+done
+

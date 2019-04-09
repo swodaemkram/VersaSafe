@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "editing @ line ${1}"
+nano +$1 versasafe.cpp
+

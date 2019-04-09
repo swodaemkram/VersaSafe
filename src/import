@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "Import test.sql into fking.dbf"
+password="v|per101";
+mysql -uroot -p$password -D fking < test.sql
+

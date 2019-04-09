@@ -1,0 +1,887 @@
+/*
+	Module: apuLock.cpp (class)
+	Author: GRC
+	Created: 11-13-18
+
+
+	This class will act as a driver for the summit and ascent locks
+
+*/
+
+#include <time.h>
+#include <unistd.h> // for bzero
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <SerialStream.h>
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <cstdint>
+#include <bits/stdc++.h>    // for strcpy
+#include <array>            // for array copy
+
+string lock_driver_version="1.0";
+
+
+
+/*
+// lock atomics (publics)
+string getSerial(void);
+int    setSerial(string serial);
+string getFirmware(void);
+string getLockDoorSensors(void);
+string getAllSensors(void);
+string getStatus(void);
+string getVolts(void);
+int Lockit(void);
+int Unlockit(void);
+int setdelay(unsigned int delay);
+string GetDriverVersion(void);
+string getdelay(void);
+int downloadFirmware(string filename)
+void DoDownloadHID(void)
+
+
+misc, private
+string genkey(string challenge);
+void SendChar(char chr);
+string GetResponse();
+void SendString(string str);
+void Setup(void);
+void SendTerminator(void);
+void mssleep(int micros);
+void printhexB(char * bytes, int bsize);
+char* rot(char b[], char seed)
+bool chk_PERR(string s);
+bool chk_OK(string s);
+
+
+*/
+
+using namespace std;
+using namespace LibSerial;
+
+
+// general call available to all
+string Get_Lock_Driver_Version(void)
+{
+	return lock_driver_version;
+}
+
+
+/*
+
+sensors
+RC0 - bolt sensor
+RC1 - exit sensor
+RC2
+
+ASCENT LOGK
+    S   OK 0 1 1 0  - get sensors OK RC0 RC1 RC2 0;
+    a|n OK 5B156A0A - get serial
+    r   OK 0 0      - get exit sensor + bolt OK RC1 RC0
+    N|A             - set new serial number
+    s   OK 00 t=0;  - get status
+    f               - get firmware version
+    D               - lock (de-energize)
+
+    k   OK 30       - get challenge key
+    generate response and then either P or E as below
+    "P "+info.get("serial")+" "+genkey(s.substring(3)                   // Request boot loader mode
+    "P 5B156A0A " + genkey
+
+    "E "+etime+ " " +genkey - response for challenge key, etime="10"    // energize (unlock lock)
+
+sensors
+element 1 = lock        1=lock open
+element 2 = door
+
+*/
+
+
+
+class apuLock
+{
+
+//using namespace std;
+//using namespace LibSerial;
+#define CODE_LENGTH     10
+#define KEY "7578649673"
+
+
+string portname="/dev/ttyACM0";
+char terminator=';';
+char send_char='k';
+string lock_serial="none";
+string firmware="none";
+int lock_sensor=-1; // 1
+int door_sensor=-1; // 1 = door open
+string lock_status;
+string lock_type;       // "summit" or "ascent"
+string lock_voltage;
+const char  serialnum[32]  = "UNDEFINED";
+const char  addr[32] = "UNDEFINED";
+const char  str_ok[4] = "OK;";
+const char  str_err[5] = "ERR;";
+const char  str_perr[6] = "PERR;";
+const char  str_OpenPar[3] = ")";
+string etime="10";      // lock open time in seconds
+
+SerialStream my_serial;
+
+
+/*
+
+Unlocking the lock
+Sending k
+Challenge Key: OK 4754743650;
+Generating response key
+Challenge: 4754743650[10]
+Response key: 6059250064
+Sending:E 10 6059250064;
+Resp: OK;
+DOORS
+
+
+Unlocking the lock
+Sending k
+Challenge Key: PERR;
+Generating response key
+Challenge: R[1]
+Response key: 5776194576
+Sending:E 10 5776194576;
+Resp: PERR;
+DOORS
+
+
+*/
+
+
+public:
+		apuLock(string pname)
+		{
+			portname=pname;
+		}
+
+
+		~apuLock(void)
+		{
+			close();
+		}
+
+		void close(void)
+		{
+			if (!my_serial)
+				my_serial.Close();
+		}
+
+
+	// returns 1 on success, 0 on error
+
+	int Connect(void)
+	{
+
+//printf("portname: %s\n",portname.c_str() );
+            my_serial.Open(portname);
+            if (my_serial.good() )
+            {
+                my_serial.SetBaudRate(SerialStreamBuf::BAUD_115200);
+                my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_8);
+                my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
+                my_serial.SetParity(SerialStreamBuf::PARITY_NONE);
+                my_serial.SetNumOfStopBits(1);
+                Setup();
+				return (1);
+            }
+
+		return (0);
+	}
+
+
+	int setdelay(unsigned int delay)
+	{
+		if (delay>0 && delay<=99)
+		{
+			etime= to_string (delay);
+			return 1;
+		}
+
+		return 0;
+	}
+
+
+	string getdelay(void)
+	{
+		return etime;
+	}
+
+
+
+
+
+
+/*
+
+send
+n - get serial number
+s - poll initial voltage
+f - get firmware version
+
+*/
+void Setup(void)
+{
+    printf("Setup\n");
+    string resp;
+
+    resp=getLockDoorSensors();
+    std::cout << "Sensors: " + resp + "\n";     // Sensors: OK 0 1;
+    if (door_sensor)
+        printf("Door OPEN\n");
+    else
+        printf("Door CLOSED\n");
+    if (lock_sensor)
+        printf("UNLOCKED\n");
+    else
+        printf("LOCKED\n");
+
+
+    // get serial number
+    getSerial();
+    std::cout << "\nSerNum: " + lock_serial + "\n\n";   //SerNum: OK 5B156A0A;
+
+
+    // get voltages (and set lock type)
+    resp=getVolts();
+    std::cout << "Volts: " + resp + "\n";       // Volts: OK 00 t=0;
+
+    mssleep(40);
+
+    // get firmware version
+    getFirmware();
+    std::cout << "FW ver: " + firmware + "\n";  //FW ver: OK $Revision: 1.2 $;
+
+    mssleep(50);
+
+
+    // get status
+    resp=getStatus();
+    std::cout << "Status: " + resp + "\n";  //Status: OK 00 t=0;;
+
+
+
+exiter:
+    return;
+}
+
+
+
+
+/*
+    read the Lock and Door sensors
+    1st parm is lock sensor, pos 3
+    2nd is door sensor, pos 5
+
+    example:  Sensors: OK 0 1; (shows door open)
+
+sensors
+RC0 - bolt sensor
+RC1 - exit sensor
+RC2
+
+    r   OK 0 0      - get exit sensor + bolt OK RC1 RC0
+
+
+*/
+
+
+string getLockDoorSensors(void)
+{
+    // get sensors
+    string resp;
+    send_char = 'r';
+    printf("Sending: %c\n",send_char);
+    SendChar(send_char);
+    resp = GetResponse();
+    if ( chk_PERR(resp))
+    {
+        lock_sensor = (int) resp[3] - 0x30;
+        door_sensor = (int) resp[5] - 0x30;
+    }
+
+    return resp;
+}
+
+
+
+string getFirmware(void)
+{
+    string resp;
+    char send_char='f';
+//#ifdef DBPRINT
+    printf("\nSending: %c\n",send_char);
+//#endif
+    SendChar(send_char);
+    resp = GetResponse();
+    if (! chk_PERR(resp) )
+        firmware=resp;
+    return firmware;
+}
+
+
+string getLockType(void)
+{
+	getVolts();
+	return lock_type;
+}
+
+
+
+
+/*
+    get voltages
+*/
+string getVolts(void)
+{
+    string resp;
+    char send_char='s';
+    printf("\nSending: %c\n",send_char);
+    SendChar(send_char);
+    resp = GetResponse();   // "OK 00 t=0;" len > 8
+    std::size_t found = resp.find("V=");
+    if (found!=std::string::npos)
+    {
+        lock_type="summit";     // summit lock
+        lock_voltage="";
+    }
+    else
+        lock_type="ascent";     // ascent lock
+
+    return resp;
+}
+
+
+/*
+    get lock mtimer status
+    Status: OK 00 t=0;
+
+	int mtimer is set to zero by LOCK cmd (D)
+	sprintf(tmp, "OK 0%o t=%d;", mtimer > 0 ? 1 : 0, mtimer);
+	OK 01 denote timer is active
+	t=%d gives the mtimer value
+    mtimer = sec * 40; set at E cmd and counts down in an interrupt till it expires
+
+*/
+string getStatus(void)
+{
+    string resp;
+    char send_char='s';
+    printf("\nSending: %c\n",send_char);
+    SendChar(send_char);
+    resp = GetResponse();
+    lock_status = resp;
+    return lock_status;
+}
+
+
+
+/*
+
+sensors
+RC0 - bolt sensor
+RC1 - exit sensor
+RC2
+        "OK RC0 RC1 RC2 0;"
+        "OK 0 1 1 0"
+    S               - get sensors OK RC0 RC1 RC2 0;
+
+*/
+
+string getAllSensors(void)
+{
+    // get sensors
+    string resp;
+    send_char = 'S';
+    printf("Sending: %c\n",send_char);
+    SendChar(send_char);
+    resp = GetResponse();
+    if (! chk_PERR(resp))
+    {
+        lock_sensor = (int) resp[3] - 0x30;
+        door_sensor = (int) resp[5] - 0x30;
+    }
+
+    return resp;
+}
+
+
+
+
+
+// set the lock serial number
+// returns 1 on success, 0 on failure
+int setSerial(string serial)
+{
+    string resp;
+    string str = "N " + serial +";";
+
+    if (serial.length() >= sizeof(serialnum) )
+        return (0);
+
+    SendString(str);
+    resp = GetResponse();
+	if (chk_OK(resp))
+		return 1;
+
+	return 0;
+
+}
+
+
+
+
+string getSerial(void)
+{
+    string resp;
+    char send_char = 'n';
+#ifdef DBPRINT
+    printf("\nSending: %c\n",send_char);
+#endif
+    SendChar(send_char);
+    resp = GetResponse();   // "OK 5B156A0A;" len is > 4
+    if (! chk_PERR(resp))
+        lock_serial=resp.substr(3);
+    return lock_serial;
+}
+
+
+
+
+
+
+
+// lock the lock (de-energize)
+
+
+// returns 1 on success
+// 0 on error
+
+int Lockit(void)
+{
+    string resp;
+    char send_char='D';
+    SendChar(send_char);
+    resp=GetResponse();
+    printf("RESP: %s\n",resp.c_str() );
+    if (! chk_PERR(resp) )
+        return 0;
+
+    return 1;
+}
+
+
+
+// returns 1 on success
+// 0 on error
+
+int Unlockit(void)
+{
+    char send_char;
+    string resp;
+    string key;
+    string snd;
+
+    printf("\nUnlocking the lock");
+    send_char='k';
+    printf("\nSending %c\n",send_char);
+    SendChar(send_char);
+    resp=GetResponse();
+
+	if (chk_PERR(resp))
+	{
+		// log an error
+		printf("Response was %s\n",resp.c_str() );
+		return 0;
+	}
+
+    printf("Challenge Key: %s\n",  resp.c_str());   //Challenge Key: OK 5715393577;
+
+
+
+/*
+        use this section only of the challenge key packet
+        |--------|
+    "OK 9036540674;"
+*/
+    printf("Generating response key\n");
+    key = genkey(resp.substr(3));
+    printf("Response key: %s\n",key.c_str());
+
+
+    snd = "E " +etime+" "+ key +";";
+    printf("Sending:%s\n", snd.c_str() );
+    SendString(snd);
+    mssleep(50);
+    resp = GetResponse();
+    printf("Resp: %s\n", resp.c_str() );
+
+	if (chk_OK(resp))
+		return 1;
+
+	return 0;
+}
+
+
+
+/*
+	returns 1 on success, 0 on failure
+
+root@garys-box:/home/garyc/FK_servers# ls -hal /home/garyc/javabc/apunix/basecamp/fsusb-arm
+lrwxrwxrwx 1 garyc garyc 28 Jul 11 10:00 /home/garyc/javabc/apunix/basecamp/fsusb-arm -> ../../lib/basecamp/fsusb-arm
+root@garys-box:/home/garyc/FK_servers# ls -hal /home/garyc/javabc/apunix/basecamp/fsusb-
+fsusb-arm   fsusb-i386
+root@garys-box:/home/garyc/FK_servers# ls -hal /home/garyc/javabc/apunix/basecamp/fsusb-
+
+/home/garyc/javabc/apunix/basecamp/fsusb-arm
+
+
+returns 1 on success, 0 on failture
+
+*/
+
+int downloadFirmware(void)
+{
+    char send_char;
+    string resp;
+    string key;
+    string snd;
+
+
+	if (lock_type=="ascent")
+		DoDownloadHID();
+
+    // prepare the firmware file first
+	DoDownload();
+
+
+	// request boot loader mode
+    send_char='k';
+    printf("\nSending %c\n",send_char);
+    SendChar(send_char);
+    resp=GetResponse();
+
+    if (chk_PERR(resp))
+    {
+        // log an error
+        printf("Response was %s\n",resp.c_str() );
+        return 0;
+    }
+
+    printf("Challenge Key: %s\n",  resp.c_str());   //Challenge Key: OK 5715393577;
+
+
+
+/*
+        use this section only of the challenge key packet
+        |--------|
+    "OK 9036540674;"
+*/
+    printf("Generating response key\n");
+    key = genkey(resp.substr(3));
+    printf("Response key: %s\n",key.c_str());
+
+
+    snd = "P " +string(serialnum)+" "+ key +";";
+    printf("Sending:%s\n", snd.c_str() );
+    SendString(snd);
+    mssleep(50);
+    resp = GetResponse();
+    printf("Resp: %s\n", resp.c_str() );
+
+
+
+}
+
+
+
+// for summit locks
+
+void DoDownload(void)
+{
+}
+
+
+
+// for ascent locks
+
+void DoDownloadHID(void)
+{
+}
+
+
+
+private:
+
+
+/*
+    if s contains PERR, return TRUE
+*/
+
+bool chk_PERR(string s)
+{
+    if (strstr(s.c_str(),"PERR"))
+        return 1;
+
+    return 0;
+
+}
+
+/*
+    if s contains OK, return TRUE
+*/
+
+bool chk_OK(string s)
+{
+    if (strstr(s.c_str(),"OK"))
+        return 1;
+
+    return 0;
+
+}
+
+
+
+/*
+	read a string from the port
+*/
+
+
+string GetResponse()
+{
+//    const int BUFFER_SIZE = 150 ;
+#define BUFFER_SIZE 150
+    char next_char ;
+    char input_buffer[BUFFER_SIZE] ;
+    bzero(input_buffer,BUFFER_SIZE);
+
+
+	int n=0;
+    while (my_serial.rdbuf()->in_avail() >0)
+    {
+        my_serial.get(next_char);
+        input_buffer[n++]=next_char;
+        mssleep(1);
+    }
+
+
+
+    int len=strlen(input_buffer);
+    printf("Rcvd: %s --%d chars, last char: %02X\n",input_buffer,len,next_char);
+    return string(input_buffer);
+
+}
+
+
+
+
+// sleep micros MS
+
+void mssleep(int micros)
+{
+    usleep(micros *1000);
+}
+
+
+
+void SendChar(char ochr)
+{
+
+    my_serial << ochr;    // write
+    mssleep(1);
+    SendTerminator();
+    mssleep(1);
+
+}
+
+void SendTerminator(void)
+{
+//  my_serial << terminator;
+    my_serial << ";";
+}
+
+
+void SendString(string str)
+{
+    my_serial << str;
+
+}
+
+
+
+// Generate key from provided challenge code
+string genkey(string challenge)
+{
+        unsigned char r = 0;
+
+        char master[] = KEY;    // "7578649673";
+        char ctmp[CODE_LENGTH];                              // = new byte[10];
+        char code[CODE_LENGTH];
+		bzero(ctmp,CODE_LENGTH);
+		bzero(code,CODE_LENGTH);
+
+        // strip the ";" off the end
+        if (challenge.size () > 0)  challenge.resize (challenge.size () - 1);
+
+
+
+        printf("Challenge: %s[%d]\n",challenge.c_str(), (int) challenge.size() );
+        // convert string to byte array
+        char salt[12];
+        bzero(salt,12);
+
+
+#ifdef DBPRINT
+        printf("MASTER1: %s\n",master);
+        printf("MASTER1 HEX cpp : ");
+        printhexB(master,CODE_LENGTH);
+        printf("\n");
+#endif
+#ifdef DBPRINTJAVA
+        printf("%s\n",master1hex.c_str() );
+#endif
+
+
+        for(int i = 0; i < CODE_LENGTH; i++)
+            salt[i] = challenge[i] - 0x30;
+//          salt[i] = challenge[i] & 0xF;
+
+
+
+#ifdef DBPRINT
+        printf("SALT HEX cpp    : ");
+        printhexB(salt,CODE_LENGTH);
+        printf("\n");
+#endif
+#ifdef DBPRINTJAVA
+        printf("%s\n",salthex.c_str() );
+#endif
+
+
+
+        // convert
+        for(int i = 0; i < CODE_LENGTH; i++)
+            master[i] = master[i] - 0x30;
+
+#ifdef DBPRINT
+        printf("MASTER2 HEX cpp : ");
+        printhexB(master,CODE_LENGTH);
+        printf("\n");
+#endif
+#ifdef DBPRINTJAVA
+        printf("%s\n",master2hex.c_str() );
+#endif
+
+        for(int i = 0; i < CODE_LENGTH; i++)
+            ctmp[i] = (char) ((salt[i] + master[i]) % 10);
+
+
+
+#ifdef DBPRINT
+        printf("CTMP HEX cpp    : ");
+        printhexB(ctmp,CODE_LENGTH);
+        printf("\n");
+#endif
+#ifdef DBPRINTJAVA
+        printf("%s\n", ctmphex.c_str() );
+#endif
+
+        for(int i = 0; i < 5; i++)
+        {
+            char *x = rot(ctmp, r); // returns addy
+            for (int i=0; i < CODE_LENGTH; i++)
+                ctmp[i] = x[i];
+            r = ctmp[9];
+        }
+
+
+#ifdef DBPRINT
+        printf("CTMP1 HEX cpp   : ");
+        printhexB(ctmp,CODE_LENGTH);
+        printf("\n");
+#endif
+#ifdef DBPRINTJAVA
+        printf("%s\n",ctmp1hex.c_str() );
+#endif
+
+        for(int i = 0; i < CODE_LENGTH; i++)
+        {
+            code[i] = (unsigned char) ('0' + ctmp[i]);
+        }
+
+
+#ifdef DBPRINT
+        printf("CODE HEX cpp    : ");
+        printhexB(code,CODE_LENGTH);
+        printf("\n");
+#endif
+
+#ifdef DBPRINTJAVA
+        printf("%s\n",codehex.c_str() );
+#endif
+
+        string str;
+        for (int i=0; i<CODE_LENGTH; i++)
+            str += code[i];
+        return str;
+
+}
+
+
+void printhexB(char * bytes, int bsize)
+{
+    for (int n=0; n< bsize; n++)
+        printf("%02X",(unsigned char) bytes[n]);
+        printf("[%d]", bsize);
+}
+
+
+
+   /* Functions for challenge key generation */
+
+char master[10][10] ={
+        {1,2,3,4,5,6,7,8,9,0},
+        {3,4,5,6,7,8,9,0,1,2},
+        {6,7,8,9,0,1,2,3,4,5},
+        {9,0,1,2,3,4,5,6,7,8},
+        {4,5,6,7,8,9,0,1,2,3},
+        {7,8,9,0,1,2,3,4,5,6},
+        {8,9,0,1,2,3,4,5,6,7},
+        {0,1,2,3,4,5,6,7,8,9},
+        {2,3,4,5,6,7,8,9,0,1},
+        {5,6,7,8,9,0,1,2,3,4}
+    };
+
+char* rot(char b[], char seed)
+{
+    char a[10];
+    for (int i=0; i < CODE_LENGTH; i++)
+        a[i]=b[i];
+    b[0] = master[seed][a[0]];
+    for(int i = 1; i < CODE_LENGTH; i++) {
+        b[i] = master[b[i-1]][a[i]];
+    }
+    return &b[0];
+}
+
+
+
+
+
+
+
+}; // end of class
+
+
+

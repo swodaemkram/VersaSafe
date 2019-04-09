@@ -1,0 +1,144 @@
+dmesg | grep tty
+lsusb -vv
+/sys/devices
+udevadm info -a -p  $(udevadm info -q path -n /dev/ttyUSB0)
+https://unix.stackexchange.com/questions/144029/command-to-determine-ports-of-a-device-like-dev-ttyusb0
+usb-devices
+
+
+
+or create this script
+#!/bin/bash
+
+for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
+    (
+        syspath="${sysdevpath%/dev}"
+        devname="$(udevadm info -q name -p $syspath)"
+        [[ "$devname" == "bus/"* ]] && continue
+        eval "$(udevadm info -q property --export -p $syspath)"
+        [[ -z "$ID_SERIAL" ]] && continue
+        echo "/dev/$devname - $ID_SERIAL"
+    )
+done
+
+OUTPUT
+root@garys-box:/home/garyc/Desktop/VersaSafe/src# ./t
+/dev/input/mouse0 - Logitech_USB_Optical_Mouse
+/dev/input/event4 - Logitech_USB_Optical_Mouse
+/dev/ttyACM1 - SAMSUNG_SAMSUNG_Android_98897a3550314d5332
+/dev/input/event5 - Dell_Dell_USB_Keyboard
+/dev/ttyACM0 - FKI_Security_Group_LLC._Apunix_LPM-01_10
+/dev/snd/controlC1 - DisplayLink_Dell_D3100_USB3.0_Dock_1709272943
+
+
+
+
+Bus 001 Device 002: ID 8087:8001 Intel Corp. 
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 005: ID 17e9:436e DisplayLink 
+Bus 003 Device 004: ID 2109:0813 VIA Labs, Inc. 
+Bus 003 Device 003: ID 17e9:436e DisplayLink 
+Bus 003 Device 002: ID 2109:0813 VIA Labs, Inc. 
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 002 Device 006: ID 8087:0a2a Intel Corp. 
+Bus 002 Device 008: ID 413c:2003 Dell Computer Corp. Keyboard
+Bus 002 Device 007: ID 2109:2813 VIA Labs, Inc. 
+Bus 002 Device 005: ID 2109:2813 VIA Labs, Inc. 
+Bus 002 Device 003: ID 03f0:0b4a Hewlett-Packard 
+Bus 002 Device 004: ID 04d8:000a Microchip Technology, Inc. CDC RS-232 Emulation Demo
+Bus 002 Device 002: ID 04b4:6570 Cypress Semiconductor Corp. 
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+
+
+#my device for the lock
+Bus 002 Device 004: ID 04d8:000a Microchip Technology, Inc. CDC RS-232 Emulation Demo
+Bus 002 Device 004: ID 04d8:000a Microchip Technology, Inc. CDC RS-232 Emulation Demo
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            2 Communications
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0         8
+  idVendor           0x04d8 Microchip Technology, Inc.
+  idProduct          0x000a CDC RS-232 Emulation Demo
+  bcdDevice            1.00
+  iManufacturer           1 FKI Security Group LLC. Apunix LPM-01  
+  iProduct                2 10                       
+  iSerial                 0 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           67
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0xc0
+      Self Powered
+    MaxPower              100mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass         2 Communications
+      bInterfaceSubClass      2 Abstract (modem)
+      bInterfaceProtocol      1 AT-commands (v.25ter)
+      iInterface              0 
+      CDC Header:
+        bcdCDC               1.10
+      CDC ACM:
+        bmCapabilities       0x02
+          line coding and serial state
+      CDC Union:
+        bMasterInterface        0
+        bSlaveInterface         1 
+      CDC Call Management:
+        bmCapabilities       0x00
+        bDataInterface          1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               2
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass        10 CDC Data
+      bInterfaceSubClass      0 Unused
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval               0
+Device Status:     0x0000
+  (Bus Powered)
+

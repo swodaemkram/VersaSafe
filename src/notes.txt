@@ -1,0 +1,24 @@
+1. basic framework that allows separation of form and function
+	using XML to describe widgets
+2. basic framework for application, 
+	including mem management, 
+	critical error recovery, 
+	logging
+	USB integration
+	USB gateway structure
+	network integration
+	network gateway structure
+	system functions, PID,segfault etc
+	language localization structure
+	SQL integration
+	SQL interface
+	XML integration
+	XML interface
+	HELP integration
+3. did first basic comm tests with lock
+4. reviewed existing java lock code
+5. apulock.class functional (except firmware download, setting serial, setting address)
+6. apulock.class integrated into application
+7. d8c driver mostly written
+
+

@@ -1,0 +1,11 @@
+drivers/mei.cpp:1177:		// TODO: If "serial" is empty (bad firmware), try to read it from USB side
+gettodo.sh:4:grep -rn "TODO" * > todo.txt
+Makefile:152:#TODO:the following sed statement doesn't seem to work
+Makefile~:162:#TODO:the following sed statement doesn't seem to work
+usb_gateway.cpp:65://TODO implement firmware download
+usb_gateway.cpp:66://TODO implement setting serial number
+usb_gateway.cpp:67://TODO implement setting lock address
+usb_gateway.cpp:99://TODO -- ust populate serialports[] properly via scan for locks
+versasafe.cpp:690:	//TODO must setup help file name with the other text files depending upon locale
+versasafe.cpp:1508://TODO - need to populate these vars from lang file
+versasafe.cpp:1696:			//TODO we can unlock for a max of 99 seconds at a time. so we will need to monitor and re-issue an unlock command

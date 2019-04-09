@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<screen>
+	<orientation>landscape</orientation>
+	</screen>
+	<remoteDBF>
+		<ip>192.168.108.114</ip>
+		<user>fkinguser101</user>
+		<password>glimpbust345</password>
+		<database>fking</database>
+		<port>4300</port>
+	</remoteDBF>
+	<localDBF>
+		<ip>localhost</ip>
+		<user>fkinguser101</user>
+		<password>glimpbust345</password>
+		<database>fking</database>
+		<port>4300</port>
+	</localDBF>
+	<devices>
+		<validator1>enabled</validator1>
+		<validator2>disabled</validator2>
+		<ucd1>enabled</ucd1>
+		<ucd2>disabled</ucd2>
+		<utd>enabled</utd>
+		<outterlock>enabled</outterlock>
+		<innerlock>disabled</innerlock>
+		<shutterlock>disabled</shutterlock>
+		<sidecarlock>disabled</sidecarlock>
+		<baselock>disabled</baselock>
+		<api>enabled</api>
+		<recycler>disabled</recycler>
+		<printer>enabled</printer>
+		<tampersw>enabled</tampersw>
+	</devices>
+	<logs>
+		<mysql>disabled</mysql>
+		<remotedbf>disabled</remotedbf>
+		<file>enabled</file>
+	</logs>
+	<remote>
+		<clientportal>enabled</clientportal>
+		<maint>enabled</maint>
+		<dbf>disabled</dbf>
+	</remote>
+</config>
+

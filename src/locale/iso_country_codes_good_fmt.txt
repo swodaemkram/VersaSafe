@@ -1,0 +1,15 @@
+# Country codes in ISO 3166
+# File last modified: 2003-07-25
+# Data last modified: 2003-07-25
+# The format of this file is explained in
+# <http://www.davros.org/misc/iso3166.html>
+# which also contains further information about the codes
+
+# Table 1: current codes
+
+US USA 840 United States of America
+DE DEU 276 Germany
+JP JPN 392 Japan
+CN CHN 156 China, People's Republic of
+ES ESP 724 Spain, Spanish State
+
