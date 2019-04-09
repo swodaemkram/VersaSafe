@@ -72,16 +72,16 @@ int	MEI_GETBILLS  =  0x02;
 int	MEI_RETRIEVE  =  0x0B;
 int	MEI_BOOKMARK  =  0x0D;
 
-void ack_message_send(char *comm_port,char *pkt);
-char * ack_packet_build(unsigned int pkt_command);
-char *build_packet_cmd(unsigned int pkt_command);
-char *build_packet_ext_cmd(unsigned int pkt_command);
-char *build_packet_reset(unsigned int pkt_command);
-char * build_packet(unsigned int pkt_command);
-void print_help();
-void send_pkt (char *comm_port,char *pkt, unsigned int pkt_command);
-void setup_serial_port(char *comm_port);
-int do_crc(char buff[], int buffer_len);
+//void ack_message_send(char *comm_port,char *pkt);
+//char * ack_packet_build(unsigned int pkt_command);
+//char *build_packet_cmd(unsigned int pkt_command);
+//char *build_packet_ext_cmd(unsigned int pkt_command);
+//char *build_packet_reset(unsigned int pkt_command);
+//char * build_packet(unsigned int pkt_command);
+//void print_help();
+//void send_pkt (char *comm_port,char *pkt, unsigned int pkt_command);
+//void setup_serial_port(char *comm_port);
+int mei_do_crc(char buff[], int buffer_len);
 
 
 
