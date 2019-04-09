@@ -10,7 +10,8 @@
 class MEIValidator {
 
 public:
-   int mei_do_crc(char buff[], int buffer_len){
+
+	int mei_do_crc(char buff[], int buffer_len){
 
 		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
 
@@ -36,6 +37,7 @@ public:
 
 
 }
+
 
 };//end of crc class
 
