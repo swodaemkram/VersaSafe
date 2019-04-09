@@ -19,7 +19,7 @@
 	Filename			Structure			Description
 	--------			---------------		---------------------------------------------
 	controller_x.sdf	actuator_struc		holds all information about all actuators for a controller
-		(where x is the maestro/controller number (0-9)
+	(where x is the maestro/controller number (0-9)
 
 */
 
