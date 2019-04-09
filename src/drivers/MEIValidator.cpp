@@ -7,12 +7,33 @@
 
 #include "MEIValidator.h"
 
-MEI_Validator::MEI_Validator() {
-	// TODO Auto-generated constructor stub
+class MEIValidator {
+   public:
+   int do_crc(char buff[], int buffer_len){
 
-}
+		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
 
-MEI_Validator::~MEI_Validator() {
-	// TODO Auto-generated destructor stub
-}
+		 //printf("%d\n",buffer_len);
 
+
+		 int i=1;
+		 unsigned int sum = 0;
+
+		 buffer_len = buffer_len - 2;
+
+
+		        while ( i < buffer_len)
+		        {
+		           sum ^= buff[i];
+		           //printf("%02x,%02x\n",sum,buff[i]);
+		           i++;
+		        }
+		        //printf("%d\n",buffer_len);
+	            //printf("the check sum = %02x\n",sum);
+
+		 return(sum);
+
+
+} //end of crc class
+
+};
