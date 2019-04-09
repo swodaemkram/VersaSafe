@@ -14,7 +14,7 @@ class MEI_Validator {
 
 public:
 	MEI_Validator(cmd);
-	virtual ~MEI_Validator(cmd);
+	virtual ~MEI_Validator();
 	char * mei_cmd();
 };
 
