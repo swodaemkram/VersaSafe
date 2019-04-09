@@ -218,7 +218,7 @@ string Get_D8c_Driver_Version(void)
 string portname;
 
 SerialStream my_serial;
-bool detected=FALSE;
+bool detected=false;
 
 /*
 char PKT_STH = 0x01;
@@ -270,9 +270,9 @@ printf("CONNECTED TO UTD\n");
 		{
 
 					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
-					return TRUE;
+					return true;
 					else
-					return FALSE;
+					return false;
 
 		}
 
@@ -286,7 +286,7 @@ void DoSetup(void)
 
 	if (resp!="" && resp.length()>=7 && resp[0]==RPL_SEARCH)
 	{
-		detected=TRUE;
+		detected=true;
 
 	}
 	Setup();
@@ -325,7 +325,7 @@ printf("FWVER: %s\n",fwver.c_str());
 	resp=GetResponse();
 	if (resp!="" && resp.length()>=15 && resp[0]==RPL_STATUS)
 	{
-		ProcessStatus(resp,TRUE);
+		ProcessStatus(resp,true);
 	}
 
 }
@@ -521,7 +521,7 @@ void ProcessStatus(string b, bool update)
 			if (inventory[c] != newinv[c])
 			{
 				inventory[c] = newinv[c];
-				update=TRUE;
+				update=true;
 			}
 		}
 
@@ -544,10 +544,10 @@ bool Detect(void)
 	// see if we got the expected response
 	if (resp !="" && resp.length()>=7 && resp[0]==RPL_SEARCH)
 	{
-		detected=TRUE;
+		detected=true;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -861,7 +861,7 @@ string DispenseOne(int column)
 	if (resp!="" && resp.length()>0 && resp[0]==RPL_ACK)
 	{
 		// keep polling status, keep track of attempts
-		bool done=FALSE;
+		bool done=true;
 		while (!done)
 		{
 			// poll status
@@ -879,18 +879,18 @@ string DispenseOne(int column)
 				case STS_DISPUNVERIFIED:
 					SendACK();
 					failreason="Unverified dispense";
-					done=TRUE;
+					done=true;
 					break;
 				case STS_JAM:
 					failreason="JAM detected";
-					done=TRUE;
+					done=true;
 					break;
 				case STS_LOADING:
 				case STS_DISPENSING:
 					break;
 				default:
 					failreason="Unexpected status " + string (1,resp[1]) +" during dispense";
-					done=TRUE;
+					done=true;
 					break;
 				} //end switch
 
@@ -899,7 +899,7 @@ string DispenseOne(int column)
 				if (tseconds >= timestart+30)
 				{
 					failreason="Timeout";
-					done=TRUE;
+					done=true;
 				}
 
 
@@ -928,13 +928,13 @@ string DispenseOne(int column)
             newinv[7] = (resp[9]&0xF);
 
 			// check if inventory changed (assume it didn't chg until we check it)
-			bool update=FALSE;
+			bool update=true;
 			for (int c=0; c<8; c++)
 			{
 					if (inventory[c] != newinv[c])
 					{
 						for (int x=0; x<8;x++) inventory[x]=newinv[x];
-						update=TRUE;
+						update=true;
 						break;
 					}
 			}
@@ -985,7 +985,7 @@ printf("UnloadColumn\n");
 	{
 printf("we got ACK\n");
 		// keep polling status, ,keep track of changes
-		bool done=FALSE;
+		bool done=true;
 		int nocount=0;
 		long timestart =tseconds;	// get our global seconds counter
 		while (!done)
@@ -1017,11 +1017,11 @@ printf("SWITCH: %d (%02X)\n",(unsigned char) resp[1],(unsigned char) resp[1]);
 printf("ACKing UNLOAD complete\n");
                // ACK status
 				SendACK();
-                done=TRUE;
+                done=true;
                 break;
 			case STS_JAM:
 				failreason="JAM detected";
-				done=TRUE;
+				done=true;
 				break;
 			case STS_UNLOADING:
             case STS_UNLOADING+1:
@@ -1039,7 +1039,7 @@ printf("UNLOADING %d (%02X)\n",resp[1],resp[1]);
 			default:
 				// return fail reason
 				failreason="Unexpected status " + string(1,resp[1]) + " during unload";
-				done=TRUE;
+				done=true;
 				break;
 
 			} // end switch
@@ -1048,7 +1048,7 @@ printf("UNLOADING %d (%02X)\n",resp[1],resp[1]);
 			if (tseconds >=timestart+200)
 			{
 				failreason="Timeout";
-				done=TRUE;
+				done=true;
 
 			}
 		}//if (resp !="" && resp.lengh()>=15)
@@ -1081,13 +1081,13 @@ for (int n=0; n<8;n++)
 	printf("COL %d: %d\n",n,newinv[n]);
 
             // check if inventory changed (assume it didn't chg until we check it)
-            bool update=FALSE;
+            bool update=false;
             for (int c=0; c<8; c++)
             {
                     if (inventory[c] != newinv[c])
                     {
                         for (int x=0; x<8;x++) inventory[x]=newinv[x];
-                        update=TRUE;
+                        update=true;
                         break;
                     }
 
@@ -1136,13 +1136,13 @@ void DoDispense(string counts, bool GetValues)
 	int vals[8]={NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL};	// vals for each column
 	int damt=0;		// dispensed amt
 	string failreason="";
-	bool hasmore=FALSE;
+	bool hasmore=false;
 	string dispenses;
 
 	vector <string> mycounts=split(counts," ");
 
 	// failed indexes (to conrol dispense attempts during incomplete dispense)
-	bool fi[8]={FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
+	bool fi[8]={false,false,false,false,false,false,false,false};
 
 	// reset initial values
 	for (int i=0; i <8; i++)
@@ -1173,7 +1173,7 @@ void DoDispense(string counts, bool GetValues)
 			}
 			else
 			{
-				fi[d] = TRUE;	// set column as failed
+				fi[d] = true;	// set column as failed
 				//TODO log error
 			}
 
@@ -1189,7 +1189,7 @@ void DoDispense(string counts, bool GetValues)
 			}
 		} // end while
 
-		hasmore=FALSE;
+		hasmore=false;
 		dispenses="";
 		for (int i=0;i<8;i++)
 		{
