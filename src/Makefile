@@ -38,7 +38,7 @@ CC=g++
 SOURCEDIR=../
 TARFILE=$(SOURCEDIR)$(EXECUTABLE).tar
 ZIPFILE=$(EXECUTABLE)_$(DT).zip
-BACKUP=/home/garyc/Desktop/$(PROJECT)/backup/
+BACKUP=/home/mark/Desktop/$(PROJECT)/backup/
 
 # set the source modules
 SOURCES=$(EXECUTABLE).cpp \

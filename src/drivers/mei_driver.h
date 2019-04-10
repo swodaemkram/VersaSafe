@@ -5,8 +5,8 @@
  *      Author: mark
  */
 
-#ifndef DRIVERS_MEIVALIDATOR_H_
-#define DRIVERS_MEIVALIDATOR_H_
+#ifndef DRIVERS_MEI_DRIVER_H_
+#define DRIVERS_MEI_DRIVER_H_
 
 
 #include <stdio.h>
@@ -85,4 +85,4 @@ int mei_do_crc(char buff[], int buffer_len);
 
 
 
-#endif /* DRIVERS_MEIVALIDATOR_H_ */
+#endif /* DRIVERS_MEI_DRIVER_H_ */

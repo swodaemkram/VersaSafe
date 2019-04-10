@@ -483,7 +483,7 @@ printf("init_d8c\n");
 
 bool D8C_detected(void)
 {
-	bool detected= utd->isdetected();
+	//bool detected= utd->isdetected();
 	return detected;
 }
 
