@@ -189,7 +189,7 @@ using namespace std;
 
  
 
-
+#include <iostream>
 #include <string.h>
 #include <math.h>
 #include <gtk/gtk.h>
@@ -601,8 +601,7 @@ extern "C" void on_main_screen_destroy()
 // it all starts right here, since the white book, this has been the entry point for every c program ever written
 // and VersaSafe is no different
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
 
 /*
 //    getStatus() returns OK 00 t=0;
@@ -1938,7 +1937,7 @@ void ShowLoad(void)
     string msg;
     gtk_widget_show(app_ptr->load_window);
 
-	inv_handle=AddCallBack(&UpdateUTDInventory);	// add to our callback quque
+	//MARKinv_handle=AddCallBack(&UpdateUTDInventory);	// add to our callback quque
 
 /*
     msg = getMessage(102,FALSE);
@@ -1975,7 +1974,7 @@ extern "C" bool stop_load_button_clicked_cb( GtkButton *button, AppWidgets *app)
 extern "C" bool close_load_button_clicked_cb( GtkButton *button, AppWidgets *app)
 {
     Disable_Load_D8C();
-	RemoveCallBack(inv_handle);	// remove our callback
+	//RemoveCallBack(inv_handle);	// remove our callback
     gtk_widget_hide(app_ptr->load_window);
 }
 
