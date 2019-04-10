@@ -699,7 +699,7 @@ printf("user: %s\n",localDBF.user);
 
 //NOTE: the order in the following calls is important
 
-    GetLockPorts();		// this must happen BEFORE the call to GeneralSetup()
+//MARK    GetLockPorts();		// this must happen BEFORE the call to GeneralSetup()
 						// GetLockPorts() shells to run findlocks script
 						// listing all connected FKI_Security_Group_LLC devices
 						// and the port they are connected on
@@ -716,8 +716,8 @@ printf("user: %s\n",localDBF.user);
 // there are MAX_LOCKS entries
 // etc.
 
-	GetLockNames();				// retrieve lockname field from locks table
-	GeneralSetup();				// in common.cpp
+//MARK	GetLockNames();				// retrieve lockname field from locks table
+//MARK	GeneralSetup();				// in common.cpp
 
 	if (!ConfigSetup(false) )		// in this module
 	{
@@ -727,8 +727,8 @@ printf("user: %s\n",localDBF.user);
 	}
 
 	// ConfigSetup() must  have already been run before the following functions
-    ConfigLocksInDBF(); 	// enable appropriate locks in DBF and locks[] object
-    ReadLockTimes();        // get lock/unlock times from database
+//MARK    ConfigLocksInDBF(); 	// enable appropriate locks in DBF and locks[] object
+//MARK    ReadLockTimes();        // get lock/unlock times from database
 	USB_init();				// configure/connect the locks in locks[] object
 
 //===========================================================
@@ -740,8 +740,8 @@ printf("user: %s\n",localDBF.user);
 if ( strcmp(cfg.utd,"enabled")==0)
 {
 
-	Init_D8C();     // init VEND board driver (in usb_gateway)
-//	Unload_D8C(1);
+//MARK	Init_D8C();     // init VEND board driver (in usb_gateway)
+//MARK	Unload_D8C(1);
 
 }
 
