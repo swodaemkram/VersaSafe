@@ -6,6 +6,16 @@
  */
 
 #include "mei_driver.h"
+#include "../hdr/global.h"
+#include "../trim.inc"
+#include "../logs.inc"
+
+
+
+using namespace std;
+using namespace LibSerial;
+
+
 
 class MEIValidator {
 
@@ -34,7 +44,6 @@ public:
 	            //printf("the check sum = %02x\n",sum); //DEBUG CODE
 
 		 return(sum);
-
 
 }
 

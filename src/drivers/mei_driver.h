@@ -17,7 +17,15 @@
 #include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
-
+#include <SerialStream.h>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <cstdint>
+#include <bits/stdc++.h>    // for strcpy
+#include <array>            // for array copy
+#include <iostream>
+#include <vector>
 
 
 /* baudrate settings are defined in <asm/termbits.h>, which is
@@ -29,48 +37,48 @@ included by <termios.h> */
 /* MEI Constants */
 
 	// Byte 0 Status
-int MEI_ACCEPTING = 0x02;
-int MEI_ESCROW    = 0x04;
-int MEI_STACKING  = 0x08;
-int MEI_STACKED   = 0x10;
-int MEI_RETURNING = 0x20;
-int MEI_RETURNED  = 0x40;
+#define MEI_ACCEPTING = 0x02;
+#define MEI_ESCROW    = 0x04;
+#define MEI_STACKING  = 0x08;
+#define MEI_STACKED   = 0x10;
+#define MEI_RETURNING = 0x20;
+#define MEI_RETURNED  = 0x40;
 	// Byte 1 Status
-int MEI_CHEATED   = 0x01;
-int MEI_REJECTED  = 0x02;
-int MEI_JAM	   = 0x04;
-int MEI_FULL	   = 0x08;
-int MEI_CASSETTE  = 0x10;
+#define MEI_CHEATED   = 0x01;
+#define MEI_REJECTED  = 0x02;
+#define MEI_JAM	   = 0x04;
+#define MEI_FULL	   = 0x08;
+#define MEI_CASSETTE  = 0x10;
 	// Byte 2 Status
-int MEI_POWERUP   = 0x01;
-int MEI_FAILURE   = 0x04;
+#define MEI_POWERUP   = 0x01;
+#define MEI_FAILURE   = 0x04;
 	// Byte 3 Status
-int MEI_DOWNLOADING = 0x02;
+#define MEI_DOWNLOADING = 0x02;
 	// Commands
-int	MEI_POLL      = 0x10;
-int	MEI_STACK     = 0x30;
-int	MEI_RETURN    = 0x50;
+#define	MEI_POLL      = 0x10;
+#define MEI_STACK     = 0x30;
+#define MEI_RETURN    = 0x50;
 	// Command Types
-int	MEI_CMD       = 0x10;
-//	MEI_REPLY     = 0x20;
-int	MEI_DOWNLOAD  = 0x50;
-int	unsigned MEI_AUX       = 0x60;
+#define MEI_CMD       = 0x10;
+//#define 	MEI_REPLY     = 0x20;
+#define MEI_DOWNLOAD  = 0x50;
+#define MEI_AUX       = 0x60;
 	// Auxiliary command sub-types
-unsigned int	MEI_GETMODEL  = 0x04;
-unsigned int    MEI_GETSERIAL = 0x05;
-unsigned int	MEI_GETBOOTVER	= 0x06;
-unsigned int	MEI_GETAPPVER = 0x07;
-unsigned int	MEI_GETVARNAME	= 0x08;
-unsigned int	MEI_GETVERSION	= 0x09;
-unsigned int	MEI_GETQP		= 0x0B;
-unsigned int	MEI_GETPERF   =  0x0C;
-unsigned int	MEI_GETBNF		= 0x10;
-unsigned int	MEI_RESET		= 0x7F;
-unsigned int	MEI_EXT       =  0x70;
+#define MEI_GETMODEL  = 0x04;
+#define MEI_GETSERIAL = 0x05;
+#define MEI_GETBOOTVER	= 0x06;
+#define MEI_GETAPPVER = 0x07;
+#define MEI_GETVARNAME	= 0x08;
+#define	MEI_GETVERSION	= 0x09;
+#define MEI_GETQP		= 0x0B;
+#define MEI_GETPERF   =  0x0C;
+#define MEI_GETBNF		= 0x10;
+#define	MEI_RESET		= 0x7F;
+#define	MEI_EXT       =  0x70;
 	// Extension command sub-types
-int	MEI_GETBILLS  =  0x02;
-int	MEI_RETRIEVE  =  0x0B;
-int	MEI_BOOKMARK  =  0x0D;
+#define	MEI_GETBILLS  =  0x02;
+#define	MEI_RETRIEVE  =  0x0B;
+#define	MEI_BOOKMARK  =  0x0D;
 
 //void ack_message_send(char *comm_port,char *pkt);
 //char * ack_packet_build(unsigned int pkt_command);
