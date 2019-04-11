@@ -9,23 +9,7 @@
 #define DRIVERS_MEI_DRIVER_H_
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <SerialStream.h>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <cstdint>
-#include <bits/stdc++.h>    // for strcpy
-#include <array>            // for array copy
-#include <iostream>
-#include <vector>
+
 
 
 /* baudrate settings are defined in <asm/termbits.h>, which is
@@ -89,6 +73,8 @@ included by <termios.h> */
 //void print_help();
 //void send_pkt (char *comm_port,char *pkt, unsigned int pkt_command);
 //void setup_serial_port(char *comm_port);
+
+
 int mei_do_crc(char buff[], int buffer_len);
 
 

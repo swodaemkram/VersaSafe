@@ -5,9 +5,31 @@
  *      Author: mark
  */
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <SerialStream.h>
+#include <sstream>
+#include <fstream>
+#include <cstdlib>
+#include <cstdint>
+#include <bits/stdc++.h>    // for strcpy
+#include <array>            // for array copy
+#include <iostream>
+#include <vector>
+
+
+
 #include "mei_driver.h"
 #include "../hdr/global.h"
-#include "../trim.inc"
+//#include "../trim.inc" //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
+                         //more then one way to skin a cat
 #include "../logs.inc"
 
 
@@ -49,6 +71,31 @@ public:
 
 
 };//end of crc class
+/*
+===============================================================================================================================
+End of MEI crc class
+===============================================================================================================================
+*/
+
+// Call for driver version
+string mei_driver_version = ".08";
+string get_mei_driver_version(void)
+{
+    return mei_driver_version;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
