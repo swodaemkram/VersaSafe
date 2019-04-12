@@ -70,7 +70,7 @@
 	appGET(load_window);
 	appGET(maint_window);
 	appGET(utd_maint_window);
-
+	appGET(mei_main_window);
 
 // main window
 	appGET(lock_config_btn);
@@ -149,6 +149,10 @@
 	appGET(utd_unloadall_btn);
 	appGET(utd_reset_btn);
 
+	// mei maint window
+	appGET(mei_reset_btn);
+	appGET(mei_close_btn);
+	appGET(mei_maint_title);
 	// buttons
 	appGET(one_btn);
 	appGET(two_btn);

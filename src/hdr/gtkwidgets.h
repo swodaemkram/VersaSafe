@@ -47,6 +47,7 @@ typedef struct
 	GtkWidget *load_window;
 	GtkWidget *maint_window;
 	GtkWidget *utd_maint_window;
+	GtkWidget *mei_maint_window;
 
 // load_window
 	GtkWidget *close_load_button;
@@ -102,6 +103,11 @@ typedef struct
 	GtkWidget *utd_get_inventory_btn;
 	GtkWidget *utd_unloadall_btn;
 	GtkWidget *utd_reset_btn;
+
+// mei maint window
+	GtkWidget *mei_reset_btn;
+	GtkWidget *mei_close_btn;
+	GtkWidget *mei_main_title;
 
 	GtkTextBuffer *textbuffer1;
 

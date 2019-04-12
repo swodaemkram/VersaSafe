@@ -492,7 +492,7 @@ void ShowLoad(void);
 void ShowConfig(void);
 void ShowMaint(void);
 void ShowUTDMaint(void);
-
+void ShowMEIMaint(void);
 
 
 void SetLockTimerLabels(char * lockname);
@@ -2029,6 +2029,7 @@ void ShowMaint(void)
 extern "C" bool on_mei_button_clicked( GtkButton *button, AppWidgets *app)
 {
 printf("Maint:MEI BUTTON\n");
+	ShowMEIMaint();
 }
 
 extern "C" bool on_utd_button_clicked( GtkButton *button, AppWidgets *app)
@@ -2053,6 +2054,25 @@ extern "C" bool on_maint_close_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     gtk_widget_hide(app_ptr->maint_window);
 }
+
+
+// MEI maintenance window
+
+void ShowMEIMaint(void)
+{
+    gtk_widget_show(app_ptr->mei_maint_window);
+}
+
+extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->mei_maint_window);
+}
+
+extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+
+}
+
 
 
 
@@ -3056,6 +3076,18 @@ void SetLabels(void)
 
     msg=getMessage(50,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_close_btn),msg.c_str() );
+
+
+// mei_maint_window
+
+    msg=getMessage(260,FALSE);
+    gtk_label_set_label(GTK_LABEL(app_ptr->mei_maint_title),msg.c_str() );
+
+    msg=getMessage(226,FALSE);
+    gtk_button_set_label(GTK_LABEL(app_ptr->mei_reset_btn),msg.c_str() );
+
+    msg=getMessage(50,FALSE);
+    gtk_button_set_label(GTK_LABEL(app_ptr->mei_close_btn),msg.c_str() );
 
 
 
