@@ -14,7 +14,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
-//#include <SerialStream.h>
+#include <SerialStream.h>
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
@@ -35,7 +35,7 @@
 
 
 using namespace std;
-//using namespace LibSerial;
+using namespace LibSerial;
 
 
 
