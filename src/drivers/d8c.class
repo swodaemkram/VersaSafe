@@ -218,7 +218,7 @@ void HandleErrMsg(string errmsg);
 int GetStatus(void);		// intended to be called by the callback
 bool CheckConnection(void);	// check connected, if not, reconnect
 void Setup(void);
-
+void GetPayload(string resp);
 
 
 // publics
@@ -267,6 +267,7 @@ char buffer[200];
 int unload_col;			// currently col unloading
 int unload_tubes;		// how many tubes unloaded
 int status;
+unsigned char payload[200];
 
 
 public:
@@ -423,6 +424,23 @@ printf("Setup::UTD not detected\n");
 
 }
 
+
+
+/*
+	strip off the payload from the packet
+*/
+void GetPayLoad(string resp)
+{
+#define DSTART 7	// offset of the start of the payload
+    // retrieve the data payload
+    bzero(payload,200);
+    for (int x=0; x <= resp.length(); x++)
+    {
+        payload[x]=resp[DSTART+x];
+    }
+
+
+}
 
 
 
@@ -747,8 +765,10 @@ void ProcessStatus(string b, bool update)
 	static int cnt=0;
 	cnt++;
 	int newinv[] = {0, 0, 0, 0, 0, 0, 0, 0};
+	unsigned char ptype=b[0];
+	unsigned char stype=b[1];
 
-return;
+	GetPayLoad(b);	// fill in payload[] data
 
     if (!detected) return;
 	if (b.length() <=0) return;
@@ -757,7 +777,7 @@ printf("processstatus %d\n",cnt);
 printf("b::%s   len:%d\n",b.c_str() ,(int) b.length() );
 
 printf("CHAR: %02x\n",b[1]);
-	status= (char) b[1];
+	status= payload[1];
 
 printf("Status: %d | %02x\n",status,status);
 	switch(status)
@@ -804,28 +824,6 @@ printf("Status: %d | %02x\n",status,status);
             // no break
 
 
-/*
-	experimental - UNTESTED
-*/
-		case RPL_STATUS:
-/*
-			boxaddr=input_buffer[2];
-			devaddr=input_buffer[3];
-
-			seq_num = (unsigned char) input_buffer[4];              // get HI byte
-			seq_num <<=8;                                           // shift into place
-			seq_num |= (unsigned char) input_buffer[5];             // merge LO byte
-*/
-
-        // get inventory
-        newinv[0] = (b[6]&0xFF)>>4;
-        newinv[1] = (b[6]&0xF);
-        newinv[2] = (b[7]&0xFF)>>4;
-        newinv[3] = (b[7]&0xF);
-        newinv[4] = (b[8]&0xFF)>>4;
-        newinv[5] = (b[8]&0xF);
-        newinv[6] = (b[9]&0xFF)>>4;
-        newinv[7] = (b[9]&0xF);
 
 		col_unloaded=b[2];
 		tubes_unloaded=b[4];
@@ -838,17 +836,20 @@ goto ender;
 	}	// end switch
 
 
-/*
+
 		// get inventory
-        newinv[0] = (b[6]&0xFF)>>4;
-        newinv[1] = (b[6]&0xF);
-        newinv[2] = (b[7]&0xFF)>>4;
-        newinv[3] = (b[7]&0xF);
-        newinv[4] = (b[8]&0xFF)>>4;
-        newinv[5] = (b[8]&0xF);
-        newinv[6] = (b[9]&0xFF)>>4;
-        newinv[7] = (b[9]&0xF);
-*/
+        newinv[0] = (payload[6]&0xFF)>>4;
+        newinv[1] = (payload[6]&0xF);
+        newinv[2] = (payload[7]&0xFF)>>4;
+        newinv[3] = (payload[7]&0xF);
+        newinv[4] = (payload[8]&0xFF)>>4;
+        newinv[5] = (payload[8]&0xF);
+        newinv[6] = (payload[9]&0xFF)>>4;
+        newinv[7] = (payload[9]&0xF);
+
+        col_unloaded=payload[2];
+        tubes_unloaded=payload[4];
+
 		for (int c=0; c<8;c++)
 		{
 			if (inventory[c] != newinv[c])
