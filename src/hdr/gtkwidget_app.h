@@ -70,7 +70,7 @@
 	appGET(load_window);
 	appGET(maint_window);
 	appGET(utd_maint_window);
-	appGET(mei_main_window);
+	appGET(mei_maint_window);
 
 // main window
 	appGET(lock_config_btn);
