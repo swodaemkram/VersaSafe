@@ -116,6 +116,7 @@ need to be installed on machine
 	12-7-2017	first compile, bare skeleton
 	12-7-2018	lock driver working
 	1-15-2019	lock times window completed
+	4-1-2019	working with mark
 
 	THREADS:
 
@@ -154,6 +155,10 @@ using namespace std;
 //================================================================================================
 
 
+// the following enable LOCK or UTD class initialization
+#define LOCKS
+//#define UTD
+
 //#define PRODUCTION
 #define SANDBOX
 
@@ -189,7 +194,7 @@ using namespace std;
 
  
 
-#include <iostream>
+
 #include <string.h>
 #include <math.h>
 #include <gtk/gtk.h>
@@ -366,6 +371,13 @@ int user_code=NO_USER;		// default until login complete
 
 OperationMode OpMode;
 
+void SetScreenSizes(void);
+void GetScreenRes(void);
+struct
+{
+    int horiz;
+    int vert;
+} screenres;
 
 
 
@@ -478,6 +490,11 @@ void SetMainScreenTitle(void);
 
 void ShowLoad(void);
 void ShowConfig(void);
+void ShowMaint(void);
+void ShowUTDMaint(void);
+
+
+
 void SetLockTimerLabels(char * lockname);
 void StoreLockTime(char * hourmin, bool islock, bool ishour);
 void ReadLockTimes(void);
@@ -601,7 +618,16 @@ extern "C" void on_main_screen_destroy()
 // it all starts right here, since the white book, this has been the entry point for every c program ever written
 // and VersaSafe is no different
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
+
+	GetScreenRes();
+/*
+	printf("horiz: %d\n",screenres.horiz);
+	printf("vert: %d\n",screenres.vert);
+	exit(0);
+*/
+
 
 /*
 //    getStatus() returns OK 00 t=0;
@@ -699,7 +725,7 @@ printf("user: %s\n",localDBF.user);
 
 //NOTE: the order in the following calls is important
 
-//MARK    GetLockPorts();		// this must happen BEFORE the call to GeneralSetup()
+    GetLockPorts();		// this must happen BEFORE the call to GeneralSetup()
 						// GetLockPorts() shells to run findlocks script
 						// listing all connected FKI_Security_Group_LLC devices
 						// and the port they are connected on
@@ -716,8 +742,8 @@ printf("user: %s\n",localDBF.user);
 // there are MAX_LOCKS entries
 // etc.
 
-//MARK	GetLockNames();				// retrieve lockname field from locks table
-//MARK	GeneralSetup();				// in common.cpp
+	GetLockNames();				// retrieve lockname field from locks table
+	GeneralSetup();				// in common.cpp
 
 	if (!ConfigSetup(false) )		// in this module
 	{
@@ -727,9 +753,12 @@ printf("user: %s\n",localDBF.user);
 	}
 
 	// ConfigSetup() must  have already been run before the following functions
-//MARK    ConfigLocksInDBF(); 	// enable appropriate locks in DBF and locks[] object
-//MARK    ReadLockTimes();        // get lock/unlock times from database
+    ConfigLocksInDBF(); 	// enable appropriate locks in DBF and locks[] object
+    ReadLockTimes();        // get lock/unlock times from database
+
+#ifdef LOCKS
 	USB_init();				// configure/connect the locks in locks[] object
+#endif
 
 //===========================================================
 
@@ -740,8 +769,10 @@ printf("user: %s\n",localDBF.user);
 if ( strcmp(cfg.utd,"enabled")==0)
 {
 
-//MARK	Init_D8C();     // init VEND board driver (in usb_gateway)
-//MARK	Unload_D8C(1);
+#ifdef UTD
+	Init_D8C();     // init VEND board driver (in usb_gateway)
+#endif
+//	Unload_D8C(1);
 
 }
 
@@ -834,6 +865,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
     SetHelpFileName(help_filename);
 
 
+	SetScreenSizes();
 	SetLabels();
 	SetMainScreenFont();
 	SetMainScreenTitle();
@@ -1937,7 +1969,7 @@ void ShowLoad(void)
     string msg;
     gtk_widget_show(app_ptr->load_window);
 
-	//MARKinv_handle=AddCallBack(&UpdateUTDInventory);	// add to our callback quque
+	inv_handle=AddCallBack(&UpdateUTDInventory);	// add to our callback quque
 
 /*
     msg = getMessage(102,FALSE);
@@ -1974,7 +2006,7 @@ extern "C" bool stop_load_button_clicked_cb( GtkButton *button, AppWidgets *app)
 extern "C" bool close_load_button_clicked_cb( GtkButton *button, AppWidgets *app)
 {
     Disable_Load_D8C();
-	//RemoveCallBack(inv_handle);	// remove our callback
+	RemoveCallBack(inv_handle);	// remove our callback
     gtk_widget_hide(app_ptr->load_window);
 }
 
@@ -1985,6 +2017,81 @@ printf("UNLOAD ALL BUTTON\n");
 	Unload_D8C(8);
 }
 
+
+// MAINTENANCE WINDOW
+
+void ShowMaint(void)
+{
+    gtk_widget_show(app_ptr->maint_window);
+}
+
+
+extern "C" bool on_mei_button_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("Maint:MEI BUTTON\n");
+}
+
+extern "C" bool on_utd_button_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("Maint:UTD BUTTON\n");
+	ShowUTDMaint();
+}
+
+
+extern "C" bool on_main_lock_button_clicked_cb( GtkButton *button, AppWidgets *app)
+{
+printf("Maint:LOCK BUTTON\n");
+}
+
+extern "C" bool on_maint_close_btn_clicked_cb( GtkButton *button, AppWidgets *app)
+{
+printf("MEI BUTTON\n");
+}
+
+
+extern "C" bool on_maint_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->maint_window);
+}
+
+
+
+// UTD maintenance window
+
+void ShowUTDMaint(void)
+{
+    gtk_widget_show(app_ptr->utd_maint_window);
+}
+
+extern "C" bool on_utd_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->utd_maint_window);
+}
+
+extern "C" bool on_zero_utd_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+extern "C" bool on_utd_set_addr_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_utd_get_addr_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_utd_get_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_utd_unloadall_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_utd_reset_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
 
 
 
@@ -2816,6 +2923,29 @@ void SetColors(void)
 }
 
 
+
+/*
+
+	set the window sizes  for all windows
+	h/v res comes from screen file, as read by GetScreenRes()
+
+*/
+
+void SetScreenSizes(void)
+{
+	gtk_window_set_default_size(GTK_WINDOW(app_ptr->main_screen), screenres.horiz, screenres.vert);
+
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->lockconfig_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->load_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->maint_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->utd_maint_window), screenres.horiz, screenres.vert);
+
+
+}
+
+
+
+
 /*
 	set all the labels, buttons etc text from the language file
 */
@@ -2842,11 +2972,29 @@ void SetLabels(void)
 */
 
 
+// main window
+    msg = getMessage(243,FALSE); // "LOCK"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->lock_btn),msg.c_str() );
+
+    msg = getMessage(250,FALSE); // "LOAD"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->load_btn),msg.c_str() );
+
+    msg = getMessage(251,FALSE); // "UNLOAD"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->unload_btn),msg.c_str() );
+
+    msg = getMessage(252,FALSE); // "MAINT"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->maint_btn),msg.c_str() );
+
+    msg = getMessage(253,FALSE); // "LOCK CONFIG"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->lock_config_btn),msg.c_str() );
+
+
 // showconfig window
     msg = getMessage(102,FALSE);
     gtk_window_set_title( GTK_WINDOW(app_ptr->load_window), msg.c_str() );
 
-    msg = getMessage(200,FALSE); // "Load" // gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
+    msg = getMessage(200,FALSE); 
+// "Load" // gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
     gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
 
     msg = getMessage(201,FALSE); // "Stop load"
@@ -2857,6 +3005,57 @@ void SetLabels(void)
 
     msg = getMessage(202,FALSE); // "Unload ALL"
     gtk_button_set_label( GTK_BUTTON(app_ptr->unload_all_button),msg.c_str() );
+
+
+// maint_window
+    msg = getMessage(240,FALSE);
+    gtk_window_set_title( GTK_WINDOW(app_ptr->maint_window), msg.c_str() );
+
+    gtk_label_set_label(GTK_LABEL(app_ptr->maint_title),msg.c_str() );
+
+
+    msg=getMessage(241,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_button),msg.c_str() );
+
+    msg=getMessage(242,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_button),msg.c_str() );
+
+    msg=getMessage(243,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->maint_lock_button),msg.c_str() );
+
+    msg=getMessage(50,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->maint_close_btn),msg.c_str() );
+
+
+
+//utd_window
+    msg = getMessage(225,FALSE);
+    gtk_window_set_title( GTK_WINDOW(app_ptr->utd_maint_window), msg.c_str() );
+
+    gtk_label_set_label(GTK_LABEL(app_ptr->utd_maint_title),msg.c_str() );
+
+
+    msg=getMessage(220,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->zero_utd_btn),msg.c_str() );
+
+    msg=getMessage(221,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
+
+    msg=getMessage(222,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_addr_btn),msg.c_str() );
+
+    msg=getMessage(223,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_inventory_btn),msg.c_str() );
+
+    msg=getMessage(224,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_unloadall_btn),msg.c_str() );
+
+    msg=getMessage(226,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_reset_btn),msg.c_str() );
+
+
+    msg=getMessage(50,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_close_btn),msg.c_str() );
 
 
 
@@ -2980,7 +3179,7 @@ extern "C" bool on_drop_btn_clicked( GtkButton *button, AppWidgets *app)
     printf("DROP\n");
 }
 
-extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_load_btn1_clicked( GtkButton *button, AppWidgets *app)
 {
 	ShowLoad();
     printf("LOAD\n");
@@ -3011,15 +3210,19 @@ extern "C" bool on_vend_btn_clicked( GtkButton *button, AppWidgets *app)
     printf("VEND\n");
 }
 
-extern "C" bool on_unload_btn_clicked( GtkButton *button, AppWidgets *app)
+/*
+extern "C" bool on_unload_btn1_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("UNLOAD\n");
 }
+*/
 
 extern "C" bool on_buy_change_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("BUY CHANGE\n");
 }
+
+
 
 extern "C" bool on_pgrm_btn_clicked( GtkButton *button, AppWidgets *app)
 {
@@ -3035,6 +3238,8 @@ extern "C" bool on_drop_set_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_insta1_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("INSTA 1\n");
+	ShowMaint();
+
 }
 
 
@@ -3083,6 +3288,40 @@ extern "C" bool on_dn_left_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
+
+// MAIN MENU
+extern "C" bool on_lock_config_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    ShowConfig();
+    printf("LOCK CONFIG\n");
+}
+
+
+extern "C" bool on_maint_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("MAINT\n");
+    ShowMaint();
+
+}
+
+extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    ShowLoad();
+    printf("LOAD\n");
+}
+
+extern "C" bool on_unload_btn1_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("UNLOAD\n");
+}
+
+
+extern "C" bool on_lock_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("calling unlock_lock\n");
+    Unlock_Lock(0);     // in usb_gateway.cpp
+    printf("DOORS\n");
+}
 
 
 
@@ -3475,6 +3714,56 @@ void KillConnections(void)
 {
 }
 
+
+/*
+	read the screen file for resolution
+	format is...
+
+	#comments are allowed (max line len=100)
+	H=1280
+	V=800
+
+*/
+
+
+void GetScreenRes(void)
+{
+	FILE *file;
+	char screenfile[]="screen";
+	char mystring[100];
+	char * pch;
+
+	file=fopen(screenfile,"r");
+	if (file == NULL)
+	{
+		screenres.horiz=1280;
+		screenres.vert=800;
+		return;
+	}
+
+
+	while (fgets(mystring,50, file) )
+	{
+		if (mystring[0]=='#') continue;		// skip comments
+
+		pch = strstr(mystring,"=");
+		if (pch != NULL)
+		{
+			if (mystring[0]=='H')
+			{
+				screenres.horiz = atoi(pch+1);
+			}
+
+			if (mystring[0] == 'V')
+			{
+				screenres.vert = atoi(pch+1);
+			}
+		}
+	}
+
+
+	fclose(file);
+}
 
 
 

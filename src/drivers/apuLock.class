@@ -101,7 +101,8 @@ element 2 = door
 
 */
 
-
+#define TRUE 1
+#define FALSE 0
 
 class apuLock
 {
@@ -122,6 +123,7 @@ int door_sensor=-1; // 1 = door open
 string lock_status;
 string lock_type;       // "summit" or "ascent"
 string lock_voltage;
+bool isconnected=FALSE;
 const char  serialnum[32]  = "UNDEFINED";
 const char  addr[32] = "UNDEFINED";
 const char  str_ok[4] = "OK;";
@@ -271,7 +273,7 @@ void Setup(void)
     std::cout << "Status: " + resp + "\n";  //Status: OK 00 t=0;;
 
 
-
+	isconnected=TRUE;
 exiter:
     return;
 }
@@ -299,6 +301,8 @@ RC2
 
 string getLockDoorSensors(void)
 {
+	if (!isconnected) return "";
+
     // get sensors
     string resp;
     send_char = 'r';
@@ -318,6 +322,8 @@ string getLockDoorSensors(void)
 
 string getFirmware(void)
 {
+    if (!isconnected) return "";
+
     string resp;
     char send_char='f';
 //#ifdef DBPRINT
@@ -333,6 +339,7 @@ string getFirmware(void)
 
 string getLockType(void)
 {
+    if (!isconnected) return "";
 	getVolts();
 	return lock_type;
 }
@@ -345,6 +352,8 @@ string getLockType(void)
 */
 string getVolts(void)
 {
+    if (!isconnected) return "";
+
     string resp;
     char send_char='s';
     printf("\nSending: %c\n",send_char);
@@ -376,6 +385,8 @@ string getVolts(void)
 */
 string getStatus(void)
 {
+    if (!isconnected) return "";
+
     string resp;
     char send_char='s';
     printf("\nSending: %c\n",send_char);
@@ -401,6 +412,8 @@ RC2
 
 string getAllSensors(void)
 {
+    if (!isconnected) return "";
+
     // get sensors
     string resp;
     send_char = 'S';
@@ -424,6 +437,8 @@ string getAllSensors(void)
 // returns 1 on success, 0 on failure
 int setSerial(string serial)
 {
+    if (!isconnected) return 0;
+
     string resp;
     string str = "N " + serial +";";
 
@@ -444,6 +459,8 @@ int setSerial(string serial)
 
 string getSerial(void)
 {
+    if (!isconnected) return "";
+
     string resp;
     char send_char = 'n';
 #ifdef DBPRINT
@@ -470,6 +487,8 @@ string getSerial(void)
 
 int Lockit(void)
 {
+    if (!isconnected) return 0;
+
     string resp;
     char send_char='D';
     SendChar(send_char);
@@ -488,6 +507,8 @@ int Lockit(void)
 
 int Unlockit(void)
 {
+    if (!isconnected) return 0;
+
     char send_char;
     string resp;
     string key;
@@ -553,6 +574,8 @@ returns 1 on success, 0 on failture
 
 int downloadFirmware(void)
 {
+    if (!isconnected) return 0;
+
     char send_char;
     string resp;
     string key;
@@ -610,6 +633,8 @@ int downloadFirmware(void)
 
 void DoDownload(void)
 {
+    if (!isconnected) return;
+
 }
 
 
@@ -618,6 +643,7 @@ void DoDownload(void)
 
 void DoDownloadHID(void)
 {
+    if (!isconnected) return;
 }
 
 

@@ -19,6 +19,102 @@
 4. reviewed existing java lock code
 5. apulock.class functional (except firmware download, setting serial, setting address)
 6. apulock.class integrated into application
-7. d8c driver mostly written
+7. d8c driver mostly written and partially integrated
+
+
+to build verssafe
+make all
+
+make help - shows all supported commands
+
+make commands
+all
+zip
+clean
+cleanup
+help
+deps
+count
+tar
+lines
+install
+back
+size
+
+
+
+directory structure
+---------------------------
+dbf/		- holds sql file for import, also script to import it
+drivers/	- source *.class for c++ drivers
+hdr/		- heaader files
+image/		- image files for glade
+installer/	- holds installer scripts
+locale/		- holds lang files
+serial/		- test dir for some old serial port tests
+tinyxml/	- holds source files for tinyxml
+xml/		- holds glade GTK widget xml file and config files
+
+
+util scripts
+----------------------------
+findlocks	-shows mapping of any USB port to  locks devices connected
+findusb		- shows mapping of USB port to device
+getusb		- finds locks in USB pool
+
+
+EXAMPLES:
+root@garys-box:/home/garyc/Desktop/VersaSafe/src# ./findusb 
+/dev/ttyUSB0 - FTDI_FT232R_USB_UART_AH05NOVM
+/dev/input/event5 - Logitech_USB_Optical_Mouse
+/dev/input/mouse0 - Logitech_USB_Optical_Mouse
+/dev/ttyACM1 - FKI_Security_Group_LLC._Apunix_LPM-01__
+/dev/input/event4 - Dell_Dell_USB_Keyboard
+/dev/snd/controlC2 - DisplayLink_Dell_D3100_USB3.0_Dock_1709272943
+
+
+root@garys-box:/home/garyc/Desktop/VersaSafe/src# ./getusb 
+Find all devices with VIDF:04d8 PID:000a
+Bus 002 Device 010: ID 04d8:000a Microchip Technology, Inc. CDC RS-232 Emulation Demo
+
+
+root@garys-box:/home/garyc/Desktop/VersaSafe/src# ./findlocks 
+/dev/ttyACM1 - FKI_Security_Group_LLC._Apunix_LPM-01__
+
+
+
+
+TO ADD A NEW GTK WINDOW
+========================
+
+
+glade
+1 add a top level window
+2 under common, make sure to set widget name, this will be the ref
+3 set modal, etc and window size
+4 uncheck resizable
+5 set postion to CENTER
+6 check DESTROY WITH PARENT
+7 if adding buttons, make sure to set the CLICKED event under signals tab
+
+hdr/gtkwidgets.h
+1 add the new ref as necessary
+
+hdr/gtkwidget_app.h
+1 add the new ref as necessary
+
+
+versasafe
+
+1 add a ShowXXXX() function where XXX is the apprppriate name
+2 create button,etc callbacks
+3 make sure to create a button that  hides the window
+
+SetLabels()
+
+1 add setting labels with language
+
+local/english.lang (etc)
+1 add in appropriate language lines for the buttons,labels etc
 
 

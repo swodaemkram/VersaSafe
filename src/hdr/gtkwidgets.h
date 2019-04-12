@@ -40,9 +40,13 @@
 //WIDGETS
 typedef struct
 {
+
+	// windows
 	GtkWidget *main_screen;
 	GtkWidget *lockconfig_window;
 	GtkWidget *load_window;
+	GtkWidget *maint_window;
+	GtkWidget *utd_maint_window;
 
 // load_window
 	GtkWidget *close_load_button;
@@ -73,6 +77,31 @@ typedef struct
     GtkLabel *inv7;
 
 
+// main window
+	GtkWidget *lock_config_btn;
+	GtkWidget *maint_btn;
+	GtkWidget *load_btn;
+	GtkWidget *unload_btn;
+	GtkWidget *lock_btn;
+
+
+
+// maint window
+	GtkWidget *mei_button;
+	GtkWidget *utd_button;
+	GtkWidget *maint_lock_button;
+	GtkWidget *maint_close_btn;
+	GtkLabel *utd_maint_title;
+	GtkLabel *maint_title;
+
+// utd maint window
+	GtkWidget *zero_utd_btn;
+	GtkWidget *utd_close_btn;
+	GtkWidget *utd_set_addr_btn;
+	GtkWidget *utd_get_addr_btn;
+	GtkWidget *utd_get_inventory_btn;
+	GtkWidget *utd_unloadall_btn;
+	GtkWidget *utd_reset_btn;
 
 	GtkTextBuffer *textbuffer1;
 
@@ -136,7 +165,7 @@ typedef struct
 	GtkWidget *escape_btn;
 	GtkWidget *help_btn;
 
-	GtkWidget *load_btn;
+	GtkWidget *load_btn1;
     GtkWidget *drop_btn;
     GtkWidget *doors_btn;
     GtkWidget *display_btn;
@@ -146,7 +175,7 @@ typedef struct
     GtkWidget *insta3_btn;
     GtkWidget *insta4_btn;
     GtkWidget *vend_btn;
-    GtkWidget *unload_btn;
+    GtkWidget *unload_btn1;
     GtkWidget *buy_change_btn;
     GtkWidget *pgrm_btn;
     GtkWidget *drop_set_btn;

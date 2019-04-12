@@ -1,7 +1,8 @@
 #english
 #Version 1.0 format, by GRC
 # no commas are allowed in the text
-# you can insert a carriage return with \r
+# you can insert a carriage return with <CR>
+# which is converted to 0x0A by getMessage()
 
 #usage
 #string getMessage(int msgID, int add_msgnum); // in locale.cpp
@@ -48,4 +49,26 @@
 200,x,Load
 201,x,STOP LOAD
 202,x,Unload ALL
+
+220,x,ZERO
+221,x,SET ADDR
+222,x,GET ADDR
+223,x,GET INVENTORY
+224,X,UNLOAD ALL
+225,x,UTD MAINTENANCE
+226,x,RESET
+
+
+
+240,x,MAINTENANCE
+241,x,MEI
+242,x,UTD
+243,x,LOCK
+
+
+
+250,x,LOAD
+251,X,UNLOAD
+252,x,MAINT
+253,x,LOCK CONFIG
 

@@ -7,6 +7,14 @@
 	This module is HEAVILY based upon the D8c.java driver by Wagner
 
 
+	for all the public calls... if disconnection is detected, we try reconnecting on the next call
+
+	comms setup
+	19200
+	N81
+	NO FLOW
+
+
 */
 
 
@@ -32,7 +40,6 @@
 #include "../trim.inc"
 #include "../logs.inc"
 
-int  inventory[] =  {0, 0, 0, 0, 0, 0, 0, 0};
 
 
 using namespace std;
@@ -42,7 +49,25 @@ using namespace LibSerial;
 
 /*
     class to calcuate CRCXOR
+
+
+	NOTE: This "CRC" algorithm simply XOR's all the bytes in the msg. This is essentilly addition (like a checkksum)
+	except it toggles bits when they are both 1, basically ignoring those bits. it is my opinion that
+	a checksum would be far more reliable that this xor business. Calling it a CRC is inherently inaccurate, because
+	checksums are based upon addtion and CRC's are based upon division, emitting the remainder as the CRC. This algorightm
+	is more akin to a checksum than a CRC. Unfortunately, this is the process used by the MEI and UTD devices and
+	we are therefore constrained to follow suit.
+
+	Checksums may be fooled by offsetting errors, one byte being too small and another being too large by the same error amount.
+	The principal behind CRC is allowing a single bit to affect more than one bit in the result (chaos), thus encompassing
+	the above issue with simple checksums.
+
+	With an 8 bit checksum, the probability of error is 1/256. The XOR operation, in lieu of plain addition, increases
+	the probabiliy of error because it ignores some bits, by virtue of XOR itself. A very simple way of decreasing
+	the probability of error is to increase thw width of the checksum, eg 16bit, gives 1/65536 probability of error.
+
 */
+
 class CRCXOR
 {
 
@@ -169,6 +194,8 @@ string fwver;
 char boxaddr=0;
 char devaddr=0;
 char seqnum=0;
+unsigned char col_unloaded=0;
+unsigned char tubes_unloaded=0;
 
 
 // privates
@@ -179,31 +206,37 @@ void SendACK(void);
 string DispenseOne(int dispnumber);
 void Send(string Data);
 bool CheckPort(string portname);
-void DispenseX(string column);
-void Dispense(string columnlist);
+//string DispenseX(string column);
+//string Dispense(string columnlist);
 void Reset(void);
 void ProcessStatus(string bb, bool update);
 //void UnloadX(string column);
 void UnloadColumn(int col);
 void printhexB(char * bytes, int bsize, bool sent);
 string char_to_string(char *buff, int len);
+void HandleErrMsg(string errmsg);
+int GetStatus(void);		// intended to be called by the callback
+bool CheckConnection(void);	// check connected, if not, reconnect
+void Setup(void);
+
 
 
 // publics
 string GetFirmwareVersion(void);
-void Dispense(string columnlist);
-void DispenseX(string column);
-int EnableLoad(void);
-int DisableLoad(void);
-void Unload(string columns);
-void UnloadX(string column);
+string Dispense(string columnlist);
+string DispenseX(string column);
+int EnableLoad(void);			// begin LOAD process
+int DisableLoad(void);			// end LOAD process
+void Unload(string columns);	// unload "x x x x x x" columns
+void UnloadX(string column);	// unload a single column
 void Reset(void);
-void DispenseAmt(string amt);
-//void ProcessStatus(string bb, bool update);
-bool Detect(void);
-void Setup(void);
-void DoSetup(void);
+void DispenseAmt(int amt,string values, string counts);
 int * GetInventory(void);
+void ZeroColumns(void);
+
+
+bool isdetected(void);
+int  inventory[] =  {0, 0, 0, 0, 0, 0, 0, 0};
 
 
 
@@ -218,7 +251,7 @@ string Get_D8c_Driver_Version(void)
 string portname;
 
 SerialStream my_serial;
-bool detected=false;
+bool detected=FALSE;
 
 /*
 char PKT_STH = 0x01;
@@ -229,11 +262,18 @@ char PKT_ETX = 0x03;
 class d8c
 {
 
+private:
+char buffer[200];
+int unload_col;			// currently col unloading
+int unload_tubes;		// how many tubes unloaded
+int status;
 
 
 public:
+
 		d8c(string pname)
 		{
+			detected=FALSE;
 			portname=pname;
 			Connect();
 		}
@@ -242,67 +282,119 @@ public:
 		{
             if (my_serial)
                 my_serial.Close();
+			detected=FALSE;
 		}
 
 
 
+		// returns detected status
+		bool isdetected(void)
+		{
+			return detected;
+		}
+
+		// RETURNS: 1 on success
+		//			0 on fail
 		int Connect(void)
 		{
+printf("Connect\n");
+			// check the port before trying to use it
+			if (!CheckPort(portname) )
+			{
+				sprintf(buffer,"Unable to open %s for UTD",portname.c_str() );
+    	        WriteSystemLog(buffer);
+				detected=FALSE;
+				return 0;
+			}
+
+printf("Connect:open\n");
             my_serial.Open(portname);
-printf("CONNECTING TO UTD\n");
+            sprintf(buffer,"Connecting to UTD ON %s",portname.c_str() );
+            WriteSystemLog(buffer);
             if (my_serial.good() )
             {
-printf("CONNECTED TO UTD\n");
+printf("Serial good\n");
+				sprintf(buffer,"Connected to UTD ON %s",portname.c_str() );
+				WriteSystemLog(buffer);
                 my_serial.SetBaudRate(SerialStreamBuf::BAUD_19200);
                 my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_8);
                 my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
                 my_serial.SetParity(SerialStreamBuf::PARITY_NONE);
                 my_serial.SetNumOfStopBits(1);
-                DoSetup();
-                return (1);
+                Setup();
+                return (1);		// success
             }
 
+		sprintf(buffer,"Failed to Connect to UTD ON %s",portname.c_str() );
+		WriteSystemLog(buffer);
         return (0);
 
 		}
 
+		// check the port string format
 		bool CheckPort(string portname)
 		{
 
 					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
-					return true;
+					return TRUE;
 					else
-					return false;
+					return FALSE;
 
 		}
 
 
+private:
 
-void DoSetup(void)
+
+// check the connection, if bad, reconnect
+bool CheckConnection(void)
 {
-	string resp;
-	Send(MSG_SEARCH);
-	resp=GetResponse();
 
-	if (resp!="" && resp.length()>=7 && resp[0]==RPL_SEARCH)
+	if (detected)
+		return TRUE;	// if connected, nothing to do
+	else
 	{
-		detected=true;
-
+		mssleep(2000);
+		Connect();
 	}
-	Setup();
+	return detected;
 }
+
 
 
 void Setup(void)
 {
-printf("SETUP\n");
-	char b[10];
 	string resp;
+    char b[10];
+printf("SETUP\n");
+
+//printf("sending MSG_SEARCH\n");
+
+	Send(MSG_SEARCH);
+	mssleep(100);
+	resp=GetResponse();
+
+//printf("resp:");
+//printhexB(resp,resp.length(),0);
+
+	// see if we got the expected response
+	if (resp!="" && resp.length()>=7 && resp[0]==RPL_SEARCH)
+	{
+printf("Setup::UTD DETECTED\n");
+		detected=TRUE;
+
+	}
+	else
+	{
+printf("Setup::UTD not detected\n");
+	}
+
 	// stop search
-	Send( MSG_SEARCHING );
+	Send( MSG_SEARCHEND );
 	mssleep(100);
 
 	// get version
+//printf("get version\n");
 	string tmp;
 	send_char=CMD_VERSION;
 	SendChar( send_char);
@@ -316,7 +408,8 @@ printf("SETUP\n");
 		fwver=string(buffer);
 	}
 
-printf("FWVER: %s\n",fwver.c_str());
+
+//printf("FWVER: %s\n",fwver.c_str());
 
 
 	// request initial status (also returns inventory[])
@@ -325,15 +418,48 @@ printf("FWVER: %s\n",fwver.c_str());
 	resp=GetResponse();
 	if (resp!="" && resp.length()>=15 && resp[0]==RPL_STATUS)
 	{
-		ProcessStatus(resp,true);
+		ProcessStatus(resp,TRUE);
 	}
 
 }
 
 
+
+
+
+
+public:
+
+
+/*
+	set inventory to 0 for all columns
+
+*/
+
+void ZeroColumns(void)
+{
+
+	string setcols={(char) CMD_SET_COLUMN,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0 };
+	Send(setcols);
+
+}
+
+
+
+
+// poll UTD status, always returns inventory
 int * GetInventory(void)
 {
+
+	static bool inprocess=FALSE;	// prevent multiple calls when still processing
+
+	if (inprocess) return &inventory[0];
+	inprocess=TRUE;
+	int retval=GetStatus();
+printf("GetInventory\n");
+
 	return &inventory[0];
+
 }
 
 
@@ -345,6 +471,49 @@ string GetFirmwareVersion(void)
 }
 
 
+/*
+        "name.dispenseamt.in - Penny Amount to dispense to user (ie. 12300)" +
+        "name.values.in - List of column penny value denominations space separated (i.e. 100 500 ...)" +
+        "name.counts.in - List of column tube counts space separated (ie. 10 5 300 0 0 0 0 0)" +
+
+	NOTE: code expects all positions to be filled, zeroes or otherwise
+*/
+
+void DispenseAmt(int amt, string values, string counts)
+{
+	int cnts[8]=  {0,0,0,0,0,0,0,0};
+	int vals[8]=  {0,0,0,0,0,0,0,0};
+	int d[8]=     {0,0,0,0,0,0,0,0};
+
+	CheckConnection();
+
+    if (!detected) return;
+
+	vector <string> invals = split(values," ");
+	vector <string> incounts = split(counts," ");
+
+	for(int x=0; x <8; x++)
+	{
+		d[x]=0;
+		vals[x]= stoi(invals[x]);
+		cnts[x]= stoi(incounts[x]);
+	}
+
+
+	// if we have a valid amount, do it
+	if (amt > 0)
+	{
+		for (int b=7; b>=0; b--)
+			while (amt >= vals[b] && counts[b]>0) {d[b]++; amt-=vals[b]; counts[b]--;}
+
+
+		// do the actual dispense
+		string arg;
+		for (int n=0; n<8;n++)	arg += to_string(d[n])+" ";
+		DoDispense(arg,false);
+	}
+}
+
 
 
 
@@ -353,27 +522,68 @@ string GetFirmwareVersion(void)
 	columnlist Space separated list of tubes to dispense (ie. 1 2 3 4 5 6 7 8)
 */
 
-void Dispense(string columnlist)
+string Dispense(string columnlist)
 {
+	string errmsg="OK";
+
+	CheckConnection();
+	if (!detected) return "";
+
 	vector <string> cols=split(columnlist," ");
 	int col;
 
 	for (int n=0; n< cols.size(); n++)
 	{
 		col=stoi(cols[n]);
-		DispenseOne(col);	// returns a string
+		errmsg=DispenseOne(col);	// returns a string, but only if errors
+//		HandleErrMsg(errmsg);
 	}
+
+	return errmsg;
 }
+
+
+private:
+
+
+// not currently used.. but may
+void HandleErrMsg(string errmsg)
+{
+	size_t found;
+
+	if (errmsg.length()==0) return;
+
+	if (errmsg=="Unverified dispense")
+	if (errmsg=="JAM detected")
+	if (errmsg=="No response during dispense")
+	if (errmsg=="Timeout")
+	if (errmsg=="Dispense rejected")
+	found = errmsg.find("Unexpected status");
+	 if (found!=std::string::npos)
+		{
+		}
+
+}
+
+public:
 
 
 /*
 	dispense ONE tube from column X
 */
 
-void DispenseX(string column)
+string DispenseX(string column)
 {
+	string errmsg;
+
+	CheckConnection();
+    if (!detected) return "";
+
 	int col=stoi(column);
-	DispenseOne(col);	// returns a string
+	errmsg=DispenseOne(col);	// returns a string
+//	HandleErrMsg(errmsg);
+
+	return errmsg;
 }
 
 /*
@@ -397,33 +607,51 @@ void DispenseX(string column)
 
 
 */
-void DispenseAmt(string amt)
-{
-}
 
+/*
+ENABLING LOAD
+SENT: 01:09:C5:45:00:03:02:88:03:02:[10 (0A)]
+GOT PKT_STH
+RCVD:41:03:CB:00:00:00:00:00:00:00:[10 (0A)]
+
+*/
 
 // enable load mode
 int EnableLoad(void)
 {
+
+    CheckConnection();
+
+    if (!detected) return 0;
 	string resp;
-    send_char=CMD_LOAD;
+printf("ENABLING LOAD\n");
+    send_char=CMD_LOAD;		// 0x88
     SendChar(send_char);
-	resp=GetResponse();
+	resp=GetResponse();	// java driver didnt do anything with this
 }
 
 
 // disable load mode
 int DisableLoad(void)
 {
+    CheckConnection();
+
+    if (!detected) return 0;
 	string resp;
-    send_char=CMD_LOADEND;
+printf("DISABLING LOAD\n");
+    send_char=CMD_LOADEND;	// 0x8B
     SendChar(send_char);
-	resp=GetResponse();
+	resp=GetResponse();	// java driver didnt do anything with this
 }
 
-// cols are zero based
+
+// send a space delimited string
+// 1 3 6
 void Unload(string columns)
 {
+    CheckConnection();
+
+    if (!detected) return;
 	int scols[8];
 
 	// convert the string to integers
@@ -436,15 +664,28 @@ void Unload(string columns)
 
 }
 
+// send 0-7
+// send 8 for UNLOAD_ALL
+// cols are zero based
+
 // unload a single column
 void UnloadX(string column)
 {
+    CheckConnection();
+
+    if (!detected) return;
 	int col=stoi(column);
 	UnloadColumn(col);
 }
 
+
+
+// reset the UTD, takes about 10 seconds
 void Reset(void)
 {
+    CheckConnection();
+
+    if (!detected) return;
 	printf("Resetting UTD\n");
 	send_char=CMD_RESET;
 	SendChar(send_char);
@@ -454,14 +695,71 @@ void Reset(void)
 
 
 
+// poll the UTD for the current status
+// RETURNS: -1 on error
+
+int GetStatus(void)
+{
+printf("getstatus\n");
+	string resp;
+    CheckConnection();
+	if (!detected) return -1;
+
+    // request initial status (also returns inventory[])
+    send_char=CMD_STATUS;
+    SendChar(send_char);
+    resp=GetResponse();
 
 
+    if (resp!="" && resp.length()>=15 && resp[0]==RPL_STATUS)
+    {
+        ProcessStatus(resp,TRUE);
+printf("processstatus return in getstatus\n");
+		mssleep(200);		// poll delay
+//status=-1;
+//printf("status: %d\n",status);
+		return 0;
+    }
+	else
+	{
+		// poll failed, go back to searching for device
+		detected=FALSE;
+		my_serial.Close();
+		mssleep(3000);
+		return -1;
+	}
+
+
+}
+
+
+
+/*
+ process  UTD status
+
+	string b is the data portion of the packet rcvd from the UTD
+
+
+*/
 
 void ProcessStatus(string b, bool update)
 {
+	static int cnt=0;
+	cnt++;
+	int newinv[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-	int status=b[1];
+return;
 
+    if (!detected) return;
+	if (b.length() <=0) return;
+
+printf("processstatus %d\n",cnt);
+printf("b::%s   len:%d\n",b.c_str() ,(int) b.length() );
+
+printf("CHAR: %02x\n",b[1]);
+	status= (char) b[1];
+
+printf("Status: %d | %02x\n",status,status);
 	switch(status)
 	{
 	case STS_LOADING:
@@ -471,7 +769,7 @@ void ProcessStatus(string b, bool update)
 	case STS_UNLOADED:
 		SendACK();
 		break;
-	case STS_UNLOADING:
+	case STS_UNLOADING:		//0x30
 	case STS_UNLOADING+1:
     case STS_UNLOADING+2:
     case STS_UNLOADING+3:
@@ -481,11 +779,17 @@ void ProcessStatus(string b, bool update)
     case STS_UNLOADING+7:
     case STS_UNLOADING+8:
 		// if unload count not set or if unload count changed
+      	// b[4] = number of tubes unloaded
+       	// b[2] = column unloaded
+
 
 		break;
         case STS_UNLOAD_COMPLETE:
 			// b[4] = number of tubes unloaded
-			// b[1] = column unloaded
+			// b[2] = column unloaded
+//TODO - must fix stoi() calls
+//			unload_col= stoi(b[2]);
+//			unload_tubes = stoi(b[4]);
 			SendACK();
 			break;
         case STS_ALIGNING:
@@ -495,18 +799,25 @@ void ProcessStatus(string b, bool update)
 			SendACK();
 			break;
         case STS_DISPENSED:
-//			int col = b[2];
+//			 unload_col = stoi(b[2]);
 			SendACK();
             // no break
-        case STS_IDLE:
-        case STS_DISPDELAY:
-
-		break;
-	}	// end switch
 
 
-		// get inventory
-        int newinv[] = {0, 0, 0, 0, 0, 0, 0, 0};
+/*
+	experimental - UNTESTED
+*/
+		case RPL_STATUS:
+/*
+			boxaddr=input_buffer[2];
+			devaddr=input_buffer[3];
+
+			seq_num = (unsigned char) input_buffer[4];              // get HI byte
+			seq_num <<=8;                                           // shift into place
+			seq_num |= (unsigned char) input_buffer[5];             // merge LO byte
+*/
+
+        // get inventory
         newinv[0] = (b[6]&0xFF)>>4;
         newinv[1] = (b[6]&0xF);
         newinv[2] = (b[7]&0xFF)>>4;
@@ -516,15 +827,39 @@ void ProcessStatus(string b, bool update)
         newinv[6] = (b[9]&0xFF)>>4;
         newinv[7] = (b[9]&0xF);
 
+		col_unloaded=b[2];
+		tubes_unloaded=b[4];
+
+
+        case STS_IDLE:
+        case STS_DISPDELAY:
+goto ender;
+		break;
+	}	// end switch
+
+
+/*
+		// get inventory
+        newinv[0] = (b[6]&0xFF)>>4;
+        newinv[1] = (b[6]&0xF);
+        newinv[2] = (b[7]&0xFF)>>4;
+        newinv[3] = (b[7]&0xF);
+        newinv[4] = (b[8]&0xFF)>>4;
+        newinv[5] = (b[8]&0xF);
+        newinv[6] = (b[9]&0xFF)>>4;
+        newinv[7] = (b[9]&0xF);
+*/
 		for (int c=0; c<8;c++)
 		{
 			if (inventory[c] != newinv[c])
 			{
 				inventory[c] = newinv[c];
-				update=true;
+				update=TRUE;
 			}
 		}
+ender:
 
+printf("end ProcessStatus\n");
 
 }
 
@@ -532,23 +867,6 @@ void ProcessStatus(string b, bool update)
 
 
 
-bool Detect(void)
-{
-	string resp;
-	for (int n=0; n< 8; n++)
-	{
-		send_char=MSG_SEARCH[n];
-		SendChar(send_char);
-	}
-	resp=GetResponse();
-	// see if we got the expected response
-	if (resp !="" && resp.length()>=7 && resp[0]==RPL_SEARCH)
-	{
-		detected=true;
-	}
-
-	return true;
-}
 
 
 
@@ -617,29 +935,15 @@ printf("GOT PKT_STH\n");
 			// if we got a full packet
 			if (size >= 10 && char_pos >= size)
 			{
-printf("got a full packet (%d)\n",size);
+//printf("got a full packet (%d)\n",size);
 				// check CRC
 
 				crc.reset();
 				crc.update(input_buffer,0,char_pos-1);
 
-//char calccrc=crc.getValue();
-//char pktcrc= input_buffer[char_pos-1];
-//printf("calc crc: %02X   pktcrc: %02X  char_pos:%d \n",calccrc & 0xFF ,pktcrc &0xFF ,char_pos);
-
-/*
-string resp1;
-resp1.resize(char_pos);
-for (int x=0; x<char_pos;x++)
-    resp1[x]=input_buffer[x];
-
-
-printhexB(resp1,char_pos,0);
-*/
-
 				if (input_buffer[char_pos-2]==PKT_ETX && crc.getValue()== input_buffer[char_pos-1])
 				{
-printf("CRC was good\n");
+//printf("CRC was good\n");
 					boxaddr=input_buffer[2];
 					devaddr=input_buffer[3];
 //printf("boxaddr:%02X  devaddr:%02X\n",boxaddr,devaddr);
@@ -659,7 +963,7 @@ printf("CRC was good\n");
 				}
 				else
 				{
-printf("CRC was bad\n");
+//printf("CRC was bad\n");
 					// structure or CRC error, start over
 					resp=""; size=0;char_pos=0;
 				}
@@ -845,6 +1149,11 @@ void SendACK(void)
 }
 
 
+/*
+	perform dispense of one tube from dispenser number provided (zero based)
+	RETURNS: any error
+
+*/
 
 string DispenseOne(int column)
 {
@@ -856,12 +1165,16 @@ string DispenseOne(int column)
 	int dcount=0;
 	bool update;
 
+	// request dispense from dispenser (0x80=override delay, other parms are just any host ID)
 	SendString( (string) cmd );
 	resp=GetResponse();
+
+
+	// if we got ACK
 	if (resp!="" && resp.length()>0 && resp[0]==RPL_ACK)
 	{
 		// keep polling status, keep track of attempts
-		bool done=true;
+		bool done=FALSE;
 		while (!done)
 		{
 			// poll status
@@ -879,18 +1192,18 @@ string DispenseOne(int column)
 				case STS_DISPUNVERIFIED:
 					SendACK();
 					failreason="Unverified dispense";
-					done=true;
+					done=TRUE;
 					break;
 				case STS_JAM:
 					failreason="JAM detected";
-					done=true;
+					done=TRUE;
 					break;
-				case STS_LOADING:
+				case STS_LOADING:			// nothing to do
 				case STS_DISPENSING:
 					break;
 				default:
 					failreason="Unexpected status " + string (1,resp[1]) +" during dispense";
-					done=true;
+					done=TRUE;
 					break;
 				} //end switch
 
@@ -899,14 +1212,13 @@ string DispenseOne(int column)
 				if (tseconds >= timestart+30)
 				{
 					failreason="Timeout";
-					done=true;
+					done=TRUE;
 				}
-
 
 			}
 			else
 			{
-				// no repsonse is normal during displense 9up to a limit)
+				// no repsonse is normal during dispense up to a limit)
 				dcount++;
 				if (dcount>=3)
 				{
@@ -928,13 +1240,13 @@ string DispenseOne(int column)
             newinv[7] = (resp[9]&0xF);
 
 			// check if inventory changed (assume it didn't chg until we check it)
-			bool update=true;
+			bool update=FALSE;
 			for (int c=0; c<8; c++)
 			{
 					if (inventory[c] != newinv[c])
 					{
 						for (int x=0; x<8;x++) inventory[x]=newinv[x];
-						update=true;
+						update=TRUE;
 						break;
 					}
 			}
@@ -954,6 +1266,8 @@ string DispenseOne(int column)
 
 	return failreason;
 } // end DispenseOne()
+
+
 
 
 // INPUTS:
@@ -985,7 +1299,7 @@ printf("UnloadColumn\n");
 	{
 printf("we got ACK\n");
 		// keep polling status, ,keep track of changes
-		bool done=true;
+		bool done=FALSE;
 		int nocount=0;
 		long timestart =tseconds;	// get our global seconds counter
 		while (!done)
@@ -1017,11 +1331,11 @@ printf("SWITCH: %d (%02X)\n",(unsigned char) resp[1],(unsigned char) resp[1]);
 printf("ACKing UNLOAD complete\n");
                // ACK status
 				SendACK();
-                done=true;
+                done=TRUE;
                 break;
 			case STS_JAM:
 				failreason="JAM detected";
-				done=true;
+				done=TRUE;
 				break;
 			case STS_UNLOADING:
             case STS_UNLOADING+1:
@@ -1039,7 +1353,7 @@ printf("UNLOADING %d (%02X)\n",resp[1],resp[1]);
 			default:
 				// return fail reason
 				failreason="Unexpected status " + string(1,resp[1]) + " during unload";
-				done=true;
+				done=TRUE;
 				break;
 
 			} // end switch
@@ -1048,7 +1362,7 @@ printf("UNLOADING %d (%02X)\n",resp[1],resp[1]);
 			if (tseconds >=timestart+200)
 			{
 				failreason="Timeout";
-				done=true;
+				done=TRUE;
 
 			}
 		}//if (resp !="" && resp.lengh()>=15)
@@ -1081,13 +1395,13 @@ for (int n=0; n<8;n++)
 	printf("COL %d: %d\n",n,newinv[n]);
 
             // check if inventory changed (assume it didn't chg until we check it)
-            bool update=false;
+            bool update=FALSE;
             for (int c=0; c<8; c++)
             {
                     if (inventory[c] != newinv[c])
                     {
                         for (int x=0; x<8;x++) inventory[x]=newinv[x];
-                        update=true;
+                        update=TRUE;
                         break;
                     }
 
@@ -1124,6 +1438,8 @@ for (int n=0; n<8;n++)
 
 /*
 	counts =  Space separated list of tubes to dispense (ie. 1 2 3 4 5 6 7 8)
+	-or-
+	amounts = space delimited list of amounts
 
 // dispense tubes from provided counts
 */
@@ -1136,13 +1452,13 @@ void DoDispense(string counts, bool GetValues)
 	int vals[8]={NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL,NOVAL};	// vals for each column
 	int damt=0;		// dispensed amt
 	string failreason="";
-	bool hasmore=false;
+	bool hasmore=FALSE;
 	string dispenses;
 
 	vector <string> mycounts=split(counts," ");
 
 	// failed indexes (to conrol dispense attempts during incomplete dispense)
-	bool fi[8]={false,false,false,false,false,false,false,false};
+	bool fi[8]={FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
 
 	// reset initial values
 	for (int i=0; i <8; i++)
@@ -1173,7 +1489,7 @@ void DoDispense(string counts, bool GetValues)
 			}
 			else
 			{
-				fi[d] = true;	// set column as failed
+				fi[d] = TRUE;	// set column as failed
 				//TODO log error
 			}
 
@@ -1189,7 +1505,7 @@ void DoDispense(string counts, bool GetValues)
 			}
 		} // end while
 
-		hasmore=false;
+		hasmore=FALSE;
 		dispenses="";
 		for (int i=0;i<8;i++)
 		{

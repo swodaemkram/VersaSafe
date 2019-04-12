@@ -68,7 +68,16 @@
 	appGET(main_screen);
 	appGET(lockconfig_window);
 	appGET(load_window);
+	appGET(maint_window);
+	appGET(utd_maint_window);
 
+
+// main window
+	appGET(lock_config_btn);
+	appGET(maint_btn);
+	appGET(load_btn);
+	appGET(unload_btn);
+	appGET(lock_btn);
 
 // load window
 	appGET(load_button);
@@ -123,6 +132,22 @@
     appGET_LABEL(sat_unlock_lbl);
 
 
+	// maint window
+	appGET(mei_button);
+	appGET(utd_button);
+	appGET(maint_lock_button);
+	appGET(maint_close_btn);
+	appGET_LABEL(utd_maint_title);
+	appGET_LABEL(maint_title);
+
+	// utd maint window
+	appGET(zero_utd_btn);
+	appGET(utd_close_btn);
+	appGET(utd_set_addr_btn);
+	appGET(utd_get_addr_btn);
+	appGET(utd_get_inventory_btn);
+	appGET(utd_unloadall_btn);
+	appGET(utd_reset_btn);
 
 	// buttons
 	appGET(one_btn);
@@ -140,13 +165,13 @@
     appGET(escape_btn);
     appGET(help_btn);
 
-    appGET(load_btn);
+    appGET(load_btn1);
     appGET(drop_btn);
     appGET(doors_btn);
     appGET(display_btn);
     appGET(report_btn);
     appGET(vend_btn);
-    appGET(unload_btn);
+    appGET(unload_btn1);
     appGET(buy_change_btn);
     appGET(pgrm_btn);
     appGET(drop_set_btn);
