@@ -3,6 +3,12 @@
  *
  *  Created on: Apr 9, 2019
  *      Author: mark
+ *
+ *
+ * The MEIValidator Comm setup is
+ *            9600 E71
+ *
+ *
  */
 
 
@@ -75,9 +81,6 @@ Start of MEI crc Function
 
 }
 
-
-};
-
 /*
 ===============================================================================================================================
 End of MEI crc Function
@@ -93,6 +96,25 @@ string get_mei_driver_version(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}; //End of mei_driver.class
 
 
 
