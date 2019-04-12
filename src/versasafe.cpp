@@ -156,7 +156,7 @@ using namespace std;
 
 
 // the following enable LOCK or UTD class initialization
-#define LOCKS
+//#define LOCKS
 //#define UTD
 
 //#define PRODUCTION
@@ -3084,10 +3084,10 @@ void SetLabels(void)
     gtk_label_set_label(GTK_LABEL(app_ptr->mei_maint_title),msg.c_str() );
 
     msg=getMessage(226,FALSE);
-    gtk_button_set_label(GTK_LABEL(app_ptr->mei_reset_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_reset_btn),msg.c_str() );
 
     msg=getMessage(50,FALSE);
-    gtk_button_set_label(GTK_LABEL(app_ptr->mei_close_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_close_btn),msg.c_str() );
 
 
 
