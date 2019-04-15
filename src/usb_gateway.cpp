@@ -560,7 +560,7 @@ int init_mei(void)
 {
 printf("init_mei\n");
 		//mei * meivalidator = new mei("/dev/ttyUSB0");
- return(1);
+ return(0);
 }
 
 
