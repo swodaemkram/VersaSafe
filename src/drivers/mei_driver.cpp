@@ -94,20 +94,73 @@ string get_mei_driver_version(void)
     return mei_driver_version;
 }
 
+/*
+===============================================================================================================================
+Setup Connection to MEI Validator (connection is 9600E71)
+===============================================================================================================================
+ */
+
 string portname;
 SerialStream my_serial;
 bool detected=FALSE;
+char buffer[200];
 
-public:
-//		mei(string pname)
-//		{
-//			detected=FALSE;
-//			portname=pname;
-//			Connect();
-//		}
+//Setup connection with MEI Validator
+int Connect(void)
+		{
 
 
 
+
+	printf("Connect\n");
+			// check the port before trying to use it
+			if (!CheckPort(portname) )
+			{
+				sprintf(buffer,"Unable to open %s for UTD",portname.c_str() );
+    	        WriteSystemLog(buffer);
+				detected=FALSE;
+				return 0;
+			}
+
+printf("Connect:open\n");
+            my_serial.Open(portname);
+            sprintf(buffer,"Connecting to MEI Validator ON %s",portname.c_str() );
+            WriteSystemLog(buffer);
+            if (my_serial.good() )
+            {
+printf("Serial good\n");
+				sprintf(buffer,"Connected to MEI Validator ON %s",portname.c_str() );
+				WriteSystemLog(buffer);
+                my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
+                my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_7);
+                my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
+                my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
+                my_serial.SetNumOfStopBits(1);
+                return (1);		// success
+            }
+
+		sprintf(buffer,"Failed to Connect to MEI Validator ON %s",portname.c_str() );
+		WriteSystemLog(buffer);
+        return (0);
+
+		}
+
+		// check the port string format
+		bool CheckPort(string portname)
+		{
+
+					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
+					return TRUE;
+					else
+					return FALSE;
+
+		}
+
+/*
+===============================================================================================================================
+ Connection to MEI Validator Completed
+===============================================================================================================================
+*/
 
 
 
