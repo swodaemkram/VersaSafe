@@ -47,6 +47,8 @@ using namespace std;
 #include "drivers/mei_driver.h"
 
 //MEI Validator public functions
+
+mei * meivalidator = NULL;
 int init_mei(void);
 void mei_reset(void);
 string mei_get_info(void);
@@ -590,14 +592,12 @@ string Get_d8_driver(void)
 // 					MEI Validator Section
 //=================================================================================================
 
-//int init_mei(void)
-
-//{
-//printf("init_mei\n");
-//		int index=0;
-//		mei * utd = new mei("/dev/ttyUSB0");
-
-//}
+int init_mei(void)
+{
+printf("init_mei\n");
+		mei * meivalidator = new mei("/dev/ttyUSB0");
+ return(1);
+}
 
 
 
