@@ -41,3 +41,24 @@ extern int Unload_D8C(int column);
 extern string Get_d8_driver(void);
 extern int * GetUTDInventory(void);
 extern bool D8C_detected(void);
+
+
+// MEI specific functions
+
+extern int init_mei(void);
+extern void mei_reset(void);
+extern string mei_get_info(void);
+extern void mei_enable(void);
+extern void mei_dissable(void);
+extern void mei_accept(void);
+extern void mei_enable_bookmark(void);
+extern void mei_enable_in(int meienableincount);
+extern void mei_accept_in(string meibillstoaccept);
+extern void mei_dissable_time(int meidissabletimeinsec);
+extern int * mei_get_inventory(void);
+extern bool mei_detected(void);
+extern string mei_status(void);
+
+
+
+

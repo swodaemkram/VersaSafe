@@ -94,6 +94,19 @@ string get_mei_driver_version(void)
     return mei_driver_version;
 }
 
+string portname;
+SerialStream my_serial;
+bool detected=FALSE;
+
+public:
+		mei(string pname)
+		{
+			detected=FALSE;
+			portname=pname;
+			Connect();
+		}
+
+
 
 
 

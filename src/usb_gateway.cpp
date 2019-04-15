@@ -42,6 +42,26 @@ using namespace std;
 #include "hdr/usb_gateway.h"
 #include "hdr/fire.h"
 
+//MEI Validator driver
+#include "drivers/mei_driver.cpp"
+#include "drivers/mei_driver.h"
+
+//MEI Validator public functions
+int init_mei(void);
+void mei_reset(void);
+string mei_get_info(void);
+void mei_enable(void);
+void mei_dissable(void);
+void mei_accept(void);
+void mei_enable_bookmark(void);
+void mei_enable_in(int meienableincount);
+void mei_accept_in(string meibillstoaccept);
+void mei_dissable_time(int meidissabletimeinsec);
+int * mei_get_inventory(void);
+bool mei_detected(void);
+string mei_status(void);
+
+
 // VEND BOARD DRIVER (D8C)
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
 #include "drivers/d8c.class"
@@ -564,6 +584,31 @@ string Get_d8_driver(void)
 {
 	return Get_D8c_Driver_Version();
 }
+
+
+//=================================================================================================
+// 					MEI Validator Section
+//=================================================================================================
+
+
+
+int init_mei(void);
+
+{
+printf("init_mei\n");
+		int index=0;
+		mei * utd = new mei("/dev/ttyUSB0");
+
+}
+
+
+
+
+
+
+
+
+
 
 
 
