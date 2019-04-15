@@ -11,7 +11,6 @@
  *
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,19 +29,14 @@
 #include <iostream>
 #include <vector>
 
-
-
 #include "mei_driver.h"
 #include "../hdr/global.h"
 //#include "../trim.inc" //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
                          //more then one way to skin a cat
 #include "../logs.inc"
 
-
-
 using namespace std;
 using namespace LibSerial;
-
 
 
 class MEIValidator {
@@ -109,9 +103,6 @@ char buffer[200];
 int Connect(void)
 		{
 
-
-
-
 	printf("Connect\n");
 			// check the port before trying to use it
 			if (!CheckPort(portname) )
@@ -161,24 +152,6 @@ printf("Serial good\n");
  Connection to MEI Validator Completed
 ===============================================================================================================================
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }; //End of mei_driver.class
 

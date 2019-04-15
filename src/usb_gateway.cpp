@@ -10,12 +10,7 @@
     Version: 1.0
 
 	This module is the interface between the business logic and the USB hardware
-
-*/
-
-
-/*
-	 locks
+	locks
 	definitions in hdr/usb_gateway.h
 	1. outter lock
 	2. inner lock
@@ -24,10 +19,7 @@
 	4. base
 */
 
-
-
 using namespace std;
-
 
 #include <string>
 #include <stdio.h>
@@ -43,12 +35,12 @@ using namespace std;
 #include "hdr/fire.h"
 
 //MEI Validator driver
-#include "drivers/mei_driver.cpp"
+#include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
 #include "drivers/mei_driver.h"
 
 //MEI Validator public functions
 
-mei * meivalidator = NULL;
+//mei * meivalidator = NULL;
 int init_mei(void);
 void mei_reset(void);
 string mei_get_info(void);
@@ -68,7 +60,6 @@ string mei_status(void);
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
 #include "drivers/d8c.class"
 
-
 d8c * utd = NULL;
 // public VEND functions
 int Init_D8C(void);
@@ -80,8 +71,6 @@ int Unload_D8C(int column);
 string Get_d8_driver(void);
 int * GetUTDInventory(void);
 bool D8C_detected(void);
-
-
 
 // public lock functions
 int Init_USBX(int index);
@@ -300,9 +289,6 @@ void Kill_USBX(int index)
 	}
 }
 
-
-
-
 // returns 1 on success, 0 on failure
 
 int DownloadLockFirmware(int index)
@@ -313,8 +299,6 @@ int DownloadLockFirmware(int index)
     return res;
 }
 
-
-
 /*
 	returns locked status of the lock
 	returns TRUE if locked, FALSE otherwise
@@ -323,8 +307,6 @@ bool GetIsLocked(int index)
 {
 	return locks[index].islocked;
 }
-
-
 
 int GetLockDelay(int index)
 {
@@ -382,8 +364,6 @@ string GetLockType(int index)
 	locks[index].locktype=ltype;
 	return ltype;
 }
-
-
 
 
 // returns 1 on success
@@ -469,10 +449,6 @@ void SetLockDelay(int index, int delay)
 	locks[index].delay=delay;
 }
 
-
-
-
-
 //=================================================================================================
 // 					D8C - VEND BOARD SECTION
 //=================================================================================================
@@ -489,7 +465,6 @@ void ProcessStatus(string bb, bool update);
 bool Detect(void);
 void Setup(void);
 */
-
 
 int Init_D8C(void)
 {
@@ -528,9 +503,6 @@ int Disable_Load_D8C(void)
 	return retval;
 }
 
-
-
-
 // unload a single column
 // cols are zero based
 
@@ -566,27 +538,19 @@ printf("GetUTDInventory\n");
 	return &utd_inventory[0];
 }
 
-
-
 int Unload_D8C(string cols)
 {
 }
-
-
-
 
 void Reset_D8C(void)
 {
 	utd->Reset();
 }
 
-
-
 string Get_d8_driver(void)
 {
 	return Get_D8c_Driver_Version();
 }
-
 
 //=================================================================================================
 // 					MEI Validator Section
@@ -595,7 +559,7 @@ string Get_d8_driver(void)
 int init_mei(void)
 {
 printf("init_mei\n");
-		mei * meivalidator = new mei("/dev/ttyUSB0");
+		//mei * meivalidator = new mei("/dev/ttyUSB0");
  return(1);
 }
 

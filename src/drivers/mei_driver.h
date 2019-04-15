@@ -77,6 +77,11 @@ included by <termios.h> */
 
 int mei_do_crc(char buff[], int buffer_len);
 
+typedef struct
+{
+
+
+} mei_struc;
 
 
 #endif /* DRIVERS_MEI_DRIVER_H_ */
