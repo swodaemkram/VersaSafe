@@ -99,12 +99,12 @@ SerialStream my_serial;
 bool detected=FALSE;
 
 public:
-		mei(string pname)
-		{
-			detected=FALSE;
-			portname=pname;
-			Connect();
-		}
+//		mei(string pname)
+//		{
+//			detected=FALSE;
+//			portname=pname;
+//			Connect();
+//		}
 
 
 
