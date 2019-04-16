@@ -133,6 +133,10 @@
                                     									
                                     <listOptionValue builtIn="false" value="/home/mark/git/VersaSafe/VersaSafe/src/tinyxml"/>
                                     									
+                                    <listOptionValue builtIn="false" value="/home/mark/git/VersaSafe/src/drivers"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}&quot;"/>
+                                    									
                                     <listOptionValue builtIn="false" value="/home/mark/git/VersaSafe/"/>
                                     									
                                     <listOptionValue builtIn="false" value="/usr/lib/x86_64-linux-gnu"/>
