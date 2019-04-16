@@ -53,7 +53,7 @@ void mei_dissable_time(int meidissabletimeinsec);
 int * mei_get_inventory(void);
 void mei_connect(string pname);
 string mei_status(void);
-void markiscool(void);
+string get_mei_driver_version(void);
 
 // VEND BOARD DRIVER (D8C)
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
@@ -554,16 +554,10 @@ string Get_d8_driver(void)
 //=================================================================================================
 // 					MEI Validator Section
 //=================================================================================================
-//mei * meivalidator = NULL;
-//int init_mei(void)
-//{
-//printf("init_mei\n");
-	//mei * meivalidator = new mei_connect("/dev/ttyUSB0");
-//	return(0);
-//}
-void markiscool(void)
+
+string get_mei_driver_version(void)
 {
-  markiscool();
+	return get_mei_driver_version();
 }
 
 
