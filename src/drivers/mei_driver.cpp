@@ -90,15 +90,16 @@ Setup Connection to MEI Validator (connection is 9600E71)
 ===============================================================================================================================
  */
 
-string mei_portname;
-SerialStream mei_my_serial;
-bool mei_detected=FALSE;
+
 
 class mei
 {
 
 private:
 char buffer[200];
+string mei_portname;
+SerialStream mei_my_serial;
+bool mei_detected=FALSE;
 
 public:
 
