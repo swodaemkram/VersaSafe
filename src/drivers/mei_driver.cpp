@@ -2,11 +2,11 @@
  * MEIValidator.cpp
  *
  *  Created on: Apr 9, 2019
- *      Author: mark
+ *Author: Mark Meadows
  *
- *
- * The MEIValidator Comm setup is
- *            9600 E71
+ *A driver for the
+ *  MEI Validator
+ *Comm setup is 9600 E 7 1
  *
  *
  */
@@ -38,41 +38,7 @@
 using namespace std;
 using namespace LibSerial;
 
-
-
 /*
-===============================================================================================================================
-Start of MEI crc Function
-===============================================================================================================================
-*/
-/*
-class MEI_CRC
-{
-
-public:
-
-do_crc(char buff[], int buffer_len){
-		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
-		 //printf("%d\n",buffer_len); //DEBUG CODE
-		 int i=1;
-		 unsigned int sum = 0;
-		 buffer_len = buffer_len - 2;
-
-		        while ( i < buffer_len)
-		        {
-		           sum ^= buff[i];
-		           //printf("%02x,%02x\n",sum,buff[i]); //DEBUG CODE
-		           i++;
-		        }
-		        //printf("%d\n",buffer_len); //DEBUG CODE
-	            //printf("the check sum = %02x\n",sum); //DEBUG CODE
-
-return(sum);
-	}
-};
-/*
-===============================================================================================================================
-End of MEI crc Function
 ===============================================================================================================================
 This was a function I used to make a map of were everything goes
 ===============================================================================================================================
@@ -83,6 +49,41 @@ public:
 	void markiscool(void){
 		printf("\n!MARKISCOOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	}
+
+/*
+===============================================================================================================================
+Start of MEI crc Function
+===============================================================================================================================
+*/
+
+private:
+
+unsigned do_crc(char buff[], int buffer_len){
+			 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
+			 //printf("%d\n",buffer_len); //DEBUG CODE
+			 int i=1;
+			 unsigned int sum = 0;
+			 buffer_len = buffer_len - 2;
+
+			        while ( i < buffer_len)
+			        {
+			           sum ^= buff[i];
+			           //printf("%02x,%02x\n",sum,buff[i]); //DEBUG CODE
+			           i++;
+			        }
+			        //printf("%d\n",buffer_len); //DEBUG CODE
+		            //printf("the check sum = %02x\n",sum); //DEBUG CODE
+
+	return(sum);
+		}
+/*
+===============================================================================================================================
+End of MEI crc Function
+===============================================================================================================================
+*/
+
+
+
 
 
 
