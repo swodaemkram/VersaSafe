@@ -62,12 +62,10 @@ included by <termios.h> */
 
 using namespace std;
 
-int mei_connect(string pname);
-
 typedef struct
 {
+	string reset;     	//reset
 
 } mei_struc;
-
 
 #endif /* DRIVERS_MEI_DRIVER_H_ */

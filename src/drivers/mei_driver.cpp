@@ -74,75 +74,27 @@ return(sum);
 ===============================================================================================================================
 End of MEI crc Function
 ===============================================================================================================================
+This was a function I used to make a map of were everything goes
+===============================================================================================================================
 */
-
-// Call for driver version
-
-//string mei_driver_version = ".08";
-//string get_mei_driver_version(void)
-//{
-//    return mei_driver_version;
-//}
-
-/*
-===============================================================================================================================
-Setup Connection to MEI Validator (connection is 9600E71)
-===============================================================================================================================
- */
-
-
-
-class mei
-{
-
-private:
-char buffer[200];
-string mei_portname;
-SerialStream mei_my_serial;
-bool mei_detected=FALSE;
+class mei {
 
 public:
-
-int mei_connect(string pname)
-		{
-
-printf("Connect:open\n");
-            mei_my_serial.Open(mei_portname);
-            sprintf(buffer,"Connecting to MEI Validator ON %s",mei_portname.c_str() );
-            WriteSystemLog(buffer);
-            if (mei_my_serial.good() )
-            {
-printf("Serial good\n");
-				sprintf(buffer,"Connected to MEI Validator ON %s",mei_portname.c_str() );
-				WriteSystemLog(buffer);
-                mei_my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
-                mei_my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_7);
-                mei_my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
-                mei_my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
-                mei_my_serial.SetNumOfStopBits(1);
-                return (1);		// success
-            }
-
-		sprintf(buffer,"Failed to Connect to MEI Validator ON %s",mei_portname.c_str() );
-		WriteSystemLog(buffer);
-        return (0);
-
-		}
+	void markiscool(void){
+		printf("\n!MARKISCOOL!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	}
 
 
-// check the port string format
-		bool CheckPort(string mei_portname)
-		{
-					if ((mei_portname.find("/dev/ttyS") != -1) || (mei_portname.find("/dev/ttymxc") != -1) ||	(mei_portname.find("/dev/ttyUSB") != -1) || (mei_portname.find("/dev/ttyACM") != -1 ) )
-					return TRUE;
-					else
-					return FALSE;
 
-}
+
+
+
+
+
+
+
 
 };
-
-
 /*
 ===============================================================================================================================
  Connection to MEI Validator Completed

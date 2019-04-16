@@ -58,7 +58,7 @@ extern void mei_dissable_time(int meidissabletimeinsec);
 extern int * mei_get_inventory(void);
 extern bool mei_detected(void);
 extern string mei_status(void);
-
+extern void markiscool();
 
 
 
