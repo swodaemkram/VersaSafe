@@ -30,8 +30,8 @@ included by <termios.h> */
 	// Byte 1 Status
 #define MEI_CHEATED   = 0x01;
 #define MEI_REJECTED  = 0x02;
-#define MEI_JAM	   = 0x04;
-#define MEI_FULL	   = 0x08;
+#define MEI_JAM	      = 0x04;
+#define MEI_FULL	  = 0x08;
 #define MEI_CASSETTE  = 0x10;
 	// Byte 2 Status
 #define MEI_POWERUP   = 0x01;
@@ -69,7 +69,6 @@ int mei_do_crc(char buff[], int buffer_len);
 
 typedef struct
 {
-
 
 } mei_struc;
 

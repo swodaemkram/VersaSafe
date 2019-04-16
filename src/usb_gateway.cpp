@@ -40,7 +40,7 @@ using namespace std;
 
 //MEI Validator public functions
 
-//mei * meivalidator = NULL;
+mei * meivalidator = NULL;
 int init_mei(void);
 void mei_reset(void);
 string mei_get_info(void);
@@ -559,7 +559,7 @@ string Get_d8_driver(void)
 int init_mei(void)
 {
 printf("init_mei\n");
-		//mei * meivalidator = new mei("/dev/ttyUSB0");
+ mei * meivalidator = new mei_connect("/dev/ttyUSB0");
  return(0);
 }
 

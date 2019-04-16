@@ -39,17 +39,16 @@ using namespace std;
 using namespace LibSerial;
 
 
-class MEIValidator {
-
-public:
 
 /*
 ===============================================================================================================================
 Start of MEI crc Function
 ===============================================================================================================================
 */
+	class mei_do_crc{
+	private:
 
-	int mei_do_crc(char buff[], int buffer_len){
+	 mei_do_crc(char buff[], int buffer_len){
 
 		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
 
@@ -71,9 +70,9 @@ Start of MEI crc Function
 		        //printf("%d\n",buffer_len); //DEBUG CODE
 	            //printf("the check sum = %02x\n",sum); //DEBUG CODE
 
-		 return(sum);
+		 //return(sum);
 
-}
+	};
 
 /*
 ===============================================================================================================================
@@ -82,11 +81,11 @@ End of MEI crc Function
 */
 
 // Call for driver version
-string mei_driver_version = ".08";
-string get_mei_driver_version(void)
-{
-    return mei_driver_version;
-}
+//string mei_driver_version = ".08";
+//string get_mei_driver_version(void)
+//{
+//    return mei_driver_version;
+//}
 
 /*
 ===============================================================================================================================
@@ -94,24 +93,20 @@ Setup Connection to MEI Validator (connection is 9600E71)
 ===============================================================================================================================
  */
 
+class mei{
+
+private:
 string portname;
 SerialStream my_serial;
 bool detected=FALSE;
 char buffer[200];
 
 //Setup connection with MEI Validator
-int Connect(void)
+public:
+
+int mei_connect(string pname)
 		{
 
-	printf("Connect\n");
-			// check the port before trying to use it
-			if (!CheckPort(portname) )
-			{
-				sprintf(buffer,"Unable to open %s for UTD",portname.c_str() );
-    	        WriteSystemLog(buffer);
-				detected=FALSE;
-				return 0;
-			}
 
 printf("Connect:open\n");
             my_serial.Open(portname);
@@ -136,7 +131,7 @@ printf("Serial good\n");
 
 		}
 
-		// check the port string format
+// check the port string format
 		bool CheckPort(string portname)
 		{
 
@@ -145,7 +140,9 @@ printf("Serial good\n");
 					else
 					return FALSE;
 
-		}
+};
+
+
 
 /*
 ===============================================================================================================================
@@ -153,7 +150,10 @@ printf("Serial good\n");
 ===============================================================================================================================
 */
 
-}; //End of mei_driver.class
+
+
+
+
 
 
 
