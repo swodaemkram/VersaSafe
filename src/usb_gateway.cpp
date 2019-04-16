@@ -40,7 +40,7 @@ using namespace std;
 
 //MEI Validator public functions
 
-mei * meivalidator = NULL;
+//mei * meivalidator = NULL;
 int init_mei(void);
 void mei_reset(void);
 string mei_get_info(void);

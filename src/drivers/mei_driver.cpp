@@ -31,7 +31,7 @@
 
 #include "mei_driver.h"
 #include "../hdr/global.h"
-//#include "../trim.inc" //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
+#include "../trim.inc"   //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
                          //more then one way to skin a cat
 #include "../logs.inc"
 
@@ -45,7 +45,8 @@ using namespace LibSerial;
 Start of MEI crc Function
 ===============================================================================================================================
 */
-	class mei_do_crc{
+/*
+class mei_do_crc{
 	private:
 
 	 mei_do_crc(char buff[], int buffer_len){
@@ -93,16 +94,18 @@ Setup Connection to MEI Validator (connection is 9600E71)
 ===============================================================================================================================
  */
 
-class mei{
-
-private:
 string portname;
 SerialStream my_serial;
 bool detected=FALSE;
+
+class mei
+{
+
+private:
 char buffer[200];
 
-//Setup connection with MEI Validator
 public:
+
 
 int mei_connect(string pname)
 		{
@@ -129,18 +132,18 @@ printf("Serial good\n");
 		WriteSystemLog(buffer);
         return (0);
 
-		}
+		};
 
 // check the port string format
-		bool CheckPort(string portname)
-		{
+//		bool CheckPort(string portname)
+//		{
+//					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
+//					return TRUE;
+//					else
+//					return FALSE;
 
-					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
-					return TRUE;
-					else
-					return FALSE;
+//};
 
-};
 
 
 

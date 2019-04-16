@@ -8,10 +8,6 @@
 #ifndef DRIVERS_MEI_DRIVER_H_
 #define DRIVERS_MEI_DRIVER_H_
 
-
-
-
-
 /* baudrate settings are defined in <asm/termbits.h>, which is
 included by <termios.h> */
 #define BAUDRATE B9600
@@ -64,8 +60,9 @@ included by <termios.h> */
 #define	MEI_RETRIEVE  =  0x0B;
 #define	MEI_BOOKMARK  =  0x0D;
 
-int Connect(void);
-int mei_do_crc(char buff[], int buffer_len);
+using namespace std;
+
+int mei_connect(string pname);
 
 typedef struct
 {
