@@ -46,21 +46,17 @@ Start of MEI crc Function
 ===============================================================================================================================
 */
 /*
-class mei_do_crc{
-	private:
+class MEI_CRC
+{
 
-	 mei_do_crc(char buff[], int buffer_len){
+public:
 
+do_crc(char buff[], int buffer_len){
 		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
-
 		 //printf("%d\n",buffer_len); //DEBUG CODE
-
-
 		 int i=1;
 		 unsigned int sum = 0;
-
 		 buffer_len = buffer_len - 2;
-
 
 		        while ( i < buffer_len)
 		        {
@@ -71,10 +67,9 @@ class mei_do_crc{
 		        //printf("%d\n",buffer_len); //DEBUG CODE
 	            //printf("the check sum = %02x\n",sum); //DEBUG CODE
 
-		 //return(sum);
-
-	};
-
+return(sum);
+	}
+};
 /*
 ===============================================================================================================================
 End of MEI crc Function
@@ -82,6 +77,7 @@ End of MEI crc Function
 */
 
 // Call for driver version
+
 //string mei_driver_version = ".08";
 //string get_mei_driver_version(void)
 //{
@@ -94,9 +90,9 @@ Setup Connection to MEI Validator (connection is 9600E71)
 ===============================================================================================================================
  */
 
-string portname;
-SerialStream my_serial;
-bool detected=FALSE;
+string mei_portname;
+SerialStream mei_my_serial;
+bool mei_detected=FALSE;
 
 class mei
 {
@@ -106,45 +102,44 @@ char buffer[200];
 
 public:
 
-
 int mei_connect(string pname)
 		{
 
-
 printf("Connect:open\n");
-            my_serial.Open(portname);
-            sprintf(buffer,"Connecting to MEI Validator ON %s",portname.c_str() );
+            mei_my_serial.Open(mei_portname);
+            sprintf(buffer,"Connecting to MEI Validator ON %s",mei_portname.c_str() );
             WriteSystemLog(buffer);
-            if (my_serial.good() )
+            if (mei_my_serial.good() )
             {
 printf("Serial good\n");
-				sprintf(buffer,"Connected to MEI Validator ON %s",portname.c_str() );
+				sprintf(buffer,"Connected to MEI Validator ON %s",mei_portname.c_str() );
 				WriteSystemLog(buffer);
-                my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
-                my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_7);
-                my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
-                my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
-                my_serial.SetNumOfStopBits(1);
+                mei_my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
+                mei_my_serial.SetCharSize(SerialStreamBuf::CHAR_SIZE_7);
+                mei_my_serial.SetFlowControl(SerialStreamBuf::FLOW_CONTROL_NONE);
+                mei_my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
+                mei_my_serial.SetNumOfStopBits(1);
                 return (1);		// success
             }
 
-		sprintf(buffer,"Failed to Connect to MEI Validator ON %s",portname.c_str() );
+		sprintf(buffer,"Failed to Connect to MEI Validator ON %s",mei_portname.c_str() );
 		WriteSystemLog(buffer);
         return (0);
 
-		};
+		}
+
 
 // check the port string format
-//		bool CheckPort(string portname)
-//		{
-//					if ((portname.find("/dev/ttyS") != -1) || (portname.find("/dev/ttymxc") != -1) ||	(portname.find("/dev/ttyUSB") != -1) || (portname.find("/dev/ttyACM") != -1 ) )
-//					return TRUE;
-//					else
-//					return FALSE;
+		bool CheckPort(string mei_portname)
+		{
+					if ((mei_portname.find("/dev/ttyS") != -1) || (mei_portname.find("/dev/ttymxc") != -1) ||	(mei_portname.find("/dev/ttyUSB") != -1) || (mei_portname.find("/dev/ttyACM") != -1 ) )
+					return TRUE;
+					else
+					return FALSE;
 
-//};
+}
 
-
+};
 
 
 /*

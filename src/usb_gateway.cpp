@@ -52,7 +52,6 @@ void mei_enable_in(int meienableincount);
 void mei_accept_in(string meibillstoaccept);
 void mei_dissable_time(int meidissabletimeinsec);
 int * mei_get_inventory(void);
-bool mei_detected(void);
 string mei_status(void);
 
 
@@ -556,12 +555,12 @@ string Get_d8_driver(void)
 // 					MEI Validator Section
 //=================================================================================================
 
-int init_mei(void)
-{
-printf("init_mei\n");
- mei * meivalidator = new mei_connect("/dev/ttyUSB0");
- return(0);
-}
+//int init_mei(void)
+//{
+//printf("init_mei\n");
+// mei * meivalidator = new mei_connect("/dev/ttyUSB0");
+// return(0);
+//}
 
 
 
