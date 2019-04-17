@@ -555,6 +555,13 @@ string Get_d8_driver(void)
 // 					MEI Validator Section
 //=================================================================================================
 
+int mei_connect(void)
+{
+	return mei_connect();
+
+}
+
+
 string get_mei_driver_version(void)
 {
 	return get_mei_driver_version();
