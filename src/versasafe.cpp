@@ -773,14 +773,22 @@ if ( strcmp(cfg.utd,"enabled")==0)
 	Init_D8C();     // init VEND board driver (in usb_gateway)
 #endif
 //	Unload_D8C(1);
-
 }
 
+/*
+=============================================================================================
+Initiate the MEI validator in the USB Gateway if Enabled
+=============================================================================================
+*/
 if ( strcmp(cfg.validator1,"enabled")==0)
 {
 	init_mei();    //init MEI validator (in usb_gateway)
 }
-
+/*
+=============================================================================================
+end of Initiating the MEI validator in the USB Gateway if Enabled
+=============================================================================================
+*/
 
 
 
