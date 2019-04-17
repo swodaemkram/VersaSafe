@@ -199,7 +199,7 @@ MEI Validator Setup processed after the Comm port connection is made
 
 void mei_setup(void)
 {
-
+	   mei_reset();
 printf("MEI Validator SETUP\n");
 
 }
@@ -253,7 +253,7 @@ public:
 
 void mei_reset(void)
 {
-	string str = "";
+	string str = "\x02\x08\x60\x7f\x7f\x7f\x03";
 	mei_my_serial << str;
 }
 
