@@ -1,0 +1,30 @@
+Mexican Monetary Denominations
+
+notes:	20,50,100,200,500 pesos
+
+coin: 	1,2,5,10,20 pesos
+		20,50 centavos
+
+100 centavos = 1 peso
+
+
+
+ISRAELI (new shkels)
+
+100 agorot (agora is singular) in a shekel
+
+notes: 20,50,100,200 shekel
+coins:	1,2,5,10 shekel
+		10,50 agorot
+
+
+
+EUROS
+
+notes:	5,10,20,50,100,200,500
+coins;	1,2,5,10,20,50 centimes
+		1,2 euros
+
+
+100 centimes = 1 euro
+

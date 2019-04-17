@@ -107,12 +107,12 @@ DROP TABLE IF EXISTS `ucd_denom`;
 /*!40102 SET @saved_cs_client     = @@character_set_client */;
 /*!40102 SET character_set_client = utf8 */;
 CREATE TABLE `ucd_denom` (
-  `tube` int(1) NOT NULL,
+  `col` int(1) NOT NULL,
   `tube_name` varchar(20) NOT NULL,
   `tube_value` int(5) NOT NULL,
   `tube_count` int(2) DEFAULT 0,
   `modified_on` datetime NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-  `denom_country_code` varchar(5) DEFAULT "USD",
+  `country_code` varchar(8) DEFAULT "USD",
   `id` int(5) COLLATE utf8_bin auto_increment,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
@@ -130,5 +130,102 @@ INSERT INTO `ucd_denom` VALUES ('7','TENS','2000','0',NOW(),'USD','7');
 INSERT INTO `ucd_denom` VALUES ('8','TWENTIES','4000','0',NOW(),'USD','8');
 
 UNLOCK TABLES;
+
+
+
+DROP TABLE IF EXISTS `currency`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `currency` (
+  `country_code` varchar(5)  NOT NULL,
+  `type` varchar(5) NOT NULL,
+  `value` int(4) NOT NULL,
+  `symbol` varchar(10) COLLATE utf8_bin NOT NULL,
+  `id` int(5) COLLATE utf8_bin auto_increment,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
+
+
+/* USD - all values are listed in cents */
+LOCK TABLES `currency` WRITE;
+INSERT INTO `currency` VALUES('USD','NOTE','100','$','1');
+INSERT INTO `currency` VALUES('USD','NOTE','500','$','2');
+INSERT INTO `currency` VALUES('USD','NOTE','1000','$','3');
+INSERT INTO `currency` VALUES('USD','NOTE','2000','$','4');
+INSERT INTO `currency` VALUES('USD','NOTE','5000','$','5');
+INSERT INTO `currency` VALUES('USD','NOTE','10000','$','6');
+
+INSERT INTO `currency` VALUES('USD','COIN','1','c','7');
+INSERT INTO `currency` VALUES('USD','COIN','5','c','8');
+INSERT INTO `currency` VALUES('USD','COIN','10','c','9');
+INSERT INTO `currency` VALUES('USD','COIN','25','c','10');
+
+
+/* EURO - all values are listed in centimes 
+	written €50
+	100 centimes = 1 euro
+*/
+INSERT INTO `currency` VALUES('EURO','NOTE','500','€','11');
+INSERT INTO `currency` VALUES('EURO','NOTE','1000','€','12');
+INSERT INTO `currency` VALUES('EURO','NOTE','2000','€','13');
+INSERT INTO `currency` VALUES('EURO','NOTE','5000','€','14');
+INSERT INTO `currency` VALUES('EURO','NOTE','10000','€','15');
+INSERT INTO `currency` VALUES('EURO','NOTE','20000','€','16');
+INSERT INTO `currency` VALUES('EURO','NOTE','50000','€','17');
+
+INSERT INTO `currency` VALUES('EURO','COIN','1','c','18');
+INSERT INTO `currency` VALUES('EURO','COIN','2','c','19');
+INSERT INTO `currency` VALUES('EURO','COIN','5','c','20');
+INSERT INTO `currency` VALUES('EURO','COIN','10','c','21');
+INSERT INTO `currency` VALUES('EURO','COIN','20','c','22');
+INSERT INTO `currency` VALUES('EURO','COIN','50','c','23');
+INSERT INTO `currency` VALUES('EURO','COIN','100','€','24');
+INSERT INTO `currency` VALUES('EURO','COIN','200','€','25');
+
+/* PESO all values are listed in centavos 
+	written $10
+	100 centavos = 1 peso
+
+*/
+
+INSERT INTO `currency` VALUES('PESO','NOTE','2000','$','26');
+INSERT INTO `currency` VALUES('PESO','NOTE','5000','$','27');
+INSERT INTO `currency` VALUES('PESO','NOTE','10000','$','28');
+INSERT INTO `currency` VALUES('PESO','NOTE','20000','$','29');
+INSERT INTO `currency` VALUES('PESO','NOTE','50000','$','30');
+
+INSERT INTO `currency` VALUES('PESO','COIN','100','$','31');
+INSERT INTO `currency` VALUES('PESO','COIN','200','$','32');
+INSERT INTO `currency` VALUES('PESO','COIN','500','$','33');
+INSERT INTO `currency` VALUES('PESO','COIN','1000','$','34');
+INSERT INTO `currency` VALUES('PESO','COIN','2000','$','35');
+INSERT INTO `currency` VALUES('PESO','COIN','20','¢','36');
+INSERT INTO `currency` VALUES('PESO','NOTE','50','¢','37');
+
+/* SHEKEL all values are listed in agorot
+	written ₪110 (altho, when written right to left, it appears at the end of the number)
+	unicode 8362
+	100 agorot = 1 shekel
+*/
+
+
+INSERT INTO `currency` VALUES('ILS','NOTE','2000','₪ ','38');
+
+INSERT INTO `currency` VALUES('ILS','NOTE','5000','₪','39');
+INSERT INTO `currency` VALUES('ILS','NOTE','10000','₪','40');
+INSERT INTO `currency` VALUES('ILS','NOTE','20000','₪','41');
+
+INSERT INTO `currency` VALUES('ILS','COIN','100','₪','42');
+INSERT INTO `currency` VALUES('ILS','COIN','200','₪','43');
+INSERT INTO `currency` VALUES('ILS','COIN','500','₪','44');
+INSERT INTO `currency` VALUES('ILS','COIN','1000','₪','45');
+
+INSERT INTO `currency` VALUES('ILS','COIN','10','agorot','46');
+INSERT INTO `currency` VALUES('ILS','COIN','50','agorot','47');
+
+
+UNLOCK TABLES;
+
+
 
 -- Dump completed on 2019-01-16 10:26:52
