@@ -106,7 +106,7 @@ bool detected=false;
 		~mei(void)
 		{
             if (mei_my_serial)
-//                mei_my_serial.Close();
+            mei_my_serial.Close();
 			mei_detected=false;
 		}
 
@@ -253,18 +253,9 @@ public:
 
 void mei_reset(void)
 {
-	string str = "\x02\x08\x60\x7f\x7f\x7f\x03";
+	string str = "\x02\x08\x60\x7f\x7f\x7f\x03\17";
 	mei_my_serial << str;
 }
-
-
-
-
-
-
-
-
-
 
 
 

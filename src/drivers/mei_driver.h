@@ -64,7 +64,7 @@ using namespace std;
 
 typedef struct
 {
-	string reset;     	//reset
+
 
 } mei_struc;
 
