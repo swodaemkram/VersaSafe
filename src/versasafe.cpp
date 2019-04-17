@@ -776,6 +776,16 @@ if ( strcmp(cfg.utd,"enabled")==0)
 
 }
 
+if ( strcmp(cfg.validator1,"enabled")==0)
+{
+	init_mei();    //init MEI validator (in usb_gateway)
+}
+
+
+
+
+
+
 
 
 //=======================
