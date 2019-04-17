@@ -459,6 +459,7 @@ void ZeroColumns(void)
 
 	string setcols={(char) CMD_SET_COLUMN,0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0 };
 	Send(setcols);
+    resp=GetResponse();
 
 }
 

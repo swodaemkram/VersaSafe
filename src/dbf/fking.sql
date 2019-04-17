@@ -103,4 +103,32 @@ UNLOCK TABLES;
 
 
 
+DROP TABLE IF EXISTS `ucd_denom`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `ucd_denom` (
+  `tube` int(1) NOT NULL,
+  `tube_name` varchar(20) NOT NULL,
+  `tube_value` int(5) NOT NULL,
+  `tube_count` int(2) DEFAULT 0,
+  `modified_on` datetime NOT NULL DEFAULT NOW() ON UPDATE NOW(),
+  `denom_country_code` varchar(5) DEFAULT "USD",
+  `id` int(5) COLLATE utf8_bin auto_increment,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
+/*!40102 SET character_set_client = @saved_cs_client */;
+
+
+LOCK TABLES `ucd_denom` WRITE;
+INSERT INTO `ucd_denom` VALUES ('1','PENNIES','50','0',NOW(),'USD','1');
+INSERT INTO `ucd_denom` VALUES ('2','NICKELS','200','0',NOW(),'USD','2');
+INSERT INTO `ucd_denom` VALUES ('3','DIMES','500','0',NOW(),'USD','3');
+INSERT INTO `ucd_denom` VALUES ('4','QUARTERS','1000','0',NOW(),'USD','4');
+INSERT INTO `ucd_denom` VALUES ('5','ONES','1000','0',NOW(),'USD','5');
+INSERT INTO `ucd_denom` VALUES ('6','FIVES','2000','0',NOW(),'USD','6');
+INSERT INTO `ucd_denom` VALUES ('7','TENS','2000','0',NOW(),'USD','7');
+INSERT INTO `ucd_denom` VALUES ('8','TWENTIES','4000','0',NOW(),'USD','8');
+
+UNLOCK TABLES;
+
 -- Dump completed on 2019-01-16 10:26:52
