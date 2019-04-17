@@ -555,9 +555,12 @@ string Get_d8_driver(void)
 // 					MEI Validator Section
 //=================================================================================================
 
-int mei_connect(void)
+int init_mei(void)
 {
-	return mei_connect();
+printf("init_mei\n");
+		int index=0;
+		mei * utd = new mei("/dev/ttyUSB0");
+		printf("\nmei setup !\n");
 
 }
 
