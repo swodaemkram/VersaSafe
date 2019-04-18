@@ -83,6 +83,20 @@
 	appGET_LABEL(user_txt);
 	appGET_LABEL(pw_txt);
 
+	appGET(one_btn);
+   appGET(two_btn);
+   appGET(three_btn);
+   appGET(four_btn);
+   appGET(five_btn);
+   appGET(six_btn);
+   appGET(seven_btn);
+   appGET(eight_btn);
+   appGET(nine_btn);
+   appGET(zero_btn);
+   appGET(tab_btn);
+   appGET(bksp_btn);
+
+
 // main window
 	appGET(lock_config_btn);
 	appGET(maint_btn);
@@ -165,6 +179,7 @@
 	appGET(mei_close_btn);
 	appGET(mei_maint_title);
 	// buttons
+/*
 	appGET(one_btn);
 	appGET(two_btn);
     appGET(three_btn);
@@ -175,6 +190,7 @@
     appGET(eight_btn);
     appGET(nine_btn);
     appGET(zero_btn);
+*/
     appGET(enter_btn);
     appGET(clear_btn);
     appGET(escape_btn);

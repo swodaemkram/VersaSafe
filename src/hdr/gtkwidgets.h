@@ -60,6 +60,19 @@ typedef struct
 	GtkLabel *pw_txt;
 	GtkLabel *user_txt;
 
+	GtkWidget *one_btn;
+    GtkWidget *two_btn;
+    GtkWidget *three_btn;
+    GtkWidget *four_btn;
+    GtkWidget *five_btn;
+    GtkWidget *six_btn;
+    GtkWidget *seven_btn;
+    GtkWidget *eight_btn;
+    GtkWidget *nine_btn;
+    GtkWidget *zero_btn;
+    GtkWidget *tab_btn;
+    GtkWidget *bksp_btn;
+
 
 
 // load_window
@@ -169,6 +182,7 @@ typedef struct
 
 
 	// buttons
+/*
 	GtkWidget *one_btn;
 	GtkWidget *two_btn;
 	GtkWidget *three_btn;
@@ -179,6 +193,7 @@ typedef struct
 	GtkWidget *eight_btn;
 	GtkWidget *nine_btn;
 	GtkWidget *zero_btn;
+*/
 	GtkWidget *enter_btn;
 	GtkWidget *clear_btn;
 	GtkWidget *escape_btn;

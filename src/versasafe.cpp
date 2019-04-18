@@ -2041,6 +2041,58 @@ void ShowLogin(void)
 
 }
 
+extern "C" bool on_one_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_two_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_three_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_four_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_five_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_six_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_seven_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_eight_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+extern "C" bool on_nine_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_zero_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_tab_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_bksp_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+
+
 extern "C" bool on_en_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	printf("ENGLISH btn\n");
@@ -3110,17 +3162,14 @@ void SetLabels(void)
 
     gtk_label_set_label(GTK_LABEL(app_ptr->utd_maint_title),msg.c_str() );
 
-
     msg=getMessage(220,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->zero_utd_btn),msg.c_str() );
 
     msg=getMessage(221,FALSE);
-//TODO - fix this 'button_set_label' for utd_set_addr_btn
-//    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
 
     msg=getMessage(222,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_addr_btn),msg.c_str() );
-
 
 
     msg=getMessage(223,FALSE);
@@ -3131,7 +3180,6 @@ void SetLabels(void)
 
     msg=getMessage(226,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_reset_btn),msg.c_str() );
-
 
     msg=getMessage(50,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_close_btn),msg.c_str() );
@@ -3197,7 +3245,7 @@ extern "C" bool on_help_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
-
+/*
 extern "C" bool on_one_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	printf("ONE\n");
@@ -3252,7 +3300,7 @@ extern "C" bool on_zero_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("ZERO\n");
 }
-
+*/
 
 extern "C" bool on_enter_btn_clicked( GtkButton *button, AppWidgets *app)
 {
