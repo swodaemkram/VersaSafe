@@ -494,6 +494,8 @@ void ShowMaint(void);
 void ShowUTDMaint(void);
 void ShowMEIMaint(void);
 
+void Get_UTD_Data(void);
+
 
 void SetLockTimerLabels(char * lockname);
 void StoreLockTime(char * hourmin, bool islock, bool ishour);
@@ -669,6 +671,10 @@ printf("user: %s\n",localDBF.user);
 	int result =  QueryDBF(&localDBF,query);
 	int numrows = GetRow(&localDBF);	// populate gen_buffer
 	printf("Data Returned: %s\n",localDBF.row[1]);
+
+
+Get_UTD_Data();
+exit(0);
 
 /*
 	// returns TRUE If VersaSafe is already running
@@ -3808,6 +3814,38 @@ void GetScreenRes(void)
 
 
 	fclose(file);
+}
+
+
+#define MAX_UTD_COLS 8
+struct
+{
+	int col;
+	string tube_name;
+	int tube_value;
+	int tube_count;
+	float dollars;
+} utd_inv[MAX_UTD_COLS];
+
+
+void Get_UTD_Data(void)
+{
+    char query[]="SELECT col,tube_name,tube_value,tube_count  FROM utd_denom";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);    // populate gen_buffer
+    printf("Data Returned: %s\n",localDBF.row[1]);
+
+	for (int n=0; n < numrows; n++)
+	{
+		utd_inv[n].col= atoi(localDBF.row[0]);				// column
+        utd_inv[n].tube_name= string(localDBF.row[1]);    	// tube_name
+		utd_inv[n].tube_value= atoi(localDBF.row[2]);		// tube_value
+		utd_inv[n].tube_count= atoi(localDBF.row[3]);		// tube_count
+		utd_inv[n].dollars= (utd_inv[n].tube_count * utd_inv[n].tube_value) /100.0;
+		printf("col %d:: %s  Dollars %4.2f\n",utd_inv[n].col,utd_inv[n].tube_name.c_str(),  utd_inv[n].dollars);
+		GetRow(&localDBF);	// get next row
+	}
+
 }
 
 
