@@ -168,17 +168,6 @@ void GeneralSetup(void)
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /*
 	rename/move a file
 

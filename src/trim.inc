@@ -2,6 +2,8 @@
 #include <string.h>
 #include <string>
 
+using namespace std;
+
 extern char *trim(char *str);
 extern char *ltrim(char *str);
 extern char *rtrim(char *str);

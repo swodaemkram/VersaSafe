@@ -8,10 +8,6 @@
 #ifndef DRIVERS_MEI_DRIVER_H_
 #define DRIVERS_MEI_DRIVER_H_
 
-
-
-
-
 /* baudrate settings are defined in <asm/termbits.h>, which is
 included by <termios.h> */
 #define BAUDRATE B9600
@@ -30,8 +26,8 @@ included by <termios.h> */
 	// Byte 1 Status
 #define MEI_CHEATED   = 0x01;
 #define MEI_REJECTED  = 0x02;
-#define MEI_JAM	   = 0x04;
-#define MEI_FULL	   = 0x08;
+#define MEI_JAM	      = 0x04;
+#define MEI_FULL	  = 0x08;
 #define MEI_CASSETTE  = 0x10;
 	// Byte 2 Status
 #define MEI_POWERUP   = 0x01;
@@ -64,19 +60,12 @@ included by <termios.h> */
 #define	MEI_RETRIEVE  =  0x0B;
 #define	MEI_BOOKMARK  =  0x0D;
 
-//void ack_message_send(char *comm_port,char *pkt);
-//char * ack_packet_build(unsigned int pkt_command);
-//char *build_packet_cmd(unsigned int pkt_command);
-//char *build_packet_ext_cmd(unsigned int pkt_command);
-//char *build_packet_reset(unsigned int pkt_command);
-//char * build_packet(unsigned int pkt_command);
-//void print_help();
-//void send_pkt (char *comm_port,char *pkt, unsigned int pkt_command);
-//void setup_serial_port(char *comm_port);
+using namespace std;
+
+typedef struct
+{
 
 
-int mei_do_crc(char buff[], int buffer_len);
-
-
+} mei_struc;
 
 #endif /* DRIVERS_MEI_DRIVER_H_ */

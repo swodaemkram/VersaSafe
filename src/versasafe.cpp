@@ -156,7 +156,7 @@ using namespace std;
 
 
 // the following enable LOCK or UTD class initialization
-#define LOCKS
+//#define LOCKS
 //#define UTD
 
 //#define PRODUCTION
@@ -773,9 +773,22 @@ if ( strcmp(cfg.utd,"enabled")==0)
 	Init_D8C();     // init VEND board driver (in usb_gateway)
 #endif
 //	Unload_D8C(1);
-
 }
 
+/*
+=============================================================================================
+Initiate the MEI validator in the USB Gateway if Enabled
+=============================================================================================
+*/
+if ( strcmp(cfg.validator1,"enabled")==0)
+{
+	init_mei();    //init MEI validator (in usb_gateway)
+}
+/*
+=============================================================================================
+end of Initiating the MEI validator in the USB Gateway if Enabled
+=============================================================================================
+*/
 
 
 //=======================
@@ -3084,10 +3097,10 @@ void SetLabels(void)
     gtk_label_set_label(GTK_LABEL(app_ptr->mei_maint_title),msg.c_str() );
 
     msg=getMessage(226,FALSE);
-    gtk_button_set_label(GTK_LABEL(app_ptr->mei_reset_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_reset_btn),msg.c_str() );
 
     msg=getMessage(50,FALSE);
-    gtk_button_set_label(GTK_LABEL(app_ptr->mei_close_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_close_btn),msg.c_str() );
 
 
 

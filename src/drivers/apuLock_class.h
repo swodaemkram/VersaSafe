@@ -18,7 +18,7 @@
 
 #ifndef APULOCK_CLASS
 #define APULOCK_CLASS
-
+using namespace std;
 
 class apuLock
 {
