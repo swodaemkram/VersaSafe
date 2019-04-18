@@ -71,6 +71,16 @@
 	appGET(maint_window);
 	appGET(utd_maint_window);
 	appGET(mei_maint_window);
+	appGET(login_window);
+
+	// login window
+	appGET(en_btn);
+	appGET(es_btn);
+	appGET(fr_btn);
+	appGET(he_btn);
+	appGET(login_btn);
+	appGET_LABEL(user_txt);
+	appGET_LABEL(pw_txt);
 
 // main window
 	appGET(lock_config_btn);

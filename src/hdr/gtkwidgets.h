@@ -48,6 +48,18 @@ typedef struct
 	GtkWidget *maint_window;
 	GtkWidget *utd_maint_window;
 	GtkWidget *mei_maint_window;
+	GtkWidget *login_window;
+
+	// login window
+	GtkWidget *en_btn;
+	GtkWidget *es_btn;
+	GtkWidget *fr_btn;
+	GtkWidget *he_btn;
+	GtkWidget *login_btn;
+	GtkLabel *pw_txt;
+	GtkLabel *user_txt;
+
+
 
 // load_window
 	GtkWidget *close_load_button;
