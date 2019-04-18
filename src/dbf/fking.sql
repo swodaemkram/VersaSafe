@@ -228,4 +228,40 @@ UNLOCK TABLES;
 
 
 
+DROP TABLE IF EXISTS `config`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `config` (
+  `lang_id` int(5)  NOT NULL DEFAULT 1,
+  `serial` varchar(30) NOT NULL,
+  `custname` varchar(40),
+  `safe_name` varchar(40)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='safe configuration';
+
+LOCK TABLES `config` WRITE;
+INSERT INTO `config` VALUES('1','1234','Bob Fergus','Bobs Safe');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `langs`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `langs` (
+  `code` varchar(5)  NOT NULL,
+  `name` varchar(40) NOT NULL,
+  `active` tinyint NOT NULL DEFAULT 0,
+  `id` int(5) COLLATE utf8_bin auto_increment,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='supported languages';
+
+
+LOCK TABLES `langs` WRITE;
+INSERT INTO `langs` VALUES('en','English',1,1);
+INSERT INTO `langs` VALUES('es','Español',0,2);
+INSERT INTO `langs` VALUES('fr','Français',0,3);
+INSERT INTO `langs` VALUES('he','עברית',0,4);
+UNLOCK TABLES;
+
+
+
 -- Dump completed on 2019-01-16 10:26:52
