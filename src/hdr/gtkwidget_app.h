@@ -79,6 +79,7 @@
 	appGET(fr_btn);
 	appGET(he_btn);
 	appGET(login_btn);
+	appGET(login_exit_btn);
 	appGET_LABEL(user_txt);
 	appGET_LABEL(pw_txt);
 
@@ -90,10 +91,10 @@
 	appGET(lock_btn);
 
 // load window
-	appGET(load_button);
-	appGET(stop_load_button);
-	appGET(close_load_button);
-	appGET(unload_all_button);
+//	appGET(load_button);
+//	appGET(stop_load_button);
+//	appGET(close_load_button);
+//	appGET(unload_all_button);
 
 	appGET_LABEL(inv0);
     appGET_LABEL(inv1);

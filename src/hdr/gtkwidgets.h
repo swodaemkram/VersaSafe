@@ -56,16 +56,17 @@ typedef struct
 	GtkWidget *fr_btn;
 	GtkWidget *he_btn;
 	GtkWidget *login_btn;
+	GtkWidget *login_exit_btn;
 	GtkLabel *pw_txt;
 	GtkLabel *user_txt;
 
 
 
 // load_window
-	GtkWidget *close_load_button;
-	GtkWidget *stop_load_button;
-	GtkWidget *load_button;
-	GtkWidget *unload_all_button;
+//	GtkWidget *close_load_button;
+//	GtkWidget *stop_load_button;
+//	GtkWidget *load_button;
+//	GtkWidget *unload_all_button;
 
 
 	GtkToggleButton *dayssame;
