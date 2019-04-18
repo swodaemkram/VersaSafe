@@ -86,7 +86,7 @@ need to be installed on machine
 
 
 	5-9-2013 DO NOT MAKE THE FOLLOWING CHANGE
-	# 
+	#
 	# Initializations.
 	#
 	#GRC changed the following line
@@ -488,13 +488,17 @@ gint time_slice(gpointer data);
 void SetMainScreenFont(void);
 void SetMainScreenTitle(void);
 
+void ShowMainWindow(void);
 void ShowLoad(void);
 void ShowConfig(void);
 void ShowMaint(void);
 void ShowUTDMaint(void);
 void ShowMEIMaint(void);
+void ShowLogin(void);
+
 
 void Get_UTD_Data(void);
+void GetLangs(void);
 
 
 void SetLockTimerLabels(char * lockname);
@@ -604,8 +608,8 @@ void local_cleanup(void)
 
 
 
-//extern "C" void on_main_screen_destroy(GtkObject *object, gpointer data)
-extern "C" void on_main_screen_destroy()
+//extern "C" void on_login_window_destroy(GtkObject *object, gpointer data)
+extern "C" void on_login_window_destroy()
 {
 
 	local_cleanup();	// in common.cpp
@@ -640,8 +644,7 @@ int main(int argc, char *argv[])
 */
 
 
-//InitEventDriver();
-//exit(0);
+//InitEventDriver();//exit(0);
 
 
 // we must run as root
@@ -674,7 +677,8 @@ printf("user: %s\n",localDBF.user);
 
 
 Get_UTD_Data();
-exit(0);
+GetLangs();
+//exit(0);
 
 /*
 	// returns TRUE If VersaSafe is already running
@@ -867,7 +871,9 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 #endif
 
 
-	gtk_widget_show_all(app->main_screen);
+//	ShowMainWindow();
+//	ShowLogin();
+//	gtk_widget_show_all(app->main_screen);
 //	gtk_widget_hide(app->popup_window);
 
 
@@ -893,8 +899,10 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 
 	#ifdef FULLSCREEN
-		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_screen) );
+//		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_screen) );
 	#endif
+
+    ShowLogin();
 
 
 	// enter the GTK event loop
@@ -1990,19 +1998,6 @@ void ShowLoad(void)
 
 	inv_handle=AddCallBack(&UpdateUTDInventory);	// add to our callback quque
 
-/*
-    msg = getMessage(102,FALSE);
-    gtk_window_set_title( GTK_WINDOW(app_ptr->load_window), msg.c_str() );
-
-    msg = getMessage(200,FALSE); // "Load" // gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
-	gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
-
-	msg = getMessage(201,FALSE); // "Unload"
-	gtk_button_set_label( GTK_BUTTON(app_ptr->unload_button),msg.c_str() );
-
-	msg = getMessage(50,FALSE); // "Close"
-    gtk_button_set_label( GTK_BUTTON(app_ptr->close_load_button),msg.c_str() );
-*/
 	int * inv=GetUTDInventory();
 printf("ShowLoad Inventory\n");
 for (int x=0;x<8;x++)
@@ -2012,6 +2007,7 @@ for (int x=0;x<8;x++)
 
 
 
+/*
 extern "C" bool load_button_clicked_cb( GtkButton *button, AppWidgets *app)
 {
 	Enable_Load_D8C();
@@ -2035,6 +2031,59 @@ extern "C" bool unload_all_button_clicked_cb( GtkButton *button, AppWidgets *app
 printf("UNLOAD ALL BUTTON\n");
 	Unload_D8C(8);
 }
+*/
+
+
+// LOGIN WINDOW
+void ShowLogin(void)
+{
+    gtk_widget_show(app_ptr->login_window);
+
+}
+
+extern "C" bool on_en_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	printf("ENGLISH btn\n");
+}
+
+extern "C" bool on_es_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("SPANISH btn\n");
+}
+
+extern "C" bool on_fr_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("FRENCH btn\n");
+}
+
+extern "C" bool on_he_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("NEBREW btn\n");
+}
+
+extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("LOGIN btn\n");
+    gtk_widget_hide(app_ptr->login_window);
+	ShowMainWindow();
+}
+
+
+
+extern "C" bool on_login_exit_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+//    gtk_widget_hide(app_ptr->login_window);
+	gtk_window_close(GTK_WINDOW(app_ptr->login_window));
+}
+
+
+
+// MAIN WINDOW
+void ShowMainWindow(void)
+{
+    gtk_widget_show_all(app_ptr->main_screen);
+}
+
 
 
 // MAINTENANCE WINDOW
@@ -2058,15 +2107,11 @@ printf("Maint:UTD BUTTON\n");
 }
 
 
-extern "C" bool on_main_lock_button_clicked_cb( GtkButton *button, AppWidgets *app)
+extern "C" bool on_main_lock_button_clicked( GtkButton *button, AppWidgets *app)
 {
 printf("Maint:LOCK BUTTON\n");
 }
 
-extern "C" bool on_maint_close_btn_clicked_cb( GtkButton *button, AppWidgets *app)
-{
-printf("MEI BUTTON\n");
-}
 
 
 extern "C" bool on_maint_close_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -2975,9 +3020,10 @@ void SetScreenSizes(void)
 	gtk_window_set_default_size(GTK_WINDOW(app_ptr->main_screen), screenres.horiz, screenres.vert);
 
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->lockconfig_window), screenres.horiz, screenres.vert);
-    gtk_window_set_default_size(GTK_WINDOW(app_ptr->load_window), screenres.horiz, screenres.vert);
+//    gtk_window_set_default_size(GTK_WINDOW(app_ptr->load_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->utd_maint_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->login_window), screenres.horiz, screenres.vert);
 
 
 }
@@ -2993,25 +3039,11 @@ void SetLabels(void)
 {
 	string msg;
 
-	// main window title
-	if (run_mode == 0)
-		msg = getMessage(901,FALSE);	// "Normal Mode"
-	else
-		msg = getMessage(902,FALSE);	// "Thin Client Mode"
-/*
-	sprintf(gen_buffer,"FlowForm OSL v. %d.%d.%d (%s)",MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION, msg.c_str() );
-	gtk_window_set_title( GTK_WINDOW(app_ptr->ff_window), gen_buffer);
 
-	// label the operation/configuration buttons
-	msg = getMessage(530,FALSE);	// "Configuration"
-	gtk_button_set_label( GTK_BUTTON(app_ptr->configuration_button),msg.c_str() );
-
-	msg = getMessage(531,FALSE);	// Operation"
-	gtk_button_set_label( GTK_BUTTON(app_ptr->operation_button),msg.c_str() );
-*/
 
 
 // main window
+
     msg = getMessage(243,FALSE); // "LOCK"
     gtk_button_set_label( GTK_BUTTON(app_ptr->lock_btn),msg.c_str() );
 
@@ -3029,10 +3061,11 @@ void SetLabels(void)
 
 
 // showconfig window
-    msg = getMessage(102,FALSE);
-    gtk_window_set_title( GTK_WINDOW(app_ptr->load_window), msg.c_str() );
+//    msg = getMessage(102,FALSE);
+//    gtk_window_set_title( GTK_WINDOW(app_ptr->load_window), msg.c_str() );
 
-    msg = getMessage(200,FALSE); 
+/*
+    msg = getMessage(200,FALSE);
 // "Load" // gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
     gtk_button_set_label( GTK_BUTTON(app_ptr->load_button),msg.c_str() );
 
@@ -3044,9 +3077,10 @@ void SetLabels(void)
 
     msg = getMessage(202,FALSE); // "Unload ALL"
     gtk_button_set_label( GTK_BUTTON(app_ptr->unload_all_button),msg.c_str() );
-
+*/
 
 // maint_window
+
     msg = getMessage(240,FALSE);
     gtk_window_set_title( GTK_WINDOW(app_ptr->maint_window), msg.c_str() );
 
@@ -3055,6 +3089,8 @@ void SetLabels(void)
 
     msg=getMessage(241,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->mei_button),msg.c_str() );
+
+
 
     msg=getMessage(242,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_button),msg.c_str() );
@@ -3068,6 +3104,7 @@ void SetLabels(void)
 
 
 //utd_window
+
     msg = getMessage(225,FALSE);
     gtk_window_set_title( GTK_WINDOW(app_ptr->utd_maint_window), msg.c_str() );
 
@@ -3078,10 +3115,13 @@ void SetLabels(void)
     gtk_button_set_label(GTK_BUTTON(app_ptr->zero_utd_btn),msg.c_str() );
 
     msg=getMessage(221,FALSE);
-    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
+//TODO - fix this 'button_set_label' for utd_set_addr_btn
+//    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
 
     msg=getMessage(222,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_addr_btn),msg.c_str() );
+
+
 
     msg=getMessage(223,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_inventory_btn),msg.c_str() );
@@ -3232,7 +3272,7 @@ extern "C" bool on_drop_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_load_btn1_clicked( GtkButton *button, AppWidgets *app)
 {
-	ShowLoad();
+//	ShowLoad();
     printf("LOAD\n");
 }
 
@@ -3261,12 +3301,12 @@ extern "C" bool on_vend_btn_clicked( GtkButton *button, AppWidgets *app)
     printf("VEND\n");
 }
 
-/*
-extern "C" bool on_unload_btn1_clicked( GtkButton *button, AppWidgets *app)
+
+extern "C" bool on_unload_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("UNLOAD\n");
 }
-*/
+
 
 extern "C" bool on_buy_change_btn_clicked( GtkButton *button, AppWidgets *app)
 {
@@ -3833,7 +3873,7 @@ void Get_UTD_Data(void)
     char query[]="SELECT col,tube_name,tube_value,tube_count  FROM utd_denom";
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);    // populate gen_buffer
-    printf("Data Returned: %s\n",localDBF.row[1]);
+//    printf("Data Returned: %s\n",localDBF.row[1]);
 
 	for (int n=0; n < numrows; n++)
 	{
@@ -3842,7 +3882,39 @@ void Get_UTD_Data(void)
 		utd_inv[n].tube_value= atoi(localDBF.row[2]);		// tube_value
 		utd_inv[n].tube_count= atoi(localDBF.row[3]);		// tube_count
 		utd_inv[n].dollars= (utd_inv[n].tube_count * utd_inv[n].tube_value) /100.0;
-		printf("col %d:: %s  Dollars %4.2f\n",utd_inv[n].col,utd_inv[n].tube_name.c_str(),  utd_inv[n].dollars);
+//		printf("col %d:: %s  Dollars %4.2f\n",utd_inv[n].col,utd_inv[n].tube_name.c_str(),  utd_inv[n].dollars);
+		GetRow(&localDBF);	// get next row
+	}
+
+}
+
+
+struct
+{
+	string code;
+	string name;
+	int active;
+} langs[10];
+
+
+/*
+	read the langs table of all supported languages and populate
+	langs[] struct
+
+*/
+void GetLangs(void)
+{
+    char query[]="SELECT code,name,active  FROM langs";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);    // populate gen_buffer
+
+	for (int n=0; n < numrows; n++)
+	{
+		langs[n].code = string(localDBF.row[0]);
+		langs[n].name = string(localDBF.row[1]);
+		langs[n].active = atoi(localDBF.row[2]);
+
+		printf("Lang: %s  Code:%s  Active: %d\n",langs[n].name.c_str(),langs[n].code.c_str(),langs[n].active);
 		GetRow(&localDBF);	// get next row
 	}
 
