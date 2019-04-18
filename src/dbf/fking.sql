@@ -103,10 +103,10 @@ UNLOCK TABLES;
 
 
 
-DROP TABLE IF EXISTS `ucd_denom`;
+DROP TABLE IF EXISTS `utd_denom`;
 /*!40102 SET @saved_cs_client     = @@character_set_client */;
 /*!40102 SET character_set_client = utf8 */;
-CREATE TABLE `ucd_denom` (
+CREATE TABLE `utd_denom` (
   `col` int(1) NOT NULL,
   `tube_name` varchar(20) NOT NULL,
   `tube_value` int(5) NOT NULL,
@@ -119,15 +119,15 @@ CREATE TABLE `ucd_denom` (
 /*!40102 SET character_set_client = @saved_cs_client */;
 
 
-LOCK TABLES `ucd_denom` WRITE;
-INSERT INTO `ucd_denom` VALUES ('1','PENNIES','50','0',NOW(),'USD','1');
-INSERT INTO `ucd_denom` VALUES ('2','NICKELS','200','0',NOW(),'USD','2');
-INSERT INTO `ucd_denom` VALUES ('3','DIMES','500','0',NOW(),'USD','3');
-INSERT INTO `ucd_denom` VALUES ('4','QUARTERS','1000','0',NOW(),'USD','4');
-INSERT INTO `ucd_denom` VALUES ('5','ONES','1000','0',NOW(),'USD','5');
-INSERT INTO `ucd_denom` VALUES ('6','FIVES','2000','0',NOW(),'USD','6');
-INSERT INTO `ucd_denom` VALUES ('7','TENS','2000','0',NOW(),'USD','7');
-INSERT INTO `ucd_denom` VALUES ('8','TWENTIES','4000','0',NOW(),'USD','8');
+LOCK TABLES `utd_denom` WRITE;
+INSERT INTO `utd_denom` VALUES ('1','PENNIES','50','0',NOW(),'USD','1');
+INSERT INTO `utd_denom` VALUES ('2','NICKELS','200','0',NOW(),'USD','2');
+INSERT INTO `utd_denom` VALUES ('3','DIMES','500','0',NOW(),'USD','3');
+INSERT INTO `utd_denom` VALUES ('4','QUARTERS','1000','0',NOW(),'USD','4');
+INSERT INTO `utd_denom` VALUES ('5','ONES','1000','0',NOW(),'USD','5');
+INSERT INTO `utd_denom` VALUES ('6','FIVES','2000','0',NOW(),'USD','6');
+INSERT INTO `utd_denom` VALUES ('7','TENS','2000','0',NOW(),'USD','7');
+INSERT INTO `utd_denom` VALUES ('8','TWENTIES','4000','0',NOW(),'USD','8');
 
 UNLOCK TABLES;
 
@@ -161,7 +161,7 @@ INSERT INTO `currency` VALUES('USD','COIN','10','c','9');
 INSERT INTO `currency` VALUES('USD','COIN','25','c','10');
 
 
-/* EURO - all values are listed in centimes 
+/* EURO - all values are listed in centimes
 	written €50
 	100 centimes = 1 euro
 */
@@ -239,7 +239,7 @@ CREATE TABLE `config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='safe configuration';
 
 LOCK TABLES `config` WRITE;
-INSERT INTO `config` VALUES('1','1234','Bob Fergus','Bobs Safe');
+INSERT INTO `config` VALUES('1','GC2019055001','Bob Fergus','Bobs Safe');
 UNLOCK TABLES;
 
 
@@ -261,6 +261,26 @@ INSERT INTO `langs` VALUES('es','Español',0,2);
 INSERT INTO `langs` VALUES('fr','Français',0,3);
 INSERT INTO `langs` VALUES('he','עברית',0,4);
 UNLOCK TABLES;
+
+
+
+DROP TABLE IF EXISTS `users`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `username` varchar(20)  NOT NULL,
+  `password` varchar(40) NOT NULL,
+  `fname` varchar(30) NOT NULL,
+  `lname` varchar(30) NOT NULL,
+  `status` tinyint DEFAULT -1,
+  `user_level` int(5) NOT NULL DEFAULT 0,
+  `dept` varchar(30),
+  `created` datetime DEFAULT NOW(),
+  `lastmodified` datetime DEFAULT NOW() ON UPDATE NOW(),
+  `active` tinyint NOT NULL DEFAULT 0,
+  `id` int(5) COLLATE utf8_bin auto_increment,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='users';
 
 
 
