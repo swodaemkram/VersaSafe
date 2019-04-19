@@ -59,6 +59,8 @@ typedef struct
 	GtkWidget *login_exit_btn;
 	GtkLabel *pw_txt;
 	GtkLabel *user_txt;
+	GtkWidget *user_entry;
+	GtkWidget *pw_entry;
 
 	GtkWidget *one_btn;
     GtkWidget *two_btn;

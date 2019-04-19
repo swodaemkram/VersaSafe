@@ -82,6 +82,8 @@
 	appGET(login_exit_btn);
 	appGET_LABEL(user_txt);
 	appGET_LABEL(pw_txt);
+	appGET(user_entry);
+	appGET(pw_entry);
 
 	appGET(one_btn);
    appGET(two_btn);
