@@ -280,10 +280,12 @@ public:
 
 void mei_reset(void)
 {
+	int pktlen = 0;
 	printf("MEI Reset Command Triggered\n");
 	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
+	pktlen = sizeof(pkt);
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial << pkt;
+	mei_my_serial.write( pkt, pktlen ) ;
 
 }
 /*
@@ -297,11 +299,13 @@ public:
 
 string mei_getmodel(void)
 {
+	int pktlen = 0;
 	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+	pktlen = sizeof(pkt);
 	printf("\nMEI GET MODEL CALLED...\n");
 	string mei_rply1 = "";
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial << pkt;
+	mei_my_serial.write( pkt, pktlen ) ;
 	printf("\nMEI GET MODEL PACKET SENT");
 	mei_rply1 = mei_getresponse();
 	printf("\nmei_rply1 = %s",mei_rply1.c_str());
@@ -312,6 +316,8 @@ string mei_getmodel(void)
 The End of the MEI Get Model Command
 ==============================================================================================================================
  */
+
+
 };
 /*
 ===============================================================================================================================
