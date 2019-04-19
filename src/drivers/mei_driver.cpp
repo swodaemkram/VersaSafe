@@ -206,7 +206,6 @@ void mei_setup(void)
 {
 	string mei_rply ="";
 	mei_rply = mei_getmodel();
-
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 
 
@@ -282,7 +281,7 @@ public:
 void mei_reset(void)
 {
 	printf("MEI Reset Command Triggered\n");
-	string pkt = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
+	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial << pkt;
 
@@ -295,9 +294,10 @@ Get MEI Model Number (this is just a test and will become a GET INFO Command)
 =============================================================================================================================
 */
 public:
-char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+
 string mei_getmodel(void)
 {
+	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
 	printf("\nMEI GET MODEL CALLED...\n");
 	string mei_rply1 = "";
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
