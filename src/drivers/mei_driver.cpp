@@ -199,8 +199,10 @@ MEI Validator Setup processed after the Comm port connection is made
 
 void mei_setup(void)
 {
-	   return mei_reset();
-printf("MEI Validator SETUP\n");
+	string mei_rply ="";
+	return mei_reset();
+	mei_rply = mei_getmodel();
+    printf("MEI Validator model is a %s \n",mei_rply.c_str());
 
 }
 /*
@@ -214,7 +216,41 @@ Get Response from MEI Validator
 private:
 
 string mei_getresponse(){
-	return("Hello !");
+	string resp;
+	#define BUFFER_SIZE 150
+	int timecount=0;
+	int retrycount=0;
+	int timeout=300;
+	int size=0;
+    char next_char;
+	int char_pos=0;	// will be the next write slot in input_buffer (therefore is also count of chars in buffer)
+    char input_buffer[BUFFER_SIZE];
+    bzero(input_buffer,BUFFER_SIZE);
+
+
+	while (timecount <= timeout && retrycount<3)
+	{
+
+			if (char_pos==0)
+			{
+			    while (mei_my_serial.rdbuf()->in_avail() >0)
+			    {
+					timecount=0;
+			        mei_my_serial.get(next_char);
+					if (next_char == '\x03')
+					{
+printf("GOT Complete Packet\n");
+						input_buffer[char_pos++]= '\x03';
+						break;
+					}
+			        mssleep(1);
+			    }//while
+			}//endif
+
+
+}// end while
+
+
 }
 /*
 ===============================================================================================================================
@@ -262,10 +298,24 @@ void mei_reset(void)
 =============================================================================================================================
 End of MEI Reset Command
 =============================================================================================================================
+Get MEI Model Number (this is just a test and will become a GET INCO Command)
+=============================================================================================================================
 */
+public:
 
-
-
+string mei_getmodel(void)
+{
+	string mei_rply = "";
+	string pkt = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+	mei_my_serial << pkt;
+	mei_rply = mei_getresponse();
+	return(mei_rply);
+}
+/*
+==============================================================================================================================
+The End of the MEI Get Model Command
+==============================================================================================================================
+ */
 };
 /*
 ===============================================================================================================================
