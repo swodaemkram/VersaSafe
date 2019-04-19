@@ -269,10 +269,10 @@ DROP TABLE IF EXISTS `users`;
 /*!40102 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
   `username` varchar(20)  NOT NULL,
-  `password` varchar(40) NOT NULL,
+  `password` varchar(80) NOT NULL,
+  `lang` varchar(2) NOT NULL DEFAULT 'en',
   `fname` varchar(30) NOT NULL,
   `lname` varchar(30) NOT NULL,
-  `status` tinyint DEFAULT -1,
   `user_level` int(5) NOT NULL DEFAULT 0,
   `dept` varchar(30),
   `created` datetime DEFAULT NOW(),
@@ -282,6 +282,40 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='users';
 
+
+LOCK TABLES `users` WRITE;
+INSERT INTO `users` VALUES('0000',PASSWORD('0000'),'en','Gary','Conway','99','GOD',NOW(),NOW(),'1','1');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `user_levels`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `user_levels` (
+  `name` varchar(20) NOT NULL,
+  `level` int(5) NOT NULL DEFAULT -1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='user levels';
+
+LOCK TABLES `user_levels` WRITE;
+INSERT INTO `user_levels` VALUES('ADMIN','99');
+INSERT INTO `user_levels` VALUES('MGR','50');
+INSERT INTO `user_levels` VALUES('CASHIER','10');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `perms`;
+/*!40102 SET @saved_cs_client     = @@character_set_client */;
+/*!40102 SET character_set_client = utf8 */;
+CREATE TABLE `perms` (
+  `user_level` int(5) NOT NULL DEFAULT -1,
+  `cr` tinyint DEFAULT '0',
+  `add_user` tinyint DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='permissions';
+
+
+LOCK TABLES `perms` WRITE;
+INSERT INTO `perms` VALUES('99','1','1');
+UNLOCK TABLES;
 
 
 

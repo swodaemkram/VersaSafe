@@ -49,6 +49,13 @@ typedef struct
 	GtkWidget *utd_maint_window;
 	GtkWidget *mei_maint_window;
 	GtkWidget *login_window;
+	GtkWidget *splash_window;
+
+
+	// splash window
+    GtkWidget *login_exit_btn;
+	GtkWidget *verify_note_btn;
+
 
 	// login window
 	GtkWidget *en_btn;
@@ -56,7 +63,7 @@ typedef struct
 	GtkWidget *fr_btn;
 	GtkWidget *he_btn;
 	GtkWidget *login_btn;
-	GtkWidget *login_exit_btn;
+	GtkWidget *login_back_btn;
 	GtkLabel *pw_txt;
 	GtkLabel *user_txt;
 	GtkWidget *user_entry;
@@ -112,7 +119,8 @@ typedef struct
 	GtkWidget *load_btn;
 	GtkWidget *unload_btn;
 	GtkWidget *lock_btn;
-
+	GtkWidget *logout_btn;
+	GtkWidget *admin_btn;
 
 
 // maint window
@@ -201,6 +209,7 @@ typedef struct
 	GtkWidget *escape_btn;
 	GtkWidget *help_btn;
 
+/*
 	GtkWidget *load_btn1;
     GtkWidget *drop_btn;
     GtkWidget *doors_btn;
@@ -215,7 +224,7 @@ typedef struct
     GtkWidget *buy_change_btn;
     GtkWidget *pgrm_btn;
     GtkWidget *drop_set_btn;
-
+*/
 	GtkWidget *left1_btn;
     GtkWidget *left2_btn;
     GtkWidget *left3_btn;

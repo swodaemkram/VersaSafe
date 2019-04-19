@@ -498,6 +498,9 @@ void ShowLogin(void);
 void ShowSplashWindow();
 
 
+bool ValidateUser(char *user,char *pw);
+
+
 void Get_UTD_Data(void);
 void GetLangs(void);
 
@@ -2040,6 +2043,21 @@ printf("UNLOAD ALL BUTTON\n");
 //					START LOGIN SCREEN
 //===================================================================
 
+/*
+	validate the user/pw in the DBF
+	returns TRUE if valid, else FALSE
+
+*/
+bool ValidateUser(char * user,char * pw)
+{
+    char query[100];
+	sprintf(query,"SELECT username,password FROM users WHERE user='%s' AND pw=PASSWORD('%s');",user,pw);
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	if (numrows != 0) return TRUE;
+	return FALSE;
+}
+
 
 #define INLEN 30
 int entered_focus=0;    //0 = user_entry, 1 = pw_entry
@@ -2047,6 +2065,7 @@ unsigned int user_index=0;
 unsigned int pw_index=0;
 char entered_user[INLEN];
 char entered_pw[INLEN];
+char display_pw[INLEN];
 
 
 // LOGIN WINDOW
@@ -2064,7 +2083,14 @@ void SetEntryText(void)
 	if (entered_focus==0)
 		gtk_entry_set_text(GTK_ENTRY(app_ptr->user_entry),entered_user);
 	else
-		gtk_entry_set_text(GTK_ENTRY(app_ptr->pw_entry),entered_pw);
+	{
+		// now mask the pw
+		int pwlen = strlen(entered_pw);
+
+		for (int n=0; n < pwlen; n++)
+			display_pw[n] = '*';
+ 		gtk_entry_set_text(GTK_ENTRY(app_ptr->pw_entry),display_pw);
+	}
 }
 
 void StoreInput(char x)
@@ -2204,9 +2230,12 @@ extern "C" bool on_he_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    printf("LOGIN btn\n");
     gtk_widget_hide(app_ptr->login_window);
-	ShowMainWindow();
+	bool ret= ValidateUser(entered_user,entered_pw);
+
+	if (ret)
+		ShowMainWindow();
+//TODO - show login error popup here??
 }
 
 

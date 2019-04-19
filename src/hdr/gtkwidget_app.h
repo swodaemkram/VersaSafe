@@ -72,6 +72,11 @@
 	appGET(utd_maint_window);
 	appGET(mei_maint_window);
 	appGET(login_window);
+	appGET(splash_window);
+
+	// splash window
+    appGET(login_exit_btn);
+	appGET(verify_note_btn);
 
 	// login window
 	appGET(en_btn);
@@ -79,7 +84,7 @@
 	appGET(fr_btn);
 	appGET(he_btn);
 	appGET(login_btn);
-	appGET(login_exit_btn);
+	appGET(login_back_btn);
 	appGET_LABEL(user_txt);
 	appGET_LABEL(pw_txt);
 	appGET(user_entry);
@@ -105,6 +110,8 @@
 	appGET(load_btn);
 	appGET(unload_btn);
 	appGET(lock_btn);
+	appGET(logout_btn);
+	appGET(admin_btn);
 
 // load window
 //	appGET(load_button);
@@ -198,6 +205,7 @@
     appGET(escape_btn);
     appGET(help_btn);
 
+/*
     appGET(load_btn1);
     appGET(drop_btn);
     appGET(doors_btn);
@@ -220,6 +228,7 @@
 
     appGET(up_right_btn);
     appGET(dn_left_btn);
+*/
 
 // labels on lockconfig_window
 	appGET(lockconfig_close_btn);
