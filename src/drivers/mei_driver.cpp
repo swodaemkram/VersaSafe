@@ -224,21 +224,15 @@ string mei_getresponse(){
 
 	string resp;
     printf("\nMEI GET RESPONSE CALLED\n");
-    char next_char ;
-    char input_buffer[150] ;
-    bzero(input_buffer,150);
-	int n=0;
-	sleep(1);
-	while (mei_my_serial.rdbuf()->in_avail() >0)
-    {
-        mei_my_serial.get(next_char);
-        input_buffer[n++]=next_char;
-        mssleep(1);
-    }
+    int buff = 250 ;
+    char input_buffer[buff] ;
+    bzero(input_buffer,250);
 
-    int len=strlen(input_buffer);
-    printf("\nRcvd: %s --%d chars, last char: %02X\n",input_buffer,len,next_char);
-    return string(input_buffer);
+	mei_my_serial.read( input_buffer,buff) ;
+
+
+	return string(input_buffer);
+
 
 }
 /*
