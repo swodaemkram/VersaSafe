@@ -495,6 +495,7 @@ void ShowMaint(void);
 void ShowUTDMaint(void);
 void ShowMEIMaint(void);
 void ShowLogin(void);
+void ShowSplashWindow();
 
 
 void Get_UTD_Data(void);
@@ -862,13 +863,14 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 #endif
 
 
-
+/*
 #ifdef DISABLE_LOGIN
 	user_code=GOD_MODE;
 #else
 	user_code = NO_USER;
 	gtk_widget_show(app->login_dialog);
 #endif
+*/
 
 
 //	ShowMainWindow();
@@ -902,8 +904,8 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 //		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_screen) );
 	#endif
 
-    ShowLogin();
-
+//    ShowLogin();
+	ShowSplashWindow();
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -2034,12 +2036,151 @@ printf("UNLOAD ALL BUTTON\n");
 */
 
 
+//===================================================================
+//					START LOGIN SCREEN
+//===================================================================
+
+
+#define INLEN 30
+int entered_focus=0;    //0 = user_entry, 1 = pw_entry
+unsigned int user_index=0;
+unsigned int pw_index=0;
+char entered_user[INLEN];
+char entered_pw[INLEN];
+
+
 // LOGIN WINDOW
 void ShowLogin(void)
 {
+	gtk_widget_grab_focus(app_ptr->user_entry);
+	entered_focus=0;
+	bzero(entered_user,INLEN);
+	bzero(entered_pw,INLEN);
     gtk_widget_show(app_ptr->login_window);
+}
+
+void SetEntryText(void)
+{
+	if (entered_focus==0)
+		gtk_entry_set_text(GTK_ENTRY(app_ptr->user_entry),entered_user);
+	else
+		gtk_entry_set_text(GTK_ENTRY(app_ptr->pw_entry),entered_pw);
+}
+
+void StoreInput(char x)
+{
+	if (entered_focus==0)
+		entered_user[user_index++]=x;
+	else
+		entered_pw[pw_index++]=x;
+}
+
+
+
+extern "C" bool on_one_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	StoreInput('1');
+	SetEntryText();
+	printf("ONE\n");
+}
+
+extern "C" bool on_two_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('2');
+    SetEntryText();
+    printf("TWO\n");
+}
+
+extern "C" bool on_three_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('3');
+    SetEntryText();
+    printf("THREE\n");
+}
+
+extern "C" bool on_four_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('4');
+    SetEntryText();
+    printf("FOUR\n");
+}
+
+extern "C" bool on_five_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('5');
+    SetEntryText();
+    printf("FIVE\n");
+}
+
+extern "C" bool on_six_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('6');
+    SetEntryText();
+    printf("SIX\n");
+}
+
+extern "C" bool on_seven_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('7');
+    SetEntryText();
+    printf("SEVEN\n");
+}
+
+extern "C" bool on_eight_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('8');
+    SetEntryText();
+    printf("EIGHT\n");
+}
+
+
+extern "C" bool on_nine_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('9');
+    SetEntryText();
+    printf("NINE\n");
 
 }
+
+extern "C" bool on_zero_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    StoreInput('0');
+    SetEntryText();
+    printf("ZERO\n");
+}
+
+extern "C" bool on_tab_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	//user_entry
+	// pw_entry
+	entered_focus ^=1;	// toggle focus
+
+	if (entered_focus == 0)
+		gtk_widget_grab_focus(app_ptr->user_entry);
+	else
+		gtk_widget_grab_focus(app_ptr->pw_entry);
+    printf("TAB\n");
+}
+
+extern "C" bool on_bksp_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	if (entered_focus==0)
+	{
+		if (user_index==0) return 0;
+		entered_user[--user_index]=0;
+	}
+	else
+	{
+		if (pw_index==0) return 0;
+		entered_pw[--pw_index]=0;
+	}
+    SetEntryText();
+    printf("BKSP\n");
+
+}
+
+
+
 
 extern "C" bool on_en_btn_clicked( GtkButton *button, AppWidgets *app)
 {
@@ -2069,21 +2210,69 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 }
 
 
+extern "C" bool on_login_back_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->login_window);
+    ShowSplashWindow();
+}
+
+
+
+//===================================================================
+//                  END LOGIN SCREEN
+//===================================================================
+
+
+
+//===================================================================
+//                  START SPLASH SCREEN
+//===================================================================
+
+
+
+void ShowSplashWindow(void)
+{
+    string msg;
+    gtk_widget_show(app_ptr->splash_window);
+}
+
+
 
 extern "C" bool on_login_exit_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-//    gtk_widget_hide(app_ptr->login_window);
-	gtk_window_close(GTK_WINDOW(app_ptr->login_window));
+//    gtk_widget_hide(app_ptr->splash_window);
+//	gtk_widget_destroy( app_ptr->splash_window );
+    gtk_main_quit();
+
 }
 
 
-
-// MAIN WINDOW
-void ShowMainWindow(void)
+extern "C" bool on_touch_here_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    gtk_widget_show_all(app_ptr->main_screen);
+    gtk_widget_hide(app_ptr->splash_window);
+	ShowLogin();
 }
 
+
+extern "C" bool on_verify_note_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	printf("VERIFY NOTE\n");
+}
+
+//===================================================================
+//                  END SPLASH SCREEN
+//===================================================================
+
+
+
+
+
+
+
+
+//===================================================================
+//				START MAINT WINDOW
+//===================================================================
 
 
 // MAINTENANCE WINDOW
@@ -2119,6 +2308,16 @@ extern "C" bool on_maint_close_btn_clicked( GtkButton *button, AppWidgets *app)
     gtk_widget_hide(app_ptr->maint_window);
 }
 
+//===================================================================
+//				END MAINT WINDOW
+//===================================================================
+
+
+
+
+//===================================================================
+//			START MEI MAINT WINDOW
+//===================================================================
 
 // MEI maintenance window
 
@@ -2137,7 +2336,16 @@ extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 
 }
 
+//===================================================================
+//				END MEI MAINT WINDOW
+//===================================================================
 
+
+
+
+//===================================================================
+//				START UTD MAINT WINDOW
+//===================================================================
 
 
 // UTD maintenance window
@@ -2176,6 +2384,14 @@ extern "C" bool on_utd_unloadall_btn_clicked( GtkButton *button, AppWidgets *app
 extern "C" bool on_utd_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 }
+
+
+//===================================================================
+//				END UTD MAINT WINDOW
+//===================================================================
+
+
+
 
 
 
@@ -3024,6 +3240,7 @@ void SetScreenSizes(void)
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->utd_maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->login_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->splash_window), screenres.horiz, screenres.vert);
 
 
 }
@@ -3039,10 +3256,37 @@ void SetLabels(void)
 {
 	string msg;
 
+// splash window
+    msg = getMessage(87,FALSE); // "VEFIFY NOTE"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->verify_note_btn),msg.c_str() );
+
+
+// login window
+    msg = getMessage(80,FALSE); // "ENGLISH"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->en_btn),msg.c_str() );
+
+    msg = getMessage(81,FALSE); // "ESPANOL"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->es_btn),msg.c_str() );
+
+    msg = getMessage(82,FALSE); // "FRANCAIS"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->fr_btn),msg.c_str() );
+
+    msg = getMessage(83,FALSE); // "HEBREW"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->he_btn),msg.c_str() );
+
+    msg = getMessage(84,FALSE); // "LOGIN"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->login_btn),msg.c_str() );
+
+    msg = getMessage(86,FALSE); // "EXIT"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->login_exit_btn),msg.c_str() );
+
 
 
 
 // main window
+
+    msg = getMessage(85,FALSE); // "LOGOUT"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->logout_btn),msg.c_str() );
 
     msg = getMessage(243,FALSE); // "LOCK"
     gtk_button_set_label( GTK_BUTTON(app_ptr->lock_btn),msg.c_str() );
@@ -3058,6 +3302,9 @@ void SetLabels(void)
 
     msg = getMessage(253,FALSE); // "LOCK CONFIG"
     gtk_button_set_label( GTK_BUTTON(app_ptr->lock_config_btn),msg.c_str() );
+
+    msg = getMessage(253,FALSE); // "ADMIN"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->admin_btn),msg.c_str() );
 
 
 // showconfig window
@@ -3110,17 +3357,14 @@ void SetLabels(void)
 
     gtk_label_set_label(GTK_LABEL(app_ptr->utd_maint_title),msg.c_str() );
 
-
     msg=getMessage(220,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->zero_utd_btn),msg.c_str() );
 
     msg=getMessage(221,FALSE);
-//TODO - fix this 'button_set_label' for utd_set_addr_btn
-//    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->utd_set_addr_btn),msg.c_str() );
 
     msg=getMessage(222,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_get_addr_btn),msg.c_str() );
-
 
 
     msg=getMessage(223,FALSE);
@@ -3131,7 +3375,6 @@ void SetLabels(void)
 
     msg=getMessage(226,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_reset_btn),msg.c_str() );
-
 
     msg=getMessage(50,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_close_btn),msg.c_str() );
@@ -3197,7 +3440,7 @@ extern "C" bool on_help_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
-
+/*
 extern "C" bool on_one_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	printf("ONE\n");
@@ -3252,8 +3495,9 @@ extern "C" bool on_zero_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("ZERO\n");
 }
+*/
 
-
+/*
 extern "C" bool on_enter_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("ENTER\n");
@@ -3377,10 +3621,24 @@ extern "C" bool on_dn_left_btn_clicked( GtkButton *button, AppWidgets *app)
     printf("DN LEFT\n");
 }
 
+*/
 
 
 
-// MAIN MENU
+// MAIN WINDOW
+void ShowMainWindow(void)
+{
+    gtk_widget_show_all(app_ptr->main_screen);
+}
+
+extern "C" bool on_admin_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    ShowConfig();
+    printf("ADMIN\n");
+}
+
+
+
 extern "C" bool on_lock_config_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     ShowConfig();
@@ -3401,7 +3659,7 @@ extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
     printf("LOAD\n");
 }
 
-extern "C" bool on_unload_btn1_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_unload_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     printf("UNLOAD\n");
 }
@@ -3413,6 +3671,15 @@ extern "C" bool on_lock_btn_clicked( GtkButton *button, AppWidgets *app)
     Unlock_Lock(0);     // in usb_gateway.cpp
     printf("DOORS\n");
 }
+
+extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->login_window);
+//  gtk_window_hide(GTK_WINDOW(app_ptr->main_screen));
+	ShowSplashWindow();
+}
+
+
 
 
 

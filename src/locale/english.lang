@@ -39,6 +39,15 @@
 74,x,Time Lock
 75,x,Active
 
+
+80,x,ENGLISH
+81,x,ESPANOL
+82,x,FRANCAIS
+83,x,HEBREW
+84,x,LOGIN
+85,x,LOGOUT
+86,x,EXIT
+
 101,x,TimeLock Configuration
 102,x,UTD Load Window
 
