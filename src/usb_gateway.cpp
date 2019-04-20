@@ -562,7 +562,7 @@ string Get_d8_driver(void)
 int init_mei(void)
 {
 
-	printf("Initializing MEI Validator ....\n");
+	printf("\nInitializing MEI Validator ....\n");
 		int index=0;
 		mei * utd = new mei("/dev/ttyUSB0");
 		printf("\nMEI Validator Initialized!\n");

@@ -30,7 +30,7 @@
 #include <array>            // for array copy
 #include <iostream>
 #include <vector>
-
+#include <SerialPort.h>
 #include "mei_driver.h"
 #include "../hdr/global.h"
 #include "../trim.inc"   //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
@@ -214,7 +214,7 @@ void mei_setup(void)
 ================================================================================================================================
 end of MEI Setup
 ================================================================================================================================
-Get Response from MEI Validator
+Get Response from MEI Validator This is the raw Hex data and needs to be processed in the returning function
 ================================================================================================================================
  */
 
@@ -222,19 +222,32 @@ private:
 
 string mei_getresponse(){
 
-	string resp;
-    printf("\nMEI GET RESPONSE CALLED\n");
-    int buff = 250 ;
-    char input_buffer[buff] ;
-    bzero(input_buffer,250);
+	int buff_size = 250 ;
+	char input_buffer[buff_size] ;
+	bzero(input_buffer,buff_size);
+	int char_pos = 0;
+	char next_char = {0};
 
-	mei_my_serial.read( input_buffer,buff) ;
+	//printf("\nMEI GET RESPONSE CALLED\n");
 
+	sleep(1); //This delay is very important it wont work without it so I found out after several hours !
+	while (mei_my_serial.rdbuf()->in_avail() )
+	{
 
-	return string(input_buffer);
+				mei_my_serial.get(next_char);
+		        if (next_char == '\03')
+				{
+					input_buffer[char_pos++]='\03';
+					break;
+				}
+			   input_buffer[char_pos] = next_char;
+		       char_pos++;
 
+		}
 
+    return string(input_buffer);
 }
+
 /*
 ===============================================================================================================================
 End of Response Function
@@ -278,7 +291,7 @@ void mei_reset(void)
 	printf("MEI Reset Command Triggered\n");
 	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
 	pktlen = sizeof(pkt);
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write( pkt, pktlen ) ;
 
 }
@@ -293,16 +306,17 @@ public:
 
 string mei_getmodel(void)
 {
+	printf("MEI GetModel called\n");
 	int pktlen = 0;
 	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
-	pktlen = sizeof(pkt);
-	printf("\nMEI GET MODEL CALLED...\n");
 	string mei_rply1 = "";
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	pktlen = sizeof(pkt);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write( pkt, pktlen ) ;
-	printf("\nMEI GET MODEL PACKET SENT");
 	mei_rply1 = mei_getresponse();
-	printf("\nmei_rply1 = %s",mei_rply1.c_str());
+	char pktAk[16] = "\x02\x08\x01\x00\x00\x04\x03\x0d"; //ACK Packet to send
+	pktlen = sizeof(pktAk);
+	mei_my_serial.write( pktAk, pktlen ) ;
 	return(mei_rply1);
 }
 /*
