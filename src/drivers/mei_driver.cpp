@@ -207,8 +207,8 @@ void mei_setup(void)
 {
 	string mei_rply ="";
 	//mei_rply = mei_getmodel();
-
-	mei_rply = mei_stack();
+	mei_reset();
+	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 
 
@@ -233,7 +233,7 @@ string mei_getresponse(){
 
 	//printf("\nMEI GET RESPONSE CALLED\n");
 
-	mssleep(100); //This delay is very important it wont work without it so I found out after several hours !
+	mssleep(200); //This delay is very important it wont work without it so I found out after several hours !
 	while (mei_my_serial.rdbuf()->in_avail() )
 	{
 
@@ -248,8 +248,9 @@ string mei_getresponse(){
 
 		}
 
+			printf("Hex Response from MEI = ");
 			int w = 0;
-			while(w <= sizeof(input_buffer) ){
+			while(w <= char_pos ){
 				printf("%02x",input_buffer[w]);
 				w++;
 			}
@@ -338,27 +339,59 @@ The End of the MEI Get Model Command
 
 public:
 
-string mei_stack()
+string mei_verify_bill()
 {
 
-	printf("MEI Stack called\n");
+	printf("MEI Verify Bill called\n");
 	//int pktlen = 0;
-	unsigned thecrc;
+	unsigned int thecrc;
 	string mei_rply1 = {0};
-	char pkt[16] = "\x02\x08\x10\x28\x0f\x00\x00";  // <-- Packet without ETX or CRC
+	char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
 	thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
 	pkt[6] = '\x03';                                //Stuff ETX
 	pkt[7] = thecrc;                                //Stuff CRC
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
 	mei_rply1 = mei_getresponse();                   //Get Reply
-	char pktAk[16] = "\x02\x08\x01\x28\x0f\x00\x00"; //ACK Packet to send
+	char pktAk[16] ="\x02\x08\x01\x2c\x7f\x10\x00"; //ACK Packet to send
 	thecrc = 0;                                      // Zero Out CRC
 	thecrc =  mei_do_crc(pktAk,sizeof(pktAk));         //Do CRC on new packet
 	pktAk[6] = '\x03';                                 //Stuff ETX
 	pktAk[7] = thecrc;                                 //Stuff CRC
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	mei_rply1 = "";
+	mei_rply1 = mei_getresponse();
+
+	//MEI POLL UNTIL BILL IS VERIFIED
+	while(1){
+	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
+	thecrc = 0;
+	thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
+	pollpkt[6] = '\x03';                                //Stuff ETX
+	pollpkt[7] = thecrc;                                //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
+	mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
+	mei_rply1 = mei_getresponse();                   //Get Reply
+	char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
+	thecrc = 0;                                      // Zero Out CRC
+	thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
+	pollpktAk[6] = '\x03';                                 //Stuff ETX
+	pollpktAk[7] = thecrc;                                 //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
+	mei_rply1 = "";
+	mei_rply1 = mei_getresponse();
+
+
+
+
+
+	}
+
+
+
+
 
 }
 

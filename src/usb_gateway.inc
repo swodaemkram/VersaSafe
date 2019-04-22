@@ -61,4 +61,4 @@ extern string mei_status(void);
 extern string get_mei_driver_version(void);
 extern int mei_connect(void);
 extern string mei_getmodel(void);
-
+extern string mei_verify_bill(void);

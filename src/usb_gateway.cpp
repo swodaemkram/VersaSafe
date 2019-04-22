@@ -56,6 +56,8 @@ string mei_status(void);
 string get_mei_driver_version(void);
 string mei_getmodel(void);
 string mei_stack(void);
+string mei_verify_bill(void);
+
 
 // VEND BOARD DRIVER (D8C)
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
@@ -597,9 +599,9 @@ string mei_getmodel(void)
 //-----------------------------------------------------------------------------------------------------
 // Comman to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
-string mei_stack(void)
+string mei_verify_bill(void)
 {
-	string mei_stack();
+	string mei_verify_bill();
 }
 //------------------------------------------------------------------------------------------------------
 
