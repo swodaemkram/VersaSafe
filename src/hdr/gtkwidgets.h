@@ -57,6 +57,28 @@ typedef struct
 
 	// user
 	GtkWidget *user_close_btn;
+	GtkWidget *user_cancel_btn;
+	GtkLabel *username_lbl;
+	GtkLabel *firstname_lbl;
+	GtkLabel *lastname_lbl;
+	GtkLabel *userlevel_lbl;
+	GtkLabel *dept_lbl;
+	GtkLabel *useractive_lbl;
+	GtkLabel *user_id_lbl;
+	GtkLabel *lang_lbl;
+	GtkLabel *lastmodified_lbl;
+
+	GtkWidget *username_txt;
+	GtkWidget *firstname_txt;
+	GtkWidget *lastname_txt;
+	GtkComboBox *userlevel_combo;
+	GtkComboBox *user_dept_combo;
+	GtkWidget *user_active_switch;
+	GtkLabel *user_id_txt;
+	GtkLabel *lastmodified_txt;
+	GtkComboBox *lang_combo;
+
+
 
 	// admin
 	GtkWidget *user_btn;

@@ -79,6 +79,26 @@
 
 	// user window
 	appGET(user_close_btn);
+	appGET(user_cancel_btn);
+	appGET_LABEL(username_lbl);
+	appGET_LABEL(firstname_lbl);
+	appGET_LABEL(lastname_lbl);
+	appGET_LABEL(lang_lbl);
+	appGET_LABEL(userlevel_lbl);
+	appGET_LABEL(dept_lbl);
+	appGET_LABEL(useractive_lbl);
+	appGET_LABEL(user_id_lbl);
+	appGET_LABEL(lastmodified_lbl);
+
+	appGET(username_txt);
+	appGET(firstname_txt);
+	appGET(lastname_txt);
+	appGET_COMBOBOX(userlevel_combo);
+    appGET_COMBOBOX(user_dept_combo);
+	appGET(user_active_switch);
+	appGET_LABEL(user_id_txt);
+	appGET_COMBOBOX(lang_combo);
+	appGET_LABEL(lastmodified_txt);
 
 
 	// admin
