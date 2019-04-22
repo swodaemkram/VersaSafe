@@ -41,6 +41,7 @@ using namespace std;
 using namespace LibSerial;
 
 string mei_getresponse(); //get a response from the MEI Validator
+unsigned mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
 
 
 
@@ -66,7 +67,7 @@ Start of MEI crc Function
 
 private:
 
-unsigned do_crc(char buff[], int buffer_len){
+unsigned  mei_do_crc(char buff[], int buffer_len){
 			 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
 			 //printf("%d\n",buffer_len); //DEBUG CODE
 			 int i=1;
@@ -205,7 +206,10 @@ MEI Validator Setup processed after the Comm port connection is made
 void mei_setup(void)
 {
 	string mei_rply ="";
-	mei_rply = mei_getmodel();
+	//mei_rply = mei_getmodel();
+	mei_rply = mei_stack();
+
+
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 
 
@@ -324,6 +328,30 @@ string mei_getmodel(void)
 The End of the MEI Get Model Command
 ==============================================================================================================================
  */
+
+public:
+
+string mei_stack()
+{
+
+	printf("MEI GetModel called\n");
+	int pktlen = 0;
+	unsigned thecrc;
+	string mei_rply1 = "";
+	char pkt[16] = "\x02\x08\x60\x30\x00\x00\x00";  // <-- Packet without ETX or CRC
+	pktlen = sizeof(pkt);
+	thecrc =  mei_do_crc(pkt,pktlen);
+	pkt[6] = '\x03'; //Stuff ETX
+	pkt[7] = thecrc; //Stuff CRC
+	pktlen = sizeof(pkt);
+	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write( pkt, pktlen ) ;
+	mei_rply1 = mei_getresponse();
+
+
+}
+
+
 
 
 };
