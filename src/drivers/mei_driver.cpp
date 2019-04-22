@@ -207,8 +207,8 @@ void mei_setup(void)
 {
 	string mei_rply ="";
 	//mei_rply = mei_getmodel();
-	mei_reset();
-	//mei_rply = mei_verify_bill();
+	//mei_reset();
+	mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 
 
@@ -233,7 +233,7 @@ string mei_getresponse(){
 
 	//printf("\nMEI GET RESPONSE CALLED\n");
 
-	mssleep(200); //This delay is very important it wont work without it so I found out after several hours !
+	mssleep(200); //This delay is very important it wont work without it. So I found out after several hours!
 	while (mei_my_serial.rdbuf()->in_avail() )
 	{
 
@@ -241,16 +241,29 @@ string mei_getresponse(){
 		        if (next_char == '\03')
 				{
 					input_buffer[char_pos++]='\03';
+					mei_my_serial.get(next_char);
+					input_buffer[char_pos++]=next_char;
 					break;
 				}
 			   input_buffer[char_pos] = next_char;
 		       char_pos++;
 
 		}
+				//printf("char_pos = %d\n",char_pos); [DEBUG]
+				char sent_crc = {0};
+                sent_crc = input_buffer[char_pos - 1];
+				//printf("sent_crc = %02x\n",sent_crc); [DEBUG]
+				int thecrc = 0;
 
-			printf("Hex Response from MEI = ");
+				thecrc = 0;
+				thecrc =  mei_do_crc(input_buffer,char_pos);
+				//printf("the crc = %02x\n",thecrc); [DEBUG]
+
+//todo  need to do something if the crc dosent match
+
+			//printf("Hex Response from MEI = "); [DEBUG]
 			int w = 0;
-			while(w <= char_pos ){
+			while(w <= (char_pos -1) ){
 				printf("%02x",input_buffer[w]);
 				w++;
 			}
@@ -350,7 +363,7 @@ string mei_verify_bill()
 	thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
 	pkt[6] = '\x03';                                //Stuff ETX
 	pkt[7] = thecrc;                                //Stuff CRC
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
 	mei_rply1 = mei_getresponse();                   //Get Reply
 	char pktAk[16] ="\x02\x08\x01\x2c\x7f\x10\x00"; //ACK Packet to send
@@ -358,7 +371,7 @@ string mei_verify_bill()
 	thecrc =  mei_do_crc(pktAk,sizeof(pktAk));         //Do CRC on new packet
 	pktAk[6] = '\x03';                                 //Stuff ETX
 	pktAk[7] = thecrc;                                 //Stuff CRC
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
