@@ -488,7 +488,7 @@ gint time_slice(gpointer data);
 void SetMainScreenFont(void);
 void SetMainScreenTitle(void);
 
-void ShowMainWindow(void);
+void ShowMainMenu(void);
 void ShowLoad(void);
 void ShowConfig(void);
 void ShowMaint(void);
@@ -497,6 +497,9 @@ void ShowMEIMaint(void);
 void ShowLogin(void);
 void ShowSplashWindow();
 void ShowStatus(string status);
+void ShowAdmin(void);
+void ShowUser(void);
+
 
 
 bool ValidateUser(char *user,char *pw);
@@ -877,9 +880,9 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 */
 
 
-//	ShowMainWindow();
+//	ShowMainMenu();
 //	ShowLogin();
-//	gtk_widget_show_all(app->main_screen);
+//	gtk_widget_show_all(app->main_menu);
 //	gtk_widget_hide(app->popup_window);
 
 
@@ -905,12 +908,12 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 
 	#ifdef FULLSCREEN
-//		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_screen) );
+//		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_menu) );
 	#endif
 
 //    ShowLogin();
 	ShowSplashWindow();
-	ShowStatus("this is a test message");
+//	ShowStatus("this is a test message");
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -1999,6 +2002,57 @@ for (int n=0;n<8;n++)
 
 
 //=======================================================================
+//                  START USER WINDOW
+//=======================================================================
+
+void ShowUser(void)
+{
+    gtk_widget_show(app_ptr->user_window);
+
+}
+
+extern "C" bool on_user_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->user_window);
+}
+
+//=======================================================================
+//                  END USER WINDOW
+//=======================================================================
+
+
+
+
+//=======================================================================
+//					START ADMIN WINDOW
+//=======================================================================
+
+void ShowAdmin(void)
+{
+    gtk_widget_show(app_ptr->admin_window);
+}
+
+extern "C" bool on_admin_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->admin_window);
+}
+
+
+extern "C" bool on_user_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	ShowUser();
+}
+
+
+
+
+//=======================================================================
+//					END ADMIN WINDOW
+//=======================================================================
+
+
+
+//=======================================================================
 //					START STATUS WINDOW
 //=======================================================================
 
@@ -2268,7 +2322,7 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 	bool ret= ValidateUser(entered_user,entered_pw);
 
 	if (ret)
-		ShowMainWindow();
+		ShowMainMenu();
 //TODO - show login error popup here??
 }
 
@@ -2887,7 +2941,7 @@ extern "C" bool on_lockconfig_close_btn_clicked( GtkButton *button, AppWidgets *
 {
 	WriteLockTimes();
 	gtk_widget_hide(app_ptr->lockconfig_window);
-//	gtk_widget_show_all(app_ptr->main_screen);
+//	gtk_widget_show_all(app_ptr->main_menu);
 }
 
 
@@ -3296,7 +3350,7 @@ void SetColors(void)
 
 void SetScreenSizes(void)
 {
-	gtk_window_set_default_size(GTK_WINDOW(app_ptr->main_screen), screenres.horiz, screenres.vert);
+	gtk_window_set_default_size(GTK_WINDOW(app_ptr->main_menu), screenres.horiz, screenres.vert);
 
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->lockconfig_window), screenres.horiz, screenres.vert);
 //    gtk_window_set_default_size(GTK_WINDOW(app_ptr->load_window), screenres.horiz, screenres.vert);
@@ -3304,6 +3358,8 @@ void SetScreenSizes(void)
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->utd_maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->login_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->splash_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->admin_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->user_window), screenres.horiz, screenres.vert);
 
 
 }
@@ -3371,8 +3427,29 @@ void SetLabels(void)
     msg = getMessage(253,FALSE); // "LOCK CONFIG"
     gtk_button_set_label( GTK_BUTTON(app_ptr->lock_config_btn),msg.c_str() );
 
-    msg = getMessage(253,FALSE); // "ADMIN"
+    msg = getMessage(254,FALSE); // "ADMIN"
     gtk_button_set_label( GTK_BUTTON(app_ptr->admin_btn),msg.c_str() );
+
+
+
+
+
+
+
+// admin window
+
+    msg = getMessage(50,FALSE); // "CLOSE"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->admin_close_btn),msg.c_str() );
+
+    msg = getMessage(300,FALSE); // "USERS"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->user_btn),msg.c_str() );
+
+
+// user window
+
+    msg = getMessage(50,FALSE); // "CLOSE"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->user_close_btn),msg.c_str() );
+
 
 
 // showconfig window
@@ -3484,7 +3561,7 @@ void SetMainScreenFont(void)
 void SetMainScreenTitle(void)
 {
     sprintf(gen_buffer,"%s ver %d.%d.%d",product_name,MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION );
-    gtk_window_set_title( GTK_WINDOW(app_ptr->main_screen), gen_buffer );
+    gtk_window_set_title( GTK_WINDOW(app_ptr->main_menu), gen_buffer );
 
 //	gtk_text_buffer_set_text( GTK_TEXT_BUFFER(app_ptr->textbuffer1), msg.c_str(), msg.length() );
 //	markup = Markup(HELP[help_window_page].title);
@@ -3694,14 +3771,14 @@ extern "C" bool on_dn_left_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 // MAIN WINDOW
-void ShowMainWindow(void)
+void ShowMainMenu(void)
 {
-    gtk_widget_show_all(app_ptr->main_screen);
+    gtk_widget_show_all(app_ptr->main_menu);
 }
 
 extern "C" bool on_admin_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    ShowConfig();
+	ShowAdmin();
     printf("ADMIN\n");
 }
 
@@ -3743,7 +3820,6 @@ extern "C" bool on_lock_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     gtk_widget_hide(app_ptr->login_window);
-//  gtk_window_hide(GTK_WINDOW(app_ptr->main_screen));
 	ShowSplashWindow();
 }
 
