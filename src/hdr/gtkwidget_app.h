@@ -73,6 +73,11 @@
 	appGET(mei_maint_window);
 	appGET(login_window);
 	appGET(splash_window);
+	appGET(status_window);
+
+	// status
+	appGET_LABEL(status_lbl);
+	appGET(status_ok_btn);
 
 	// splash window
     appGET(login_exit_btn);

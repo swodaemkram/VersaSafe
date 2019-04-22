@@ -50,7 +50,12 @@ typedef struct
 	GtkWidget *mei_maint_window;
 	GtkWidget *login_window;
 	GtkWidget *splash_window;
+	GtkWidget *status_window;
 
+
+	// status
+	GtkLabel *status_lbl;
+	GtkWidget *status_ok_btn;
 
 	// splash window
     GtkWidget *login_exit_btn;
