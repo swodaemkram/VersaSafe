@@ -250,6 +250,28 @@ void PrintConfig(void);
 #define RES_FILE "../res/flowformrc"
 
 
+string current_user;
+string current_pw;
+
+struct
+{
+	string username;
+	string password;
+	string lang;
+	string fname;
+	string lname;
+	string user_level;
+	string dept;
+	string lastmodified;
+	string active;
+	string id;
+} current_user_rec;
+
+bool GetUserRecord(string username,string password);
+void PrintUserRecord(void);
+
+
+
 // pid.cpp
 bool CheckRunning(int pid_ID);		// check to see if flowform is running, if so, return TRUE
 bool createPIDfile(int pid_ID);		// create the PID file
@@ -2000,6 +2022,59 @@ for (int n=0;n<8;n++)
 } //extern
 
 
+/*
+	get current users record
+	if password=="", then search for username only
+	RETURNS: TRUE if found and current_user_rec struct filled in
+	else returns FALSE
+*/
+bool GetUserRecord(string username,string password)
+{
+	char query[200];
+	if (password != "")
+	    sprintf(query,"SELECT username,lane,fname,lname,user_level,dept,lastmodified,active,id FROM users WHERE username='%s' AND pw=PASSWORD('%s');",username.c_str(),password.c_str());
+	else
+        sprintf(query,"SELECT username,lang,fname,lname,user_level,dept,lastmodified,active,id FROM users WHERE username='%s';",username.c_str() );
+
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	if (numrows !=0)
+	{
+	    current_user_rec.username = string(localDBF.row[0]);
+        current_user_rec.lang = string(localDBF.row[1]);
+	    current_user_rec.fname =  string(localDBF.row[2]);
+	    current_user_rec.lname = string(localDBF.row[3]);
+	    current_user_rec.user_level = localDBF.row[4];
+	    current_user_rec.dept = string(localDBF.row[5]);
+	    current_user_rec.lastmodified = string(localDBF.row[6]);
+	    current_user_rec.active = localDBF.row[7];
+	    current_user_rec.id = localDBF.row[8];
+PrintUserRecord();
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+void PrintUserRecord(void)
+{
+	printf("print user record\n");
+	printf("Username: %s\n",current_user_rec.username.c_str() );
+    printf("First name: %s\n",current_user_rec.fname.c_str() );
+    printf("Last name: %s\n",current_user_rec.lname.c_str() );
+    printf("Lang: %s\n",current_user_rec.lang.c_str() );
+    printf("User Level: %s\n",current_user_rec.user_level.c_str() );
+    printf("Dept: %s\n",current_user_rec.dept.c_str() );
+    printf("Last Modified: %s\n",current_user_rec.lastmodified.c_str() );
+    printf("Active: %s\n",current_user_rec.active.c_str() );
+    printf("ID: %s\n",current_user_rec.id.c_str() );
+
+
+
+}
+
+
 
 //=======================================================================
 //                  START USER WINDOW
@@ -2007,6 +2082,23 @@ for (int n=0;n<8;n++)
 
 void ShowUser(void)
 {
+/*
+	1. read DBf
+	2. populate  username_txt,firstname_txt,lastname_txt,userlevel_combo,user_dept_combo,
+			user_active_switch,user_id_lbl
+*/
+
+	bool ret=GetUserRecord(current_user,"");
+
+	// now fill in the entries in the window
+	gtk_entry_set_text(GTK_ENTRY(app_ptr->username_txt),current_user_rec.username.c_str() );
+    gtk_entry_set_text(GTK_ENTRY(app_ptr->firstname_txt),current_user_rec.fname.c_str() );
+    gtk_entry_set_text(GTK_ENTRY(app_ptr->lastname_txt),current_user_rec.lname.c_str() );
+    gtk_label_set_label(GTK_LABEL(app_ptr->lastmodified_txt),current_user_rec.lastmodified.c_str() );
+//    gtk_entry_set_text(GTK_ENTRY(app_ptr->user_id_txt),current_user_rec.id );
+
+
+
     gtk_widget_show(app_ptr->user_window);
 
 }
@@ -2016,9 +2108,50 @@ extern "C" bool on_user_close_btn_clicked( GtkButton *button, AppWidgets *app)
     gtk_widget_hide(app_ptr->user_window);
 }
 
+extern "C" bool on_user_cancel_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->user_window);
+}
+
+
+extern "C" void on_userlevel_combo_changed( GtkComboBox *widget, gpointer user_data)
+{
+
+    gchar *item_text = 0;   // selected item text from text combo box
+
+    // get selected item text from GtkComboBoxText object
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->userlevel_combo));
+
+    g_free(item_text);
+}
+
+extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_data)
+{
+
+    gchar *item_text = 0;   // selected item text from text combo box
+
+    // get selected item text from GtkComboBoxText object
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->user_dept_combo));
+
+    g_free(item_text);
+}
+
+
+
+extern "C" void on_user_active_switch_state_set( GtkComboBox *widget, gpointer user_data)
+{
+}
+
+
+
 //=======================================================================
 //                  END USER WINDOW
 //=======================================================================
+
+
+
+
+
 
 
 
@@ -2139,10 +2272,15 @@ printf("UNLOAD ALL BUTTON\n");
 bool ValidateUser(char * user,char * pw)
 {
     char query[100];
-	sprintf(query,"SELECT username,password FROM users WHERE user='%s' AND pw=PASSWORD('%s');",user,pw);
+	sprintf(query,"SELECT username,password FROM users WHERE username='%s' AND password=PASSWORD('%s');",user,pw);
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);
-	if (numrows != 0) return TRUE;
+	if (numrows != 0)
+	{
+		current_user= string(localDBF.row[0]);
+		current_pw = string(localDBF.row[1]);
+		return TRUE;
+	}
 	return FALSE;
 }
 
@@ -3434,8 +3572,6 @@ void SetLabels(void)
 
 
 
-
-
 // admin window
 
     msg = getMessage(50,FALSE); // "CLOSE"
@@ -3450,6 +3586,26 @@ void SetLabels(void)
     msg = getMessage(50,FALSE); // "CLOSE"
     gtk_button_set_label( GTK_BUTTON(app_ptr->user_close_btn),msg.c_str() );
 
+    msg = getMessage(350,FALSE); // "User Name"
+    gtk_label_set_label( GTK_LABEL(app_ptr->username_lbl),msg.c_str() );
+
+    msg = getMessage(351,FALSE); // "First Name"
+    gtk_label_set_label( GTK_LABEL(app_ptr->firstname_lbl),msg.c_str() );
+
+    msg = getMessage(352,FALSE); // "Last Name"
+    gtk_label_set_label( GTK_LABEL(app_ptr->lastname_lbl),msg.c_str() );
+
+    msg = getMessage(353,FALSE); // "User Level"
+    gtk_label_set_label( GTK_LABEL(app_ptr->userlevel_lbl),msg.c_str() );
+
+    msg = getMessage(354,FALSE); // "Dept"
+    gtk_label_set_label( GTK_LABEL(app_ptr->dept_lbl),msg.c_str() );
+
+    msg = getMessage(355,FALSE); // "Active"
+    gtk_label_set_label( GTK_LABEL(app_ptr->useractive_lbl),msg.c_str() );
+
+    msg = getMessage(356,FALSE); // "User ID"
+    gtk_label_set_label( GTK_LABEL(app_ptr->user_id_lbl),msg.c_str() );
 
 
 // showconfig window
