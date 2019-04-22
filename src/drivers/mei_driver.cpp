@@ -265,6 +265,7 @@ string mei_getresponse(){
 			int w = 0;
 			while(w <= (char_pos -1) ){
 				printf("%02x",input_buffer[w]);
+				printf("|");
 				w++;
 			}
 		printf("\n");
