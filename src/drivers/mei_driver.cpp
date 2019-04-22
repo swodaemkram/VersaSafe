@@ -233,7 +233,7 @@ string mei_getresponse(){
 
 	//printf("\nMEI GET RESPONSE CALLED\n");
 
-	mssleep(200); //This delay is very important it wont work without it. So I found out after several hours!
+	mssleep(300); //This delay is very important it wont work without it. So I found out after several hours!
 	while (mei_my_serial.rdbuf()->in_avail() )
 	{
 
@@ -259,7 +259,7 @@ string mei_getresponse(){
 				thecrc =  mei_do_crc(input_buffer,char_pos);
 				//printf("the crc = %02x\n",thecrc); [DEBUG]
 
-//todo  need to do something if the crc dosent match
+//TODO  need to do something if the crc doesn't match
 
 			//printf("Hex Response from MEI = "); [DEBUG]
 			int w = 0;
@@ -270,8 +270,7 @@ string mei_getresponse(){
 			}
 		printf("\n");
 
-
-	return string(input_buffer);
+return string(input_buffer);
 }
 
 /*
@@ -343,6 +342,7 @@ string mei_getmodel(void)
 	char pktAk[16] = "\x02\x08\x01\x00\x00\x04\x03\x0d"; //ACK Packet to send
 	pktlen = sizeof(pktAk);
 	mei_my_serial.write( pktAk, pktlen ) ;
+//TODO need to remove all the non-printable characters before returning this and the rest of these responses
 	return(mei_rply1);
 }
 /*
@@ -377,7 +377,7 @@ string mei_verify_bill()
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
 
-	//MEI POLL UNTIL BILL IS VERIFIED
+//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop
 	while(1){
 	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
 	thecrc = 0;
@@ -396,16 +396,7 @@ string mei_verify_bill()
 	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
-
-
-
-
-
 	}
-
-
-
-
 
 }
 
