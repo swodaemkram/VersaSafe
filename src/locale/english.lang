@@ -16,7 +16,7 @@
 
 
 50,x,CLOSE
-
+51,x,OK
 
 51,x,Sun
 52,x,Mon
@@ -47,6 +47,7 @@
 84,x,LOGIN
 85,x,LOGOUT
 86,x,EXIT
+87,x,VERIFY NOTE
 
 101,x,TimeLock Configuration
 102,x,UTD Load Window
@@ -80,6 +81,11 @@
 251,X,UNLOAD
 252,x,MAINT
 253,x,LOCK CONFIG
+254,x,ADMIN
 
 260,x,MEI MAINTENANCE
+
+
+#admin window
+300,x,USERS
 

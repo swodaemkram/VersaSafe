@@ -65,7 +65,7 @@
 // now load all of our objects into the local app object
 
 // windows
-	appGET(main_screen);
+	appGET(main_menu);
 	appGET(lockconfig_window);
 	appGET(load_window);
 	appGET(maint_window);
@@ -74,6 +74,18 @@
 	appGET(login_window);
 	appGET(splash_window);
 	appGET(status_window);
+	appGET(admin_window);
+	appGET(user_window);
+
+	// user window
+	appGET(user_close_btn);
+
+
+	// admin
+	appGET(user_btn);
+    appGET(admin_close_btn);
+
+
 
 	// status
 	appGET_LABEL(status_lbl);

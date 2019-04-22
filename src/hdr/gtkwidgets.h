@@ -42,7 +42,7 @@ typedef struct
 {
 
 	// windows
-	GtkWidget *main_screen;
+	GtkWidget *main_menu;
 	GtkWidget *lockconfig_window;
 	GtkWidget *load_window;
 	GtkWidget *maint_window;
@@ -51,7 +51,16 @@ typedef struct
 	GtkWidget *login_window;
 	GtkWidget *splash_window;
 	GtkWidget *status_window;
+	GtkWidget *admin_window;
+	GtkWidget *user_window;
 
+
+	// user
+	GtkWidget *user_close_btn;
+
+	// admin
+	GtkWidget *user_btn;
+	GtkWidget *admin_close_btn;
 
 	// status
 	GtkLabel *status_lbl;
