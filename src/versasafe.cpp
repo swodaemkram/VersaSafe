@@ -496,6 +496,7 @@ void ShowUTDMaint(void);
 void ShowMEIMaint(void);
 void ShowLogin(void);
 void ShowSplashWindow();
+void ShowStatus(string status);
 
 
 bool ValidateUser(char *user,char *pw);
@@ -909,6 +910,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 //    ShowLogin();
 	ShowSplashWindow();
+	ShowStatus("this is a test message");
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -1993,6 +1995,38 @@ for (int n=0;n<8;n++)
 }
 
 } //extern
+
+
+
+//=======================================================================
+//					START STATUS WINDOW
+//=======================================================================
+
+
+/*
+	popup the status window and display a msg
+	wait for user to press OK, then put window away
+
+*/
+void ShowStatus(string status)
+{
+	gtk_widget_show(app_ptr->status_window);
+    gtk_label_set_label(GTK_LABEL(app_ptr->status_lbl),status.c_str());
+
+}
+
+extern "C" bool on_status_ok_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->status_window);
+}
+
+
+//=======================================================================
+//					END STATUS WINDOW
+//=======================================================================
+
+
+
 
 
 // show the LOAD UTD window
@@ -3284,6 +3318,11 @@ void SetScreenSizes(void)
 void SetLabels(void)
 {
 	string msg;
+
+// status popup
+    msg = getMessage(51,FALSE); // "OK"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->status_ok_btn),msg.c_str() );
+
 
 // splash window
     msg = getMessage(87,FALSE); // "VEFIFY NOTE"
