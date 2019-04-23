@@ -37,9 +37,8 @@ using namespace std;
 //MEI Validator driver
 #include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
 #include "drivers/mei_driver.h"
-
 //MEI Validator public functions
-
+mei * validator = NULL;
 int init_mei(void);
 void mei_reset(void);
 string mei_get_info(void);
@@ -96,6 +95,14 @@ void Enable_Lock(int index);
 
 //private
 void Enable_Lock(int index);
+
+
+
+
+
+
+
+
 
 //TODO implement firmware download
 //TODO implement setting serial number
@@ -474,7 +481,7 @@ int Init_D8C(void)
 printf("init_d8c\n");
 		int index=0;
 //        d8c * utd = new d8c(serialports[index]);
-			d8c * utd = new d8c("/dev/ttyUSB0");
+			d8c * utd = new d8c("/dev/ttyUSB1");
 //utd->Reset();
 	if (D8C_detected)
 		GetUTDInventory();	// we can safely get inventory after setup
@@ -564,18 +571,14 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-
 	printf("\nInitializing MEI Validator ....\n");
-		int index=0;
-		mei * utd = new mei("/dev/ttyUSB0");
-		printf("\nMEI Validator Initialized!\n");
-
+	mei * validator = new mei("/dev/ttyUSB0");
+	printf("\nMEI Validator Initialized!\n");
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 // Command to Get the MEI Driver Version
 //---------------------------------------------------------------------------------------------------
-
 string get_mei_driver_version(void)
 {
 	return get_mei_driver_version();
@@ -586,23 +589,27 @@ string get_mei_driver_version(void)
 //-----------------------------------------------------------------------------------------------------
 void mei_reset(void)
 {
-	return mei_reset();
+	printf("USB Gateway\n");
+	//mei * validator = new mei("/dev/ttyUSB0");
+	//validator->mei_reset();
+	mei_reset();
+	printf("Back from reset\n");
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
 // Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
 //-----------------------------------------------------------------------------------------------------
-string mei_getmodel(void)
-{
-	string mei_getmodel();
-}
+//string mei_getmodel(void)
+//{
+	// mei_getmodel();
+//}
 //-----------------------------------------------------------------------------------------------------
 // Comman to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
-string mei_verify_bill(void)
-{
-	string mei_verify_bill();
-}
+//string mei_verify_bill(void)
+//{
+	// mei_verify_bill();
+//}
 //------------------------------------------------------------------------------------------------------
 
 

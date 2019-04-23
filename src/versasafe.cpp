@@ -979,7 +979,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 extern void getUSBversion(void);
 	getUSBversion();	// populates gen_buffer
 	string d8cstr =Get_d8_driver();
-
+	string meistr = get_mei_driver_version();
 //	printf("\r\n");
 	printf("Source Language: C/C++ --export-dynamic\r\n");
 	printf("Using GTK/GDK+ libraries v.%d.%d.%d\r\n",gtk_major_version,gtk_minor_version,gtk_micro_version);
@@ -989,6 +989,7 @@ extern void getUSBversion(void);
 	printf("USB Drivers: %s\r\n",gen_buffer);
 	printf("I/O Drivers: Internal proprietary\r\n");
 	printf("D8C Driver: v %s\n",d8cstr.c_str());
+	printf("MEI Driver: v %s\b",meistr.c_str());
 	printf("FTP: External\r\n");
 	printf("======================================================================\r\n");
 
@@ -2586,9 +2587,12 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
     gtk_widget_hide(app_ptr->mei_maint_window);
 }
 
+//===================================================================
+//              MEI Reset Button
+//===================================================================
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-
+	mei_reset();
 }
 
 //===================================================================

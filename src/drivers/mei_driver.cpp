@@ -9,7 +9,7 @@
  MEI Validator
 
  Comm setup is 9600 E 7 1
- No Flow Control woo hoo
+ No Flow Control
  =======================================================================================================================
  */
 
@@ -41,8 +41,8 @@ using namespace std;
 using namespace LibSerial;
 
 string mei_getresponse(); //get a response from the MEI Validator
-unsigned mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
-
+unsigned int mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
+string mei_poll(void); //Poll MEI Device
 
 
 
@@ -67,7 +67,7 @@ Start of MEI crc Function
 
 private:
 
-unsigned  mei_do_crc(char buff[], int buffer_len){
+unsigned int mei_do_crc(char buff[], int buffer_len){
 			 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
 			 //printf("%d\n",buffer_len); //DEBUG CODE
 			 int i=1;
@@ -102,16 +102,19 @@ bool mei_detected;
 string mei_portname;
 bool detected=false;
 
+
 		mei(string pname)
 		{
 			mei_detected=false;
 			mei_portname=pname;
 			mei_connect();
+			return;
 		}
 
 		~mei(void)
 		{
-            if (mei_my_serial)
+            printf("\nCloseing Comm port!\n");
+			if (mei_my_serial)
             mei_my_serial.Close();
 			mei_detected=false;
 		}
@@ -137,7 +140,6 @@ printf("Connect\n");
 			{
 				sprintf(mei_buffer,"Unable to open %s for MEI validator",mei_portname.c_str() );
     	        WriteSystemLog(mei_buffer);
-				mei_detected=true;
 				return 0;
 			}
 	printf("Connect:open\n");
@@ -174,6 +176,7 @@ printf("Serial good\n");
 					return false;
 
 		}
+
 /*
 ===============================================================================================================================
  Connection to MEI Validator Completed
@@ -206,12 +209,12 @@ MEI Validator Setup processed after the Comm port connection is made
 void mei_setup(void)
 {
 	string mei_rply ="";
-	//mei_rply = mei_getmodel();
+	mei_rply = mei_getmodel();
 	//mei_reset();
-	mei_rply = mei_verify_bill();
+	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
-
-
+	mei_detected = true;
+	return;
 }
 /*
 ================================================================================================================================
@@ -296,7 +299,7 @@ private:
 
 void mei_sendstring(string str)
 {
-		str = "";
+
 		mei_my_serial << str;
 }
 
@@ -316,9 +319,9 @@ void mei_reset(void)
 	printf("MEI Reset Command Triggered\n");
 	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
 	pktlen = sizeof(pkt);
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write( pkt, pktlen ) ;
-
+	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt,pktlen);
+	return;
 }
 /*
 =============================================================================================================================
@@ -349,6 +352,8 @@ string mei_getmodel(void)
 ==============================================================================================================================
 The End of the MEI Get Model Command
 ==============================================================================================================================
+MEI Verify Bill Command
+==============================================================================================================================
  */
 
 public:
@@ -357,7 +362,7 @@ string mei_verify_bill()
 {
 
 	printf("MEI Verify Bill called\n");
-	//int pktlen = 0;
+	string mei_poll_response = {0};
 	unsigned int thecrc;
 	string mei_rply1 = {0};
 	char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
@@ -376,8 +381,23 @@ string mei_verify_bill()
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
+    mei_poll_response = mei_poll();                    // Poll MEI for response to command
+	}
+/*
+==============================================================================================================================
+The End of the MEI Verify Bill Command
+==============================================================================================================================
+ MEI Poll Command
+==============================================================================================================================
+ */
+private:
 
-//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop
+string mei_poll(void){
+
+//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop this is for DEBUG only
+	unsigned int thecrc;
+	string mei_rply1 = {0};
+
 	while(1){
 	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
 	thecrc = 0;
@@ -396,13 +416,22 @@ string mei_verify_bill()
 	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
+
+	if (mei_rply1[5] =='\x08'){
+		printf("\nI Verified a $1.00 Bill!\n\n");
+		exit(0);
+
 	}
 
+
+
+	}
 }
-
-
-
-
+/*
+==============================================================================================================================
+The End of the MEI Poll Command
+==============================================================================================================================
+ */
 };
 /*
 ===============================================================================================================================
