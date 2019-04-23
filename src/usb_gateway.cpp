@@ -573,6 +573,7 @@ int init_mei(void)
 {
 	printf("\nInitializing MEI Validator ....\n");
 	mei * validator = new mei("/dev/ttyUSB0");
+	cout<<&validator<<endl;
 	printf("\nMEI Validator Initialized!\n");
 }
 //---------------------------------------------------------------------------------------------------
@@ -590,9 +591,11 @@ string get_mei_driver_version(void)
 void mei_reset(void)
 {
 	printf("USB Gateway\n");
-	//mei * validator = new mei("/dev/ttyUSB0");
-	//validator->mei_reset();
-	mei_reset();
+	cout<<&validator<<endl;
+	mei * validator = new mei("/dev/ttyUSB0");
+	cout<<&validator<<endl;
+	validator->mei_reset();
+	cout<<&validator<<endl;
 	printf("Back from reset\n");
 }
 //-----------------------------------------------------------------------------------------------------
@@ -604,7 +607,7 @@ void mei_reset(void)
 	// mei_getmodel();
 //}
 //-----------------------------------------------------------------------------------------------------
-// Comman to MEI to stack Bills
+// Command to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
 //string mei_verify_bill(void)
 //{
