@@ -30,7 +30,7 @@
 #include <array>            // for array copy
 #include <iostream>
 #include <vector>
-
+#include <SerialPort.h>
 #include "mei_driver.h"
 #include "../hdr/global.h"
 #include "../trim.inc"   //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
@@ -39,6 +39,12 @@
 
 using namespace std;
 using namespace LibSerial;
+
+string mei_getresponse(); //get a response from the MEI Validator
+unsigned mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
+
+
+
 
 /*
 ===============================================================================================================================
@@ -61,7 +67,7 @@ Start of MEI crc Function
 
 private:
 
-unsigned do_crc(char buff[], int buffer_len){
+unsigned  mei_do_crc(char buff[], int buffer_len){
 			 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
 			 //printf("%d\n",buffer_len); //DEBUG CODE
 			 int i=1;
@@ -199,23 +205,74 @@ MEI Validator Setup processed after the Comm port connection is made
 
 void mei_setup(void)
 {
-	   return mei_reset();
-printf("MEI Validator SETUP\n");
+	string mei_rply ="";
+	//mei_rply = mei_getmodel();
+	//mei_reset();
+	mei_rply = mei_verify_bill();
+	printf("MEI Validator model is a %s \n",mei_rply.c_str());
+
 
 }
 /*
 ================================================================================================================================
 end of MEI Setup
 ================================================================================================================================
-Get Response from MEI Validator
+Get Response from MEI Validator This is the raw Hex data and needs to be processed in the returning function
 ================================================================================================================================
  */
 
 private:
 
 string mei_getresponse(){
-	return("Hello !");
+
+	int buff_size = 250 ;
+	char input_buffer[buff_size] ;
+	bzero(input_buffer,buff_size);
+	int char_pos = 0;
+	char next_char = {0};
+
+	//printf("\nMEI GET RESPONSE CALLED\n");
+
+	mssleep(300); //This delay is very important it wont work without it. So I found out after several hours!
+	while (mei_my_serial.rdbuf()->in_avail() )
+	{
+
+				mei_my_serial.get(next_char);
+		        if (next_char == '\03')
+				{
+					input_buffer[char_pos++]='\03';
+					mei_my_serial.get(next_char);
+					input_buffer[char_pos++]=next_char;
+					break;
+				}
+			   input_buffer[char_pos] = next_char;
+		       char_pos++;
+
+		}
+				//printf("char_pos = %d\n",char_pos); [DEBUG]
+				char sent_crc = {0};
+                sent_crc = input_buffer[char_pos - 1];
+				//printf("sent_crc = %02x\n",sent_crc); [DEBUG]
+				int thecrc = 0;
+
+				thecrc = 0;
+				thecrc =  mei_do_crc(input_buffer,char_pos);
+				//printf("the crc = %02x\n",thecrc); [DEBUG]
+
+//TODO  need to do something if the crc doesn't match
+
+			//printf("Hex Response from MEI = "); [DEBUG]
+			int w = 0;
+			while(w <= (char_pos -1) ){
+				printf("%02x",input_buffer[w]);
+				printf("|");
+				w++;
+			}
+		printf("\n");
+
+return string(input_buffer);
 }
+
 /*
 ===============================================================================================================================
 End of Response Function
@@ -255,14 +312,94 @@ public:
 
 void mei_reset(void)
 {
-	string pkt = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
-	mei_my_serial << pkt;
+	int pktlen = 0;
+	printf("MEI Reset Command Triggered\n");
+	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
+	pktlen = sizeof(pkt);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write( pkt, pktlen ) ;
+
 }
 /*
 =============================================================================================================================
 End of MEI Reset Command
 =============================================================================================================================
+Get MEI Model Number (this is just a test and will become a GET INFO Command)
+=============================================================================================================================
 */
+public:
+
+string mei_getmodel(void)
+{
+	printf("MEI GetModel called\n");
+	int pktlen = 0;
+	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+	string mei_rply1 = "";
+	pktlen = sizeof(pkt);
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write( pkt, pktlen ) ;
+	mei_rply1 = mei_getresponse();
+	char pktAk[16] = "\x02\x08\x01\x00\x00\x04\x03\x0d"; //ACK Packet to send
+	pktlen = sizeof(pktAk);
+	mei_my_serial.write( pktAk, pktlen ) ;
+//TODO need to remove all the non-printable characters before returning this and the rest of these responses
+	return(mei_rply1);
+}
+/*
+==============================================================================================================================
+The End of the MEI Get Model Command
+==============================================================================================================================
+ */
+
+public:
+
+string mei_verify_bill()
+{
+
+	printf("MEI Verify Bill called\n");
+	//int pktlen = 0;
+	unsigned int thecrc;
+	string mei_rply1 = {0};
+	char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
+	thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
+	pkt[6] = '\x03';                                //Stuff ETX
+	pkt[7] = thecrc;                                //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
+	mei_rply1 = mei_getresponse();                   //Get Reply
+	char pktAk[16] ="\x02\x08\x01\x2c\x7f\x10\x00"; //ACK Packet to send
+	thecrc = 0;                                      // Zero Out CRC
+	thecrc =  mei_do_crc(pktAk,sizeof(pktAk));         //Do CRC on new packet
+	pktAk[6] = '\x03';                                 //Stuff ETX
+	pktAk[7] = thecrc;                                 //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	mei_rply1 = "";
+	mei_rply1 = mei_getresponse();
+
+//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop
+	while(1){
+	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
+	thecrc = 0;
+	thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
+	pollpkt[6] = '\x03';                                //Stuff ETX
+	pollpkt[7] = thecrc;                                //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
+	mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
+	mei_rply1 = mei_getresponse();                   //Get Reply
+	char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
+	thecrc = 0;                                      // Zero Out CRC
+	thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
+	pollpktAk[6] = '\x03';                                 //Stuff ETX
+	pollpktAk[7] = thecrc;                                 //Stuff CRC
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
+	mei_rply1 = "";
+	mei_rply1 = mei_getresponse();
+	}
+
+}
+
 
 
 

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-#mysql -uroot -p'b0whunter' fking < fking.sql
-mysql -uroot -p'v|per101' fking < fking.sql
+mysql -uroot -p'b0whunter' fking < fking.sql
+#mysql -uroot -p'v|per101' fking < fking.sql
 

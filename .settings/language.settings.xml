@@ -1,25 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project>
-	<configuration id="cdt.managedbuild.config.gnu.exe.debug.27384877" name="Debug_ForC++">
-		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
-			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
-			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
-			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="-230579008501594793" id="org.eclipse.cdt.managedbuilder.core.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings" parameter="${COMMAND} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
-				<language-scope id="org.eclipse.cdt.core.gcc"/>
-				<language-scope id="org.eclipse.cdt.core.g++"/>
-			</provider>
-		</extension>
-	</configuration>
-	<configuration id="cdt.managedbuild.config.gnu.exe.release.2102127461" name="Release_For_C++">
-		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
-			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
-			<provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
-			<provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
-			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="-230578197002838725" id="org.eclipse.cdt.managedbuilder.core.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings" parameter="${COMMAND} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
-				<language-scope id="org.eclipse.cdt.core.gcc"/>
-				<language-scope id="org.eclipse.cdt.core.g++"/>
-			</provider>
-		</extension>
-	</configuration>
+    	
+    <configuration id="cdt.managedbuild.config.gnu.exe.debug.27384877" name="Debug_ForC++">
+        		
+        <extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+            			
+            <provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
+            			
+            <provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
+            			
+            <provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
+            			
+            <provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="-570665421527567082" id="org.eclipse.cdt.managedbuilder.core.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings" parameter="${COMMAND} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+                				
+                <language-scope id="org.eclipse.cdt.core.gcc"/>
+                				
+                <language-scope id="org.eclipse.cdt.core.g++"/>
+                			
+            </provider>
+            		
+        </extension>
+        	
+    </configuration>
+    	
+    <configuration id="cdt.managedbuild.config.gnu.exe.release.2102127461" name="Release_For_C++">
+        		
+        <extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+            			
+            <provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
+            			
+            <provider-reference id="org.eclipse.cdt.core.ReferencedProjectsLanguageSettingsProvider" ref="shared-provider"/>
+            			
+            <provider-reference id="org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider" ref="shared-provider"/>
+            			
+            <provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="-570664610028811014" id="org.eclipse.cdt.managedbuilder.core.GCCBuiltinSpecsDetector" keep-relative-paths="false" name="CDT GCC Built-in Compiler Settings" parameter="${COMMAND} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
+                				
+                <language-scope id="org.eclipse.cdt.core.gcc"/>
+                				
+                <language-scope id="org.eclipse.cdt.core.g++"/>
+                			
+            </provider>
+            		
+        </extension>
+        	
+    </configuration>
+    
 </project>

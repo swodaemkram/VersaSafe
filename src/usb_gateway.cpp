@@ -54,6 +54,10 @@ int * mei_get_inventory(void);
 void mei_connect(string pname);
 string mei_status(void);
 string get_mei_driver_version(void);
+string mei_getmodel(void);
+string mei_stack(void);
+string mei_verify_bill(void);
+
 
 // VEND BOARD DRIVER (D8C)
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
@@ -560,7 +564,8 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-printf("Initializing MEI Validator ....\n");
+
+	printf("\nInitializing MEI Validator ....\n");
 		int index=0;
 		mei * utd = new mei("/dev/ttyUSB0");
 		printf("\nMEI Validator Initialized!\n");
@@ -584,8 +589,21 @@ void mei_reset(void)
 	return mei_reset();
 }
 //-----------------------------------------------------------------------------------------------------
-
-
+//-----------------------------------------------------------------------------------------------------
+// Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
+//-----------------------------------------------------------------------------------------------------
+string mei_getmodel(void)
+{
+	string mei_getmodel();
+}
+//-----------------------------------------------------------------------------------------------------
+// Comman to MEI to stack Bills
+//-----------------------------------------------------------------------------------------------------
+string mei_verify_bill(void)
+{
+	string mei_verify_bill();
+}
+//------------------------------------------------------------------------------------------------------
 
 
 
