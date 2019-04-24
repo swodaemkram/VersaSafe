@@ -44,7 +44,7 @@ typedef struct
 	// windows
 	GtkWidget *main_menu;
 	GtkWidget *lockconfig_window;
-	GtkWidget *load_window;
+//	GtkWidget *load_window;
 	GtkWidget *maint_window;
 	GtkWidget *utd_maint_window;
 	GtkWidget *mei_maint_window;
@@ -53,11 +53,22 @@ typedef struct
 	GtkWidget *status_window;
 	GtkWidget *admin_window;
 	GtkWidget *user_window;
+	GtkWidget *settings_window;
+	GtkWidget *keyboard_window;
 
+	// keyboard
+	GtkWidget *keyboard_target_box;
+	GtkWidget *keyboard_grid;
+
+	// settings
+	GtkWidget *sound_level_btn;
+	GtkWidget *change_pw_btn;
+	GtkWidget *settings_close_btn;
 
 	// user
 	GtkWidget *user_close_btn;
 	GtkWidget *user_cancel_btn;
+	GtkWidget *user_save_btn;
 	GtkLabel *username_lbl;
 	GtkLabel *firstname_lbl;
 	GtkLabel *lastname_lbl;
@@ -71,18 +82,21 @@ typedef struct
 	GtkWidget *username_txt;
 	GtkWidget *firstname_txt;
 	GtkWidget *lastname_txt;
-	GtkComboBox *userlevel_combo;
-	GtkComboBox *user_dept_combo;
-	GtkWidget *user_active_switch;
+	GtkComboBoxText *userlevel_combo;
+	GtkComboBoxText *user_dept_combo;
+	GtkSwitch *user_active_switch;
 	GtkLabel *user_id_txt;
 	GtkLabel *lastmodified_txt;
-	GtkComboBox *lang_combo;
+	GtkComboBoxText *lang_combo;
 
 
 
 	// admin
 	GtkWidget *user_btn;
 	GtkWidget *admin_close_btn;
+	GtkWidget *eod_btn;
+	GtkWidget *cr_btn;
+
 
 	// status
 	GtkLabel *status_lbl;
@@ -100,6 +114,7 @@ typedef struct
 	GtkWidget *he_btn;
 	GtkWidget *login_btn;
 	GtkWidget *login_back_btn;
+	GtkWidget *abc_btn;
 	GtkLabel *pw_txt;
 	GtkLabel *user_txt;
 	GtkWidget *user_entry;

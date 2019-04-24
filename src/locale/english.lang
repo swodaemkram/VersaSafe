@@ -89,3 +89,14 @@
 #admin window
 300,x,USERS
 
+
+350,x,User Name
+351,x,First Name
+352,x,Last Name
+353,x,User Level
+354,x,Dept
+355,x,Active
+356,x,User ID
+357,x,SAVE
+
+

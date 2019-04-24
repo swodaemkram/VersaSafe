@@ -188,6 +188,7 @@ using namespace std;
 
 
 
+
 //================================================================================================
 //================================================================================================
 
@@ -250,6 +251,25 @@ void PrintConfig(void);
 #define RES_FILE "../res/flowformrc"
 
 
+
+
+/*
+    remove the currently displayed widget from the actuator_configuration_frame so that
+    we can reparent the new widget into place
+*/
+
+
+#define REPARENT(old_parent,new_parent,widget) \
+{ \
+        g_object_ref(widget); /* save a copy of the reference (increase reference count) */ \
+        gtk_container_remove( GTK_CONTAINER(old_parent), widget ); /* remove the widget from the old_parent*/ \
+        gtk_container_add( GTK_CONTAINER(new_parent), widget); /* add the widget to the new parent */ \
+        g_object_unref( widget); /* release the reference */ \
+}
+
+
+
+
 string current_user;
 string current_pw;
 
@@ -267,13 +287,40 @@ struct
 	string id;
 } current_user_rec;
 
-bool GetUserRecord(string username,string password);
+bool WriteUserRecord(void);
+bool ReadUserRecord(string username,string password);
 void PrintUserRecord(void);
+
+
+struct
+{
+    string name;
+    int level;
+} user_levels[20];
+int user_level_count;
+
+struct
+{
+	string department;
+	string lastmodified;
+	string id;
+} depts[25];
+int dept_count;
+
+void GetUserLevels(void);
+void GetDepartments(void);
+
+void PopulateDeptCombo(void);
+void PopulateUserLangsCombo(void);
+void PopulateUserLevelCombo(void);
+void SetCurrentUserSelections(void);
+
+
 
 
 
 // pid.cpp
-bool CheckRunning(int pid_ID);		// check to see if flowform is running, if so, return TRUE
+bool CheckRunning(int pid_ID);		// check to see if app is running, if so, return TRUE
 bool createPIDfile(int pid_ID);		// create the PID file
 bool removePIDfile(int pid_ID);		// remove the PID file
 
@@ -521,13 +568,24 @@ void ShowSplashWindow();
 void ShowStatus(string status);
 void ShowAdmin(void);
 void ShowUser(void);
-
+void ShowSettings(void);
 
 
 bool ValidateUser(char *user,char *pw);
 
 
 void Get_UTD_Data(void);
+
+
+struct
+{
+    string code;
+    string name;
+    int active;
+    int id;
+} langs[10];
+int lang_count;
+
 void GetLangs(void);
 
 
@@ -2028,7 +2086,7 @@ for (int n=0;n<8;n++)
 	RETURNS: TRUE if found and current_user_rec struct filled in
 	else returns FALSE
 */
-bool GetUserRecord(string username,string password)
+bool ReadUserRecord(string username,string password)
 {
 	char query[200];
 	if (password != "")
@@ -2049,7 +2107,7 @@ bool GetUserRecord(string username,string password)
 	    current_user_rec.lastmodified = string(localDBF.row[6]);
 	    current_user_rec.active = localDBF.row[7];
 	    current_user_rec.id = localDBF.row[8];
-PrintUserRecord();
+//PrintUserRecord();
 		return TRUE;
 	}
 
@@ -2075,6 +2133,159 @@ void PrintUserRecord(void)
 }
 
 
+/*
+	get the departments from DBF:depts table
+	store to depts[] struct
+
+struct
+{
+    string department;
+    string lastmodified;
+    string id;
+} depts[25];
+
+*/
+
+void GetDepartments(void)
+{
+	char query[200]="SELECT department,lastmodified,id FROM depts";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	dept_count=numrows;
+
+	if (numrows !=0)
+	{
+		for (int n=0; n < numrows; n++)
+		{
+			depts[n].department= string(localDBF.row[0]);
+			depts[n].lastmodified = string(localDBF.row[1]);
+			depts[n].id = string(localDBF.row[2]);
+            GetRow(&localDBF);
+		}
+	}
+}
+
+
+
+/*
+	get the user levels from the DBF:user_levels table
+	store to user_levels[] struct
+
+*/
+
+void GetUserLevels(void)
+{
+   char query[200]="SELECT name,level FROM user_levels";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	user_level_count=numrows;
+    if (numrows !=0)
+    {
+		for (int n=0; n < numrows; n++)
+		{
+			user_levels[n].name=string(localDBF.row[0]);
+			user_levels[n].level=atoi(localDBF.row[1]);
+
+//printf("LEVEL: %s\n",user_levels[n].name.c_str());
+			GetRow(&localDBF);
+		}
+	}
+}
+
+/*
+	write the edited user record  back to DBF
+
+	RETURNS; TRUE on success, else FALSE
+
+struct
+{
+    string username;
+    string password;
+    string lang;
+    string fname;
+    string lname;
+    string user_level;
+    string dept;
+    string lastmodified;
+    string active;
+    string id;
+} current_user_rec;
+
+  `username` varchar(20)  NOT NULL,
+  `password` varchar(80) NOT NULL,
+  `lang` varchar(2) NOT NULL DEFAULT 'en',
+  `fname` varchar(30) NOT NULL,
+  `lname` varchar(30) NOT NULL,
+  `user_level` int(5) NOT NULL DEFAULT 0,
+  `dept` varchar(30),
+  `created` datetime DEFAULT NOW(),
+  `lastmodified` datetime DEFAULT NOW() ON UPDATE NOW(),
+  `active` tinyint NOT NULL DEFAULT 0,
+  `id` int(5) COLLATE utf8_bin auto_increment,
+
+*/
+bool WriteUserRecord(void)
+{
+	char query[400];
+	sprintf(query,"UPDATE users SET username='%s', lang='%s',fname='%s',lname='%s',user_level='%s',dept='%s',active='%s' WHERE id='%s'; ", current_user_rec.username.c_str(), current_user_rec.lang.c_str(), current_user_rec.fname.c_str(), current_user_rec.lname.c_str(), current_user_rec.user_level.c_str(), current_user_rec.dept.c_str(), current_user_rec.active.c_str(), current_user_rec.id.c_str() );
+	// returns 0 on success, else non-zero
+	int result =  QueryDBF(&localDBF,query);
+
+	if (result ==0)
+		return TRUE;
+	else
+	{
+		// error
+		sprintf(gen_buffer,"WriteUserRecord:: DBF ERROR: %s << failed",query );
+		WriteSystemLog(gen_buffer);
+		return FALSE;
+	}
+
+}
+
+
+
+
+//=======================================================================
+//                  START SETTINGS WINDOW
+//=======================================================================
+
+void ShowSettings(void)
+{
+    gtk_widget_show(app_ptr->settings_window);
+}
+
+extern "C" bool on_settings_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->settings_window);
+}
+
+extern "C" bool on_lock_config_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    ShowConfig();
+    printf("LOCK CONFIG\n");
+}
+
+
+//TODO chanfge_pw btn
+extern "C" bool on_change_pw_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+//TODO sound_level_btn
+extern "C" bool on_sound_level_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+
+//=======================================================================
+//                  END SETTINGS WINDOW
+//=======================================================================
+
+
+
 
 //=======================================================================
 //                  START USER WINDOW
@@ -2088,15 +2299,22 @@ void ShowUser(void)
 			user_active_switch,user_id_lbl
 */
 
-	bool ret=GetUserRecord(current_user,"");
+	bool ret=ReadUserRecord(current_user,"");
 
 	// now fill in the entries in the window
 	gtk_entry_set_text(GTK_ENTRY(app_ptr->username_txt),current_user_rec.username.c_str() );
     gtk_entry_set_text(GTK_ENTRY(app_ptr->firstname_txt),current_user_rec.fname.c_str() );
     gtk_entry_set_text(GTK_ENTRY(app_ptr->lastname_txt),current_user_rec.lname.c_str() );
     gtk_label_set_label(GTK_LABEL(app_ptr->lastmodified_txt),current_user_rec.lastmodified.c_str() );
-//    gtk_entry_set_text(GTK_ENTRY(app_ptr->user_id_txt),current_user_rec.id );
+    gtk_label_set_label(GTK_LABEL(app_ptr->user_id_txt),current_user_rec.id.c_str() );
 
+
+	GetUserLevels();
+	GetDepartments();
+	PopulateUserLevelCombo();
+	PopulateUserLangsCombo();
+	PopulateDeptCombo();
+	SetCurrentUserSelections();
 
 
     gtk_widget_show(app_ptr->user_window);
@@ -2112,6 +2330,57 @@ extern "C" bool on_user_cancel_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     gtk_widget_hide(app_ptr->user_window);
 }
+
+/*
+	save edited user record
+
+	save the edited user data
+
+*/
+//TODO save_btn
+extern "C" bool on_user_save_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gchar *item_text = 0;   // selected item text from text combo box
+
+// user level
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->userlevel_combo));
+	current_user_rec.user_level = string(item_text);
+
+// lang
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->lang_combo));
+	current_user_rec.lang = string(item_text);
+
+// dept
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->user_dept_combo));
+	current_user_rec.dept = string(item_text);
+
+	const gchar *item_text2="";
+
+// username
+	item_text2 = gtk_entry_get_text(GTK_ENTRY(app_ptr->username_txt));
+	current_user_rec.username = string(item_text2);
+
+//fname
+    item_text2 = gtk_entry_get_text(GTK_ENTRY(app_ptr->firstname_txt));
+    current_user_rec.fname = string(item_text2);
+
+//lname
+    item_text2 =  gtk_entry_get_text(GTK_ENTRY(app_ptr->lastname_txt));
+    current_user_rec.lname = string(item_text2);
+
+//active
+
+    gboolean active =gtk_switch_get_state (app_ptr->user_active_switch);
+	if (active)
+		current_user_rec.active='1';
+	else
+		current_user_rec.active='0';
+
+    g_free(item_text);
+
+	WriteUserRecord();
+}
+
 
 
 extern "C" void on_userlevel_combo_changed( GtkComboBox *widget, gpointer user_data)
@@ -2137,10 +2406,78 @@ extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_d
 }
 
 
-
+//TODO
 extern "C" void on_user_active_switch_state_set( GtkComboBox *widget, gpointer user_data)
 {
 }
+
+
+
+void PopulateDeptCombo(void)
+{
+	for (int n=0; n < dept_count; n++)
+	{
+		gtk_combo_box_text_append_text(app_ptr->user_dept_combo,depts[n].department.c_str() );
+	}
+}
+
+
+void PopulateUserLevelCombo(void)
+{
+
+    for (int n=0; n < user_level_count; n++)
+    {
+        gtk_combo_box_text_append_text( app_ptr->userlevel_combo,user_levels[n].name.c_str()  );
+    }
+
+}
+
+void PopulateUserLangsCombo(void)
+{
+    for (int n=0; n < lang_count; n++)
+    {
+        gtk_combo_box_text_append_text( app_ptr->lang_combo,langs[n].code.c_str()  );
+    }
+}
+
+
+/*
+	set current selection for..
+	active (user_active_switch)
+	lang (lang_combo)
+	user_level (userlevel_combo)
+	dept (user_dept_combo)
+	language (lang_combo)
+
+*/
+void SetCurrentUserSelections(void)
+{
+
+// ACTIVE
+    gboolean uactive=0;
+    if (current_user_rec.active=="1") uactive=1;
+
+    gtk_switch_set_state (app_ptr->user_active_switch, uactive);
+
+/*
+    gchar *item_text = 0;   // selected item text from text combo box
+
+    // get selected item text from GtkComboBoxText object
+    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->lock_hr));
+    if (item_text == NULL)
+    {
+    }
+    temp =  (string) item_text;
+    g_free(item_text);
+*/
+
+//    gtk_combo_box_set_active(app_ptr->lock_hr,index);
+
+
+
+
+}
+
 
 
 
@@ -2174,6 +2511,14 @@ extern "C" bool on_admin_close_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_user_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	ShowUser();
+}
+
+extern "C" bool on_eod_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_cr_btn_clicked( GtkButton *button, AppWidgets *app)
+{
 }
 
 
@@ -2217,6 +2562,7 @@ extern "C" bool on_status_ok_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 // show the LOAD UTD window
+/*
 void ShowLoad(void)
 {
     string msg;
@@ -2230,7 +2576,7 @@ for (int x=0;x<8;x++)
 	printf("col %d: %d\n",x,inv[x]);
 
 }
-
+*/
 
 
 /*
@@ -2327,6 +2673,17 @@ void StoreInput(char x)
 		entered_pw[pw_index++]=x;
 }
 
+
+//TODO - ABC button
+extern "C" bool on_abc_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+
+
+
+REPARENT(app_ptr->keyboard_window,app_ptr->keyboard_target_box,app_ptr->keyboard_grid)
+
+
+}
 
 
 extern "C" bool on_one_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -3494,12 +3851,12 @@ void SetScreenSizes(void)
 //    gtk_window_set_default_size(GTK_WINDOW(app_ptr->load_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->utd_maint_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->mei_maint_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->login_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->splash_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->admin_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->user_window), screenres.horiz, screenres.vert);
-
-
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->settings_window), screenres.horiz, screenres.vert);
 }
 
 
@@ -3606,6 +3963,9 @@ void SetLabels(void)
 
     msg = getMessage(356,FALSE); // "User ID"
     gtk_label_set_label( GTK_LABEL(app_ptr->user_id_lbl),msg.c_str() );
+
+    msg = getMessage(357,FALSE); // "SAVE"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->user_save_btn),msg.c_str() );
 
 
 // showconfig window
@@ -3939,12 +4299,12 @@ extern "C" bool on_admin_btn_clicked( GtkButton *button, AppWidgets *app)
 }
 
 
-
-extern "C" bool on_lock_config_btn_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_settings_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    ShowConfig();
-    printf("LOCK CONFIG\n");
+	ShowSettings();
 }
+
+
 
 
 extern "C" bool on_maint_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -3956,7 +4316,7 @@ extern "C" bool on_maint_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    ShowLoad();
+//    ShowLoad();
     printf("LOAD\n");
 }
 
@@ -3983,20 +4343,6 @@ extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
-
-/*
-	remove the currently displayed widget from the actuator_configuration_frame so that
-	we can reparent the new widget into place
-*/
-
-
-#define REPARENT(old_parent,new_parent,widget) \
-{ \
-		g_object_ref(widget); /* save a copy of the reference (increase reference count) */ \
-		gtk_container_remove( GTK_CONTAINER(old_parent), widget ); /* remove the widget from the old_parent*/ \
-		gtk_container_add( GTK_CONTAINER(new_parent), widget); /* add the widget to the new parent */ \
-		g_object_unref( widget); /* release the reference */ \
-}
 
 
 
@@ -4456,12 +4802,6 @@ void Get_UTD_Data(void)
 }
 
 
-struct
-{
-	string code;
-	string name;
-	int active;
-} langs[10];
 
 
 /*
@@ -4474,12 +4814,14 @@ void GetLangs(void)
     char query[]="SELECT code,name,active  FROM langs";
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);    // populate gen_buffer
+	lang_count=numrows;
 
 	for (int n=0; n < numrows; n++)
 	{
 		langs[n].code = string(localDBF.row[0]);
 		langs[n].name = string(localDBF.row[1]);
 		langs[n].active = atoi(localDBF.row[2]);
+		langs[n].id=atoi(localDBF.row[3]);
 
 		printf("Lang: %s  Code:%s  Active: %d\n",langs[n].name.c_str(),langs[n].code.c_str(),langs[n].active);
 		GetRow(&localDBF);	// get next row
