@@ -59,7 +59,7 @@
 	#define appGET_TOGGLE(xx) app->xx=GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder,#xx))
 
     #define appGET_COMBOBOXTEXT(xx) app->xx=GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder,#xx))
-
+	#define appGET_SWITCH(xx) app->xx=GTK_SWITCH(gtk_builder_get_object(builder,#xx))
 
 //WIDGETS
 // now load all of our objects into the local app object
@@ -67,7 +67,7 @@
 // windows
 	appGET(main_menu);
 	appGET(lockconfig_window);
-	appGET(load_window);
+//	appGET(load_window);
 	appGET(maint_window);
 	appGET(utd_maint_window);
 	appGET(mei_maint_window);
@@ -76,10 +76,24 @@
 	appGET(status_window);
 	appGET(admin_window);
 	appGET(user_window);
+	appGET(settings_window);
+	appGET(keyboard_window);
+
+
+	// keyboard
+	appGET(keyboard_grid);
+	appGET(keyboard_target_box);
+
+
+	// settings window
+	appGET(sound_level_btn);
+	appGET(change_pw_btn);
+	appGET(settings_close_btn);
 
 	// user window
 	appGET(user_close_btn);
 	appGET(user_cancel_btn);
+	appGET(user_save_btn);
 	appGET_LABEL(username_lbl);
 	appGET_LABEL(firstname_lbl);
 	appGET_LABEL(lastname_lbl);
@@ -93,18 +107,19 @@
 	appGET(username_txt);
 	appGET(firstname_txt);
 	appGET(lastname_txt);
-	appGET_COMBOBOX(userlevel_combo);
-    appGET_COMBOBOX(user_dept_combo);
-	appGET(user_active_switch);
+	appGET_COMBOBOXTEXT(userlevel_combo);
+    appGET_COMBOBOXTEXT(user_dept_combo);
+	appGET_SWITCH(user_active_switch);
 	appGET_LABEL(user_id_txt);
-	appGET_COMBOBOX(lang_combo);
+	appGET_COMBOBOXTEXT(lang_combo);
 	appGET_LABEL(lastmodified_txt);
 
 
 	// admin
 	appGET(user_btn);
     appGET(admin_close_btn);
-
+	appGET(eod_btn);
+	appGET(cr_btn);
 
 
 	// status
@@ -122,6 +137,7 @@
 	appGET(he_btn);
 	appGET(login_btn);
 	appGET(login_back_btn);
+	appGET(abc_btn);
 	appGET_LABEL(user_txt);
 	appGET_LABEL(pw_txt);
 	appGET(user_entry);
