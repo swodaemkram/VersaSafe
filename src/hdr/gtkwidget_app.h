@@ -78,11 +78,41 @@
 	appGET(user_window);
 	appGET(settings_window);
 	appGET(keyboard_window);
+	appGET(numpad_window);
 
 
 	// keyboard
 	appGET(keyboard_grid);
-	appGET(keyboard_target_box);
+	appGET(numpad_grid);
+	appGET(pad_target);
+
+	appGET(a_btn);
+    appGET(b_btn);
+    appGET(c_btn);
+    appGET(d_btn);
+    appGET(e_btn);
+    appGET(f_btn);
+    appGET(g_btn);
+    appGET(h_btn);
+    appGET(i_btn);
+    appGET(j_btn);
+    appGET(k_btn);
+    appGET(l_btn);
+    appGET(m_btn);
+    appGET(n_btn);
+    appGET(o_btn);
+    appGET(p_btn);
+    appGET(q_btn);
+    appGET(r_btn);
+    appGET(s_btn);
+    appGET(t_btn);
+    appGET(u_btn);
+    appGET(v_btn);
+    appGET(w_btn);
+    appGET(x_btn);
+    appGET(y_btn);
+    appGET(z_btn);
+
 
 
 	// settings window
