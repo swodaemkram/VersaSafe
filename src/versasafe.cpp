@@ -880,7 +880,7 @@ Initiate the MEI validator in the USB Gateway if Enabled
 */
 if ( strcmp(cfg.validator1,"enabled")==0)
 {
-	init_mei();    //init MEI validator (in usb_gateway)
+//	init_mei();    //init MEI validator (in usb_gateway)
 }
 /*
 =============================================================================================
@@ -994,6 +994,8 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 //    ShowLogin();
 	ShowSplashWindow();
 //	ShowStatus("this is a test message");
+	REPARENT(app_ptr->numpad_window,app_ptr->pad_target,app_ptr->numpad_grid)
+
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -2673,14 +2675,43 @@ void StoreInput(char x)
 		entered_pw[pw_index++]=x;
 }
 
+// 0 = 123
+// 1 = abc
+int abc123=0;
 
 //TODO - ABC button
 extern "C" bool on_abc_btn_clicked( GtkButton *button, AppWidgets *app)
 {
+	string msg;
+
+	abc123 ^= 1;
+        // REPARENT(old parent, new parent, widget)
 
 
+	if (abc123==0)
+	{
+		// NUMPAD SHOWS
+	    msg = getMessage(370,FALSE); // "ABC"
+    	gtk_button_set_label( GTK_BUTTON(app_ptr->abc_btn),msg.c_str() );
 
-REPARENT(app_ptr->keyboard_window,app_ptr->keyboard_target_box,app_ptr->keyboard_grid)
+		// put the keypad back home->keypad_window
+        REPARENT(app_ptr->pad_target,app_ptr->keyboard_window,app_ptr->keyboard_grid)
+
+		// put the numpad on the login screen
+		REPARENT(app_ptr->numpad_window,app_ptr->pad_target,app_ptr->numpad_grid)
+	}
+	else
+	{
+		// KEYBOARD SHOWS
+        msg = getMessage(371,FALSE); // "123"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->abc_btn),msg.c_str() );
+
+		// put the numpad back homw->numpad_window
+        REPARENT(app_ptr->pad_target,app_ptr->numpad_window,app_ptr->numpad_grid)
+
+		// put the keypad on the login screen
+        REPARENT(app_ptr->keyboard_window,app_ptr->pad_target,app_ptr->keyboard_grid)
+	}
 
 
 }
@@ -2833,6 +2864,46 @@ extern "C" bool on_login_back_btn_clicked( GtkButton *button, AppWidgets *app)
 //===================================================================
 //                  END LOGIN SCREEN
 //===================================================================
+
+
+
+//===================================================================
+//                  START KEYBOAD BUTTONS
+//===================================================================
+
+extern "C" bool on_a_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_b_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_c_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_d_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_e_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_f_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_g_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_h_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_i_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_j_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_k_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_l_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_m_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_n_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_o_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_p_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_q_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_r_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_s_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_t_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_u_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_v_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_w_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_x_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_y_btn_clicked( GtkButton *button, AppWidgets *app) {}
+extern "C" bool on_z_btn_clicked( GtkButton *button, AppWidgets *app) {}
+
+
+
+//===================================================================
+//                  END KEYBOAD BUTTONS
+//===================================================================
+
 
 
 

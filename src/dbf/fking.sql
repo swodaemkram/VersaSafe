@@ -176,9 +176,10 @@ DROP TABLE IF EXISTS `perms`;
 CREATE TABLE `perms` (
   `user_level` int(5) NOT NULL DEFAULT '-1',
   `cr` tinyint(4) DEFAULT '0',
-  `add_users` tinyint(4) DEFAULT '0',
-  `edit_users` tinyint(4) DEFAULT '0',
-  `add_user` tinyint(4) DEFAULT '0'
+  `add_users` tinyint DEFAULT '0',
+  `edit_users` tinyint DEFAULT '0',
+  `deposits` tinyint DEFAULT '0',
+  `reports` tinyint DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='permissions';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -188,7 +189,7 @@ CREATE TABLE `perms` (
 
 LOCK TABLES `perms` WRITE;
 /*!40000 ALTER TABLE `perms` DISABLE KEYS */;
-INSERT INTO `perms` VALUES (99,1,1,1,1);
+INSERT INTO `perms` VALUES (99,1,1,1,1,1);
 /*!40000 ALTER TABLE `perms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -236,7 +237,7 @@ CREATE TABLE `user_levels` (
 
 LOCK TABLES `user_levels` WRITE;
 /*!40000 ALTER TABLE `user_levels` DISABLE KEYS */;
-INSERT INTO `user_levels` VALUES ('ADMIN',99),('MGR',50),('CASHIER',10);
+INSERT INTO `user_levels` VALUES ('ADMIN',99),('MGR',50),('CASHIER',10),('GOD',999);
 /*!40000 ALTER TABLE `user_levels` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -269,7 +270,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',99,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1);
+INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 

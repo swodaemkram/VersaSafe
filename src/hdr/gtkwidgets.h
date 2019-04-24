@@ -55,10 +55,41 @@ typedef struct
 	GtkWidget *user_window;
 	GtkWidget *settings_window;
 	GtkWidget *keyboard_window;
+	GtkWidget *numpad_window;
 
 	// keyboard
-	GtkWidget *keyboard_target_box;
+	GtkWidget *pad_target;
 	GtkWidget *keyboard_grid;
+	GtkWidget *numpad_grid;
+
+	GtkWidget *a_btn;
+    GtkWidget *b_btn;
+    GtkWidget *c_btn;
+    GtkWidget *d_btn;
+    GtkWidget *e_btn;
+    GtkWidget *f_btn;
+    GtkWidget *g_btn;
+    GtkWidget *h_btn;
+    GtkWidget *i_btn;
+    GtkWidget *j_btn;
+    GtkWidget *k_btn;
+    GtkWidget *l_btn;
+    GtkWidget *m_btn;
+    GtkWidget *n_btn;
+    GtkWidget *o_btn;
+    GtkWidget *p_btn;
+    GtkWidget *q_btn;
+    GtkWidget *r_btn;
+    GtkWidget *s_btn;
+    GtkWidget *t_btn;
+    GtkWidget *u_btn;
+    GtkWidget *v_btn;
+    GtkWidget *w_btn;
+    GtkWidget *x_btn;
+    GtkWidget *y_btn;
+    GtkWidget *z_btn;
+
+
 
 	// settings
 	GtkWidget *sound_level_btn;
