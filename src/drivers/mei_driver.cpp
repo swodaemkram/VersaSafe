@@ -13,6 +13,7 @@
  =======================================================================================================================
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +45,7 @@ string mei_getresponse(); //get a response from the MEI Validator
 unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void); //Poll MEI Device
 void mei_reset(void);
-
+string get_mei_driver_version_function(void);
 
 /*
 ===============================================================================================================================
@@ -54,8 +55,8 @@ This was a function I used to make a map of were everything goes
 class mei {
 
 public:
-	string get_mei_driver_version(void){
-
+	string get_mei_driver_version_function(void){
+		cout<<"get_mei_driver_version was called"<<endl;
 		return "ver 00.00.80";
 	}
 
@@ -330,7 +331,7 @@ void mei_reset(void)
 	pktlen = sizeof(pkt);
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write(pkt,pktlen);
-	mssleep(10000);
+
 
 }
 /*

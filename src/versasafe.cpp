@@ -501,6 +501,7 @@ lockstruc lockrec;
 // and can be indexed via OUTTER_LOCK,INNER_LOCK etc.
 string lockrecords[MAX_LOCKS]={"outterdoor","innerdoor","shutter","sidecar","base"};
 
+string get_mei_driver_version(void);//MARK
 
 //GRCDEF private declarations
 void KillConnections(void);
@@ -979,7 +980,8 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 extern void getUSBversion(void);
 	getUSBversion();	// populates gen_buffer
 	string d8cstr =Get_d8_driver();
-	string meistr = get_mei_driver_version();
+	string meidrvver = get_mei_driver_version();
+
 //	printf("\r\n");
 	printf("Source Language: C/C++ --export-dynamic\r\n");
 	printf("Using GTK/GDK+ libraries v.%d.%d.%d\r\n",gtk_major_version,gtk_minor_version,gtk_micro_version);
@@ -989,7 +991,7 @@ extern void getUSBversion(void);
 	printf("USB Drivers: %s\r\n",gen_buffer);
 	printf("I/O Drivers: Internal proprietary\r\n");
 	printf("D8C Driver: v %s\n",d8cstr.c_str());
-	printf("MEI Driver: v %s\b",meistr.c_str());
+	printf("MEI Driver: v %s\n",meidrvver.c_str());
 	printf("FTP: External\r\n");
 	printf("======================================================================\r\n");
 

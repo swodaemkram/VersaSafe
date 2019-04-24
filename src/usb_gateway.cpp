@@ -36,26 +36,30 @@ using namespace std;
 
 //MEI Validator driver
 #include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
-#include "drivers/mei_driver.h"
+//#include "drivers/mei_driver.h"
 //MEI Validator public functions
 mei * validator = NULL;
 int init_mei(void);
-void mei_reset(void);
-string mei_get_info(void);
-void mei_enable(void);
-void mei_dissable(void);
-void mei_accept(void);
-void mei_enable_bookmark(void);
-void mei_enable_in(int meienableincount);
-void mei_accept_in(string meibillstoaccept);
-void mei_dissable_time(int meidissabletimeinsec);
-int * mei_get_inventory(void);
-void mei_connect(string pname);
-string mei_status(void);
+void mei_reset_func(void);
 string get_mei_driver_version(void);
-string mei_getmodel(void);
-string mei_stack(void);
-string mei_verify_bill(void);
+//string mei_get_info(void);
+//void mei_enable(void);
+//void mei_dissable(void);
+//void mei_accept(void);
+//void mei_enable_bookmark(void);
+//void mei_enable_in(int meienableincount);
+//void mei_accept_in(string meibillstoaccept);
+//void mei_dissable_time(int meidissabletimeinsec);
+//int * mei_get_inventory(void);
+//void mei_connect(string pname);
+//string mei_status(void);
+//string mei_getmodel(void);
+//string mei_stack(void);
+//string mei_verify_bill(void);
+//string get_mei_driver_version_function(void);
+
+
+
 
 
 // VEND BOARD DRIVER (D8C)
@@ -569,11 +573,13 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 //Command to Initialize the MEI Validator
 //-------------------------------------------------------------------------------------------------
+//int init_mei(void)
 int init_mei(void)
 {
 	printf("\nInitializing MEI Validator ....\n");
 	mei * validator = new mei("/dev/ttyUSB0");
 	printf("\nMEI Validator Initialized!\n");
+
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
@@ -581,18 +587,19 @@ int init_mei(void)
 //---------------------------------------------------------------------------------------------------
 string get_mei_driver_version(void)
 {
-	return get_mei_driver_version();
+	return("ver 00.00.80");
+	//return get_mei_driver_version_function();
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
 //  Command to Reset MEI Validator can take up to 10 seconds
 //-----------------------------------------------------------------------------------------------------
-void mei_reset(void)
+void mei_reset_func(void)
 {
-	printf("USB Gateway\n");
-	//mei * validator = new mei("/dev/ttyUSB0");
+	printf("USB Gateway reset function called\n");
 	validator->mei_reset();
 	printf("Back from reset\n");
+
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------

@@ -54,10 +54,14 @@ extern void mei_enable_bookmark(void);
 extern void mei_enable_in(int meienableincount);
 extern void mei_accept_in(string meibillstoaccept);
 extern void mei_dissable_time(int meidissabletimeinsec);
-extern int * mei_get_inventory(void);
+//extern int * mei_get_inventory(void);
 extern bool mei_detected(void);
 extern string mei_status(void);
 extern string get_mei_driver_version(void);
 extern int mei_connect(void);
 extern string mei_getmodel(void);
 extern string mei_verify_bill(void);
+extern string get_mei_driver_version_function(void);
+
+
+
