@@ -481,7 +481,7 @@ int Init_D8C(void)
 printf("init_d8c\n");
 		int index=0;
 //        d8c * utd = new d8c(serialports[index]);
-			d8c * utd = new d8c("/dev/ttyUSB1");
+          d8c * utd = new d8c("/dev/ttyUSB1");
 //utd->Reset();
 	if (D8C_detected)
 		GetUTDInventory();	// we can safely get inventory after setup
@@ -573,7 +573,6 @@ int init_mei(void)
 {
 	printf("\nInitializing MEI Validator ....\n");
 	mei * validator = new mei("/dev/ttyUSB0");
-	cout<<&validator<<endl;
 	printf("\nMEI Validator Initialized!\n");
 }
 //---------------------------------------------------------------------------------------------------
@@ -591,11 +590,8 @@ string get_mei_driver_version(void)
 void mei_reset(void)
 {
 	printf("USB Gateway\n");
-	cout<<&validator<<endl;
-	mei * validator = new mei("/dev/ttyUSB0");
-	cout<<&validator<<endl;
+	//mei * validator = new mei("/dev/ttyUSB0");
 	validator->mei_reset();
-	cout<<&validator<<endl;
 	printf("Back from reset\n");
 }
 //-----------------------------------------------------------------------------------------------------

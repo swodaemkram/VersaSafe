@@ -41,9 +41,9 @@ using namespace std;
 using namespace LibSerial;
 
 string mei_getresponse(); //get a response from the MEI Validator
-unsigned int mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
+unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void); //Poll MEI Device
-
+void mei_reset(void);
 
 
 /*
@@ -95,20 +95,21 @@ Connect to MEI Validator
 private:
 char mei_buffer[200];
 int mei_status;
-SerialStream mei_my_serial;
+//SerialStream mei_my_serial;
 
 public:
 bool mei_detected;
 string mei_portname;
 bool detected=false;
+SerialStream mei_my_serial;
 
 
+public:
 		mei(string pname)
 		{
 			mei_detected=false;
 			mei_portname=pname;
 			mei_connect();
-			return;
 		}
 
 		~mei(void)
@@ -130,17 +131,19 @@ bool detected=false;
 Connect to MEI Validator Returns 1 on success 0 on fail
 ===========================================================================================================================
  */
+public:
 
-int mei_connect(void)
+	int mei_connect(void)
 		{
 
-printf("Connect\n");
+printf("Connecting.....\n");
 			// check the port before trying to use it
 			if (!mei_checkport(mei_portname) )
 			{
 				sprintf(mei_buffer,"Unable to open %s for MEI validator",mei_portname.c_str() );
     	        WriteSystemLog(mei_buffer);
-				return 0;
+    	        mei_detected = false;
+    	        return 0;
 			}
 	printf("Connect:open\n");
             mei_my_serial.Open(mei_portname);
@@ -149,6 +152,7 @@ printf("Connect\n");
             if (mei_my_serial.good() )
             {
 printf("Serial good\n");
+				printf("MEI Connected to %s Port\n",mei_portname.c_str());
 				sprintf(mei_buffer,"Connected to MEI validator ON %s",mei_portname.c_str() );
 				WriteSystemLog(mei_buffer);
                 mei_my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
@@ -157,7 +161,9 @@ printf("Serial good\n");
                 mei_my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
                 mei_my_serial.SetNumOfStopBits(1);
                 mei_setup();
+                printf("MEI Validator Connected....");
                 return (1);		// success
+
             }
 
 		sprintf(mei_buffer,"Failed to Connect to MEI validator ON %s",mei_portname.c_str() );
@@ -205,6 +211,7 @@ bool mei_check_connection(void)
 MEI Validator Setup processed after the Comm port connection is made
 ===============================================================================================================================
  */
+private:
 
 void mei_setup(void)
 {
@@ -214,6 +221,7 @@ void mei_setup(void)
 	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 	mei_detected = true;
+	mei_my_serial.flush();
 	return;
 }
 /*
@@ -315,13 +323,15 @@ public:
 
 void mei_reset(void)
 {
+
 	int pktlen = 0;
 	printf("MEI Reset Command Triggered\n");
 	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
 	pktlen = sizeof(pkt);
 	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write(pkt,pktlen);
-	return;
+	mssleep(10000);
+
 }
 /*
 =============================================================================================================================
