@@ -34,32 +34,24 @@ using namespace std;
 #include "hdr/usb_gateway.h"
 #include "hdr/fire.h"
 
+//================================================================================================
+//Beginning of MEI Declarations
+//================================================================================================
+
 //MEI Validator driver
 #include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
 #include "drivers/mei_driver.h"
+
 //MEI Validator public functions
 mei * validator = NULL;
 int init_mei(void);
 void mei_reset_func(void);
 string get_mei_driver(void);
-//string mei_get_info(void);
-//void mei_enable(void);
-//void mei_dissable(void);
-//void mei_accept(void);
-//void mei_enable_bookmark(void);
-//void mei_enable_in(int meienableincount);
-//void mei_accept_in(string meibillstoaccept);
-//void mei_dissable_time(int meidissabletimeinsec);
-//int * mei_get_inventory(void);
-//void mei_connect(string pname);
-//string mei_status(void);
-//string mei_getmodel(void);
-//string mei_stack(void);
-//string mei_verify_bill(void);
+string mei_verify_bill_func(void);
 
-
-
-
+//======================================================================================================
+//End of MEI Declarations
+//======================================================================================================
 
 
 // VEND BOARD DRIVER (D8C)
@@ -609,10 +601,10 @@ void mei_reset_func(void)
 //-----------------------------------------------------------------------------------------------------
 // Command to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
-//string mei_verify_bill(void)
-//{
-	// mei_verify_bill();
-//}
+string mei_verify_bill_func(void)
+{
+	 return validator->mei_verify_bill();
+}
 //------------------------------------------------------------------------------------------------------
 
 

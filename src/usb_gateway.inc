@@ -46,6 +46,8 @@ extern bool D8C_detected(void);
 // MEI specific functions
 extern int init_mei(void);
 extern void mei_reset_func(void);
+extern string mei_verify_bill_func(void);
+extern string get_mei_driver(void);
 //extern string mei_get_info(void);
 //extern void mei_enable(void);
 //extern void mei_dissable(void);
@@ -60,8 +62,7 @@ extern void mei_reset_func(void);
 //extern string mei_driver_version(void);
 extern int mei_connect(void);
 extern string mei_getmodel(void);
-//extern string mei_verify_bill(void);
-extern string get_mei_driver(void);
+
 
 
 

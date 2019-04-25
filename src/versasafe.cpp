@@ -517,8 +517,7 @@ void ShowConfig(void);
 void ShowMaint(void);
 void ShowUTDMaint(void);
 void ShowMEIMaint(void);
-string get_mei_driver_version(void);//MARK
-string get_mei_driver(void);//MARK
+string get_mei_driver(void);
 void ShowLogin(void);
 void ShowSplashWindow();
 void ShowStatus(string status);
@@ -2598,6 +2597,17 @@ extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	mei_reset_func();
 }
+
+extern "C" bool on_mei_monitor_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	mei_verify_bill_func();
+}
+
+
+
+
+
+
 
 //===================================================================
 //				END MEI MAINT WINDOW

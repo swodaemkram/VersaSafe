@@ -2,6 +2,8 @@
 <!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkTextBuffer"/>
+  <object class="GtkTextBuffer"/>
   <object class="GtkWindow" id="admin_window">
     <property name="can_focus">False</property>
     <property name="type">popup</property>
@@ -2012,6 +2014,9 @@
       <placeholder/>
     </child>
   </object>
+  <object class="GtkTextBuffer" id="mei_maint_monitor_display_buffer">
+    <property name="text" translatable="yes">Mark Is cool</property>
+  </object>
   <object class="GtkWindow" id="mei_maint_window">
     <property name="name">mei_maint_window</property>
     <property name="can_focus">False</property>
@@ -2054,7 +2059,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="mei_monitor_btn">
             <property name="label" translatable="yes">Monitor</property>
             <property name="name">mei_monitor_btn</property>
             <property name="visible">True</property>
@@ -2086,6 +2091,8 @@
             <property name="name">mei_maint_display</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="wrap_mode">word</property>
+            <property name="buffer">mei_maint_monitor_display_buffer</property>
           </object>
           <packing>
             <property name="left_attach">1</property>

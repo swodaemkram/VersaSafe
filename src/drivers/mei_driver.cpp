@@ -46,6 +46,9 @@ unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void); //Poll MEI Device
 void mei_reset(void);
 string get_mei_driver_version(void);
+string mei_verify_bill(void);
+
+
 SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
 //Version of the Driver
