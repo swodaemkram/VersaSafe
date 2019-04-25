@@ -102,8 +102,6 @@ bool mei_detected;
 string mei_portname;
 bool detected=false;
 
-
-
 public:
 		mei(string pname)
 		{
