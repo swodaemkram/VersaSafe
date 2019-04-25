@@ -41,7 +41,7 @@ using namespace std;
 mei * validator = NULL;
 int init_mei(void);
 void mei_reset_func(void);
-string get_mei_driver_version(void);
+string get_mei_driver(void);
 //string mei_get_info(void);
 //void mei_enable(void);
 //void mei_dissable(void);
@@ -56,7 +56,7 @@ string get_mei_driver_version(void);
 //string mei_getmodel(void);
 //string mei_stack(void);
 //string mei_verify_bill(void);
-//string get_mei_driver_version_function(void);
+
 
 
 
@@ -585,10 +585,10 @@ int init_mei(void)
 //---------------------------------------------------------------------------------------------------
 // Command to Get the MEI Driver Version
 //---------------------------------------------------------------------------------------------------
-string get_mei_driver_version(void)
+string get_mei_driver(void)
 {
-	return("ver 00.00.80");
-	//return get_mei_driver_version_function();
+	//return("ver 00.00.80");
+	return get_mei_driver_version();
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
@@ -596,10 +596,7 @@ string get_mei_driver_version(void)
 //-----------------------------------------------------------------------------------------------------
 void mei_reset_func(void)
 {
-	printf("USB Gateway reset function called\n");
 	validator->mei_reset();
-	printf("Back from reset\n");
-
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------

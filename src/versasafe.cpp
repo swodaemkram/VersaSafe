@@ -501,7 +501,7 @@ lockstruc lockrec;
 // and can be indexed via OUTTER_LOCK,INNER_LOCK etc.
 string lockrecords[MAX_LOCKS]={"outterdoor","innerdoor","shutter","sidecar","base"};
 
-string get_mei_driver_version(void);//MARK
+
 
 //GRCDEF private declarations
 void KillConnections(void);
@@ -517,6 +517,8 @@ void ShowConfig(void);
 void ShowMaint(void);
 void ShowUTDMaint(void);
 void ShowMEIMaint(void);
+string get_mei_driver_version(void);//MARK
+string get_mei_driver(void);//MARK
 void ShowLogin(void);
 void ShowSplashWindow();
 void ShowStatus(string status);
@@ -818,7 +820,7 @@ if ( strcmp(cfg.utd,"enabled")==0)
 
 /*
 =============================================================================================
-Initiate the MEI validator in the USB Gateway if Enabled
+Initiate the  validator in the USB Gateway if Enabled
 =============================================================================================
 */
 if ( strcmp(cfg.validator1,"enabled")==0)
@@ -980,7 +982,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 extern void getUSBversion(void);
 	getUSBversion();	// populates gen_buffer
 	string d8cstr =Get_d8_driver();
-	string meidrvver = get_mei_driver_version();
+	string meidrvver = get_mei_driver();
 
 //	printf("\r\n");
 	printf("Source Language: C/C++ --export-dynamic\r\n");

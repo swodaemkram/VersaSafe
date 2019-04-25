@@ -45,22 +45,20 @@ string mei_getresponse(); //get a response from the MEI Validator
 unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void); //Poll MEI Device
 void mei_reset(void);
-string get_mei_driver_version_function(void);
-SerialStream mei_my_serial;
+string get_mei_driver_version(void);
+SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
-/*
-===============================================================================================================================
-This was a function I used to make a map of were everything goes
-===============================================================================================================================
-*/
-class mei {
-
-public:
-	string get_mei_driver_version_function(void){
-		cout<<"get_mei_driver_version was called"<<endl;
+//Version of the Driver
+	string get_mei_driver_version(void){
 		return "ver 00.00.80";
 	}
 
+/*
+===============================================================================================================================
+Start of the MEI Class
+===============================================================================================================================
+*/
+class mei {
 /*
 ===============================================================================================================================
 Start of MEI crc Function
@@ -218,8 +216,8 @@ private:
 void mei_setup(void)
 {
 	string mei_rply ="";
-	//mei_rply = mei_getmodel();
-	mei_reset();
+	mei_rply = mei_getmodel();
+	//mei_reset();
 	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 	mei_detected = true;
@@ -325,18 +323,12 @@ public:
 void mei_reset(void)
 {
 
-
+	if(!mei_my_serial) mei_connect();
 	int pktlen = 0;
 	printf("MEI Reset Command Triggered\n");
-	//char pkt[9] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
-	//pktlen = sizeof(pkt);
-
 	char pkt[] = {0x02,0x08,0x60,0x7f,0x7f,0x7f,0x03,0x17};
-
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	//mei_my_serial.write(pkt,8);
-
-	mei_my_serial << pkt;
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial << pkt;//<----DO NOT DO THIS ANY MORE USE mei_my_serial.write instead
 
 }
 /*
@@ -351,17 +343,15 @@ public:
 string mei_getmodel(void)
 {
 	printf("MEI GetModel called\n");
-	int pktlen = 0;
-	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x04,0x03,0x6c};
 	string mei_rply1 = "";
-	pktlen = sizeof(pkt);
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write( pkt, pktlen ) ;
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
 	mei_rply1 = mei_getresponse();
-	char pktAk[16] = "\x02\x08\x01\x00\x00\x04\x03\x0d"; //ACK Packet to send
-	pktlen = sizeof(pktAk);
-	mei_my_serial.write( pktAk, pktlen ) ;
-//TODO need to remove all the non-printable characters before returning this and the rest of these responses
+	char pktAk[16] = {0x02,0x08,0x01,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
+	//mei_my_serial << pktAk;
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	//TODO need to remove all the non-printable characters before returning this and the rest of these responses
 	return(mei_rply1);
 }
 /*
