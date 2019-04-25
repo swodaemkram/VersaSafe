@@ -45,7 +45,7 @@ extern bool D8C_detected(void);
 
 // MEI specific functions
 extern int init_mei(void);
-extern void mei_reset(void);
+extern void mei_reset_func(void);
 extern string mei_get_info(void);
 extern void mei_enable(void);
 extern void mei_dissable(void);

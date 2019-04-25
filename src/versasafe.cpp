@@ -2594,7 +2594,7 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
 //===================================================================
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	mei_reset();
+	mei_reset_func();
 }
 
 //===================================================================

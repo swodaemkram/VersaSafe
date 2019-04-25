@@ -46,6 +46,7 @@ unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void); //Poll MEI Device
 void mei_reset(void);
 string get_mei_driver_version_function(void);
+SerialStream mei_my_serial;
 
 /*
 ===============================================================================================================================
@@ -102,7 +103,7 @@ public:
 bool mei_detected;
 string mei_portname;
 bool detected=false;
-SerialStream mei_my_serial;
+
 
 
 public:
@@ -217,12 +218,11 @@ private:
 void mei_setup(void)
 {
 	string mei_rply ="";
-	mei_rply = mei_getmodel();
-	//mei_reset();
+	//mei_rply = mei_getmodel();
+	mei_reset();
 	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 	mei_detected = true;
-	mei_my_serial.flush();
 	return;
 }
 /*
@@ -325,13 +325,18 @@ public:
 void mei_reset(void)
 {
 
+
 	int pktlen = 0;
 	printf("MEI Reset Command Triggered\n");
-	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
-	pktlen = sizeof(pkt);
-	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write(pkt,pktlen);
+	//char pkt[9] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
+	//pktlen = sizeof(pkt);
 
+	char pkt[] = {0x02,0x08,0x60,0x7f,0x7f,0x7f,0x03,0x17};
+
+	printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	//mei_my_serial.write(pkt,8);
+
+	mei_my_serial << pkt;
 
 }
 /*

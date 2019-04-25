@@ -36,7 +36,7 @@ using namespace std;
 
 //MEI Validator driver
 #include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
-//#include "drivers/mei_driver.h"
+#include "drivers/mei_driver.h"
 //MEI Validator public functions
 mei * validator = NULL;
 int init_mei(void);
