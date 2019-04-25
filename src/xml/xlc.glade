@@ -150,6 +150,7 @@ REMOVAL</property>
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="firstname_buffer"/>
   <object class="GtkWindow" id="keyboard_window">
     <property name="name">keyboard_window</property>
     <property name="can_focus">False</property>
@@ -416,11 +417,13 @@ REMOVAL</property>
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="kb_bksp_btn">
             <property name="label" translatable="yes">BKSP</property>
+            <property name="name">kb_bksp_btn</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_kb_bksp_btn_clicked" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">9</property>
@@ -519,11 +522,13 @@ REMOVAL</property>
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="kbrd_tab_btn">
             <property name="label" translatable="yes">TAB</property>
+            <property name="name">kbrd_tab_btn</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_kbrd_tab_btn_clicked" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -531,7 +536,18 @@ REMOVAL</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkButton" id="case_btn">
+            <property name="label" translatable="yes">CASE</property>
+            <property name="name">case_btn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_case_btn_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
         </child>
         <child>
           <placeholder/>
@@ -539,6 +555,7 @@ REMOVAL</property>
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="lastname_buffer"/>
   <object class="GtkWindow" id="lockconfig_window">
     <property name="name">lockconfig_window</property>
     <property name="width_request">1280</property>
@@ -2094,6 +2111,21 @@ REMOVAL</property>
       </object>
     </child>
   </object>
+  <object class="GtkWindow" id="perms_window">
+    <property name="name">perms_window</property>
+    <property name="can_focus">False</property>
+    <property name="type">popup</property>
+    <property name="resizable">False</property>
+    <property name="window_position">center</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="deletable">False</property>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
   <object class="GtkWindow" id="settings_window">
     <property name="name">settings_window</property>
     <property name="can_focus">False</property>
@@ -2235,9 +2267,8 @@ LEVEL</property>
             <signal name="clicked" handler="on_touch_here_btn_clicked" swapped="no"/>
           </object>
           <packing>
-            <property name="left_attach">2</property>
+            <property name="left_attach">1</property>
             <property name="top_attach">1</property>
-            <property name="height">2</property>
           </packing>
         </child>
         <child>
@@ -2251,8 +2282,8 @@ NOTE</property>
             <signal name="clicked" handler="on_verify_note_btn_clicked" swapped="no"/>
           </object>
           <packing>
-            <property name="left_attach">2</property>
-            <property name="top_attach">4</property>
+            <property name="left_attach">1</property>
+            <property name="top_attach">3</property>
           </packing>
         </child>
         <child>
@@ -2265,9 +2296,12 @@ NOTE</property>
             <signal name="clicked" handler="on_login_exit_btn_clicked" swapped="no"/>
           </object>
           <packing>
-            <property name="left_attach">0</property>
+            <property name="left_attach">1</property>
             <property name="top_attach">5</property>
           </packing>
+        </child>
+        <child>
+          <placeholder/>
         </child>
         <child>
           <placeholder/>
@@ -2530,6 +2564,7 @@ FRIDAY
             <property name="name">username_txt</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <signal name="changed" handler="on_username_txt_changed" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -2541,6 +2576,7 @@ FRIDAY
             <property name="name">firstname_txt</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <signal name="changed" handler="on_firstname_txt_changed" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -2552,6 +2588,7 @@ FRIDAY
             <property name="name">lastname_txt</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <signal name="changed" handler="on_lastname_txt_changed" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -2693,7 +2730,16 @@ FRIDAY
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkLabel" id="user_saved_lbl">
+            <property name="name">user_saved_lbl</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">(saved)</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">9</property>
+          </packing>
         </child>
         <child>
           <placeholder/>
@@ -2764,6 +2810,7 @@ FRIDAY
       </object>
     </child>
   </object>
+  <object class="GtkEntryBuffer" id="username_buffer"/>
   <object class="GtkWindow" id="utd_maint_window">
     <property name="name">utd_maint_window</property>
     <property name="can_focus">False</property>

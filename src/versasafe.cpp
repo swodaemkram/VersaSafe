@@ -307,6 +307,8 @@ struct
 } depts[25];
 int dept_count;
 
+bool user_info_saved=FALSE;
+
 void GetUserLevels(void);
 void GetDepartments(void);
 
@@ -430,12 +432,10 @@ extern string TestQuery(void);
 	2 = flow tech user	pw: flowtech
 	3 = god	pw: viper
 */
-#define NO_USER -1
-#define BAD_LOGIN 0
-#define NORMAL_USER 1
-#define FLOW_TECH 2
-#define GOD_MODE 3
-int user_code=NO_USER;		// default until login complete
+#define ADMIN 		99
+#define MGR 		50
+#define CASHIER		10
+#define GOD_MODE 	999
 
 
 OperationMode OpMode;
@@ -568,8 +568,14 @@ void ShowSplashWindow();
 void ShowStatus(string status);
 void ShowAdmin(void);
 void ShowUser(void);
+void ShowUserSavedStatus(void);
+
 void ShowSettings(void);
 
+void GetPermissionFields(void);
+
+void BackSpace(void);
+void TabButton(void);
 
 bool ValidateUser(char *user,char *pw);
 
@@ -588,6 +594,8 @@ int lang_count;
 
 void GetLangs(void);
 
+void SetKeyboardCase(void);
+bool kb_ucase=TRUE;
 
 void SetLockTimerLabels(char * lockname);
 void StoreLockTime(char * hourmin, bool islock, bool ishour);
@@ -995,7 +1003,6 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	ShowSplashWindow();
 //	ShowStatus("this is a test message");
 	REPARENT(app_ptr->numpad_window,app_ptr->pad_target,app_ptr->numpad_grid)
-
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -2310,6 +2317,7 @@ void ShowUser(void)
     gtk_label_set_label(GTK_LABEL(app_ptr->lastmodified_txt),current_user_rec.lastmodified.c_str() );
     gtk_label_set_label(GTK_LABEL(app_ptr->user_id_txt),current_user_rec.id.c_str() );
 
+	user_info_saved=TRUE;
 
 	GetUserLevels();
 	GetDepartments();
@@ -2317,11 +2325,28 @@ void ShowUser(void)
 	PopulateUserLangsCombo();
 	PopulateDeptCombo();
 	SetCurrentUserSelections();
-
+	ShowUserSavedStatus();
 
     gtk_widget_show(app_ptr->user_window);
 
 }
+
+
+void ShowUserSavedStatus(void)
+{
+	string msg;
+
+	if (user_info_saved)
+        msg = getMessage(372,FALSE); // "saved"
+	else
+       msg = getMessage(373,FALSE); // "not saved"
+
+	msg = "(" + msg + ")";
+
+	gtk_label_set_label( GTK_LABEL(app_ptr->user_saved_lbl),msg.c_str() );
+
+}
+
 
 extern "C" bool on_user_close_btn_clicked( GtkButton *button, AppWidgets *app)
 {
@@ -2380,6 +2405,9 @@ extern "C" bool on_user_save_btn_clicked( GtkButton *button, AppWidgets *app)
 
     g_free(item_text);
 
+    user_info_saved=TRUE;
+    ShowUserSavedStatus();
+
 	WriteUserRecord();
 }
 
@@ -2393,8 +2421,31 @@ extern "C" void on_userlevel_combo_changed( GtkComboBox *widget, gpointer user_d
     // get selected item text from GtkComboBoxText object
     item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->userlevel_combo));
 
+	user_info_saved=FALSE;
+	ShowUserSavedStatus();
     g_free(item_text);
 }
+
+
+extern "C" void on_username_txt_changed( GtkComboBox *widget, gpointer user_data)
+{
+    user_info_saved=FALSE;
+    ShowUserSavedStatus();
+}
+
+extern "C" void on_firstname_txt_changed( GtkComboBox *widget, gpointer user_data)
+{
+    user_info_saved=FALSE;
+    ShowUserSavedStatus();
+}
+
+extern "C" void on_lastname_txt_changed( GtkComboBox *widget, gpointer user_data)
+{
+    user_info_saved=FALSE;
+    ShowUserSavedStatus();
+}
+
+
 
 extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_data)
 {
@@ -2404,6 +2455,9 @@ extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_d
     // get selected item text from GtkComboBoxText object
     item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->user_dept_combo));
 
+    user_info_saved=FALSE;
+    ShowUserSavedStatus();
+
     g_free(item_text);
 }
 
@@ -2411,6 +2465,9 @@ extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_d
 //TODO
 extern "C" void on_user_active_switch_state_set( GtkComboBox *widget, gpointer user_data)
 {
+    user_info_saved=FALSE;
+    ShowUserSavedStatus();
+
 }
 
 
@@ -2429,7 +2486,8 @@ void PopulateUserLevelCombo(void)
 
     for (int n=0; n < user_level_count; n++)
     {
-        gtk_combo_box_text_append_text( app_ptr->userlevel_combo,user_levels[n].name.c_str()  );
+		if ( user_levels[n].level != GOD_MODE)		// dont show this one
+	        gtk_combo_box_text_append_text( app_ptr->userlevel_combo,user_levels[n].name.c_str()  );
     }
 
 }
@@ -2438,12 +2496,15 @@ void PopulateUserLangsCombo(void)
 {
     for (int n=0; n < lang_count; n++)
     {
-        gtk_combo_box_text_append_text( app_ptr->lang_combo,langs[n].code.c_str()  );
+		if (langs[n].active == '1')
+	        gtk_combo_box_text_append_text( app_ptr->lang_combo,langs[n].code.c_str()  );
     }
 }
 
 
 /*
+//TODO - SetCurrentUserSelections() - must finish
+
 	set current selection for..
 	active (user_active_switch)
 	lang (lang_combo)
@@ -2791,31 +2852,13 @@ extern "C" bool on_zero_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_tab_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	//user_entry
-	// pw_entry
-	entered_focus ^=1;	// toggle focus
+	TabButton();
 
-	if (entered_focus == 0)
-		gtk_widget_grab_focus(app_ptr->user_entry);
-	else
-		gtk_widget_grab_focus(app_ptr->pw_entry);
-    printf("TAB\n");
 }
 
 extern "C" bool on_bksp_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	if (entered_focus==0)
-	{
-		if (user_index==0) return 0;
-		entered_user[--user_index]=0;
-	}
-	else
-	{
-		if (pw_index==0) return 0;
-		entered_pw[--pw_index]=0;
-	}
-    SetEntryText();
-    printf("BKSP\n");
+	BackSpace();
 
 }
 
@@ -2871,7 +2914,50 @@ extern "C" bool on_login_back_btn_clicked( GtkButton *button, AppWidgets *app)
 //                  START KEYBOAD BUTTONS
 //===================================================================
 
-extern "C" bool on_a_btn_clicked( GtkButton *button, AppWidgets *app) {}
+
+void TabButton(void)
+{
+    //user_entry
+    // pw_entry
+    entered_focus ^=1;  // toggle focus
+
+    if (entered_focus == 0)
+        gtk_widget_grab_focus(app_ptr->user_entry);
+    else
+        gtk_widget_grab_focus(app_ptr->pw_entry);
+    printf("TAB\n");
+}
+
+void BackSpace(void)
+{
+    if (entered_focus==0)
+    {
+        if (user_index==0) return;
+        entered_user[--user_index]=0;
+    }
+    else
+    {
+        if (pw_index==0) return;
+        entered_pw[--pw_index]=0;
+    }
+    SetEntryText();
+    printf("BKSP\n");
+
+}
+
+
+
+
+extern "C" bool on_kb_bksp_btn_clicked( GtkButton *button, AppWidgets *app) { BackSpace();}
+extern "C" bool on_case_btn_clicked( GtkButton *button, AppWidgets *app) { kb_ucase ^=1; SetKeyboardCase();}
+extern "C" bool on_kbrd_tab_btn_clicked( GtkButton *button, AppWidgets *app) {TabButton();}
+
+/*
+    StoreInput('8');
+    SetEntryText();
+*/
+
+extern "C" bool on_a_btn_clicked( GtkButton *button, AppWidgets *app) { printf("A\n");}
 extern "C" bool on_b_btn_clicked( GtkButton *button, AppWidgets *app) {}
 extern "C" bool on_c_btn_clicked( GtkButton *button, AppWidgets *app) {}
 extern "C" bool on_d_btn_clicked( GtkButton *button, AppWidgets *app) {}
@@ -3694,6 +3780,35 @@ int timer2_expiration;  // in seconds, timer1 will count up to this value and th
 //=============================================================================================
 
 
+struct
+{
+	string fieldname;
+} permfields[10];
+int perm_field_count;
+
+/*
+	get a list of fieldnames from the perms table
+
+*/
+void GetPermissionFields(void)
+{
+
+	char query[] = "select `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA` = 'fking' AND `TABLE_NAME` = 'perms';";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);    // populate gen_buffer
+	perm_field_count=numrows;
+
+	for (int n=0; n < numrows; n++)
+	{
+		printf("FIELD: %s\n",localDBF.row[0]);
+		permfields[n].fieldname = string(localDBF.row[0]);
+		GetRow(&localDBF);
+	}
+
+}
+
+
+
 
 /*
 	this is our callback from gtk_nain()
@@ -3932,6 +4047,74 @@ void SetScreenSizes(void)
 
 
 
+void SetKeyboardCase(void)
+{
+	string msg;
+	int x;
+
+	if (kb_ucase)
+		x=400;		// UCASE chars
+	else
+		x=430;		// LCASE chars
+
+	    msg = getMessage(x++,FALSE); // "A"
+	    gtk_button_set_label( GTK_BUTTON(app_ptr->a_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "B"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->b_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "C"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->c_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "D"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->d_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "E"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->e_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "F"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->f_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "G"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->g_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "H"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->h_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "I"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->i_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "J"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->j_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "K"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->k_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "L"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->l_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "M"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->m_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "N"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->n_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "O"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->o_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "P"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->p_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "Q"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->q_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "R"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->r_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "S"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->s_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "T"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->t_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "U"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->u_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "V"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->v_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "W"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->w_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "X"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->x_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "Y"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->y_btn),msg.c_str() );
+        msg = getMessage(x++,FALSE); // "Z"
+        gtk_button_set_label( GTK_BUTTON(app_ptr->z_btn),msg.c_str() );
+
+
+
+}
+
+
 
 /*
 	set all the labels, buttons etc text from the language file
@@ -3941,13 +4124,15 @@ void SetLabels(void)
 {
 	string msg;
 
+	SetKeyboardCase();
+
 // status popup
     msg = getMessage(51,FALSE); // "OK"
     gtk_button_set_label( GTK_BUTTON(app_ptr->status_ok_btn),msg.c_str() );
 
 
 // splash window
-    msg = getMessage(87,FALSE); // "VEFIFY NOTE"
+    msg = getMessage(87,FALSE); // "VERIFY NOTE"
     gtk_button_set_label( GTK_BUTTON(app_ptr->verify_note_btn),msg.c_str() );
 
 

@@ -115,7 +115,7 @@ CREATE TABLE `langs` (
 
 LOCK TABLES `langs` WRITE;
 /*!40000 ALTER TABLE `langs` DISABLE KEYS */;
-INSERT INTO `langs` VALUES ('en','English',1,1),('es','Español',0,2),('fr','Français',0,3),('he','עברית',0,4);
+INSERT INTO `langs` VALUES ('en','English',1,1),('es','Español',1,2),('fr','Français',1,3),('he','עברית',0,4);
 /*!40000 ALTER TABLE `langs` ENABLE KEYS */;
 UNLOCK TABLES;
 
