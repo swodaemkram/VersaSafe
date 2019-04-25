@@ -50,7 +50,7 @@ SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
 //Version of the Driver
 	string get_mei_driver_version(void){
-		return "ver 00.00.80";
+		return "ver 00.00.91";
 	}
 
 /*
