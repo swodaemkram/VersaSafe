@@ -2059,7 +2059,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButton">
+          <object class="GtkButton" id="mei_monitor_btn">
             <property name="label" translatable="yes">Monitor</property>
             <property name="name">mei_monitor_btn</property>
             <property name="visible">True</property>
