@@ -276,6 +276,7 @@ string mei_getresponse(){
 			int w = 0;
 			while(w <= (char_pos -1) ){
 				printf("%02x",input_buffer[w]);
+
 				printf("|");
 				w++;
 			}
@@ -389,7 +390,10 @@ string mei_verify_bill()
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
     mei_poll_response = mei_poll();                    // Poll MEI for response to command
-	}
+
+
+
+}
 /*
 ==============================================================================================================================
 The End of the MEI Verify Bill Command
