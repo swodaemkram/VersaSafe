@@ -1520,8 +1520,8 @@ REMOVAL</property>
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="pad_target">
-            <property name="name">pad_target</property>
+          <object class="GtkBox" id="login_pad_target">
+            <property name="name">login_pad_target</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
@@ -2479,7 +2479,8 @@ FRIDAY
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="row_homogeneous">True</property>
+        <property name="row_spacing">4</property>
+        <property name="column_spacing">6</property>
         <property name="column_homogeneous">True</property>
         <child>
           <object class="GtkLabel" id="username_lbl">
@@ -2493,73 +2494,6 @@ FRIDAY
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="firstname_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">First Name</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="lastname_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Last Name</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="userlevel_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">User Level</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="dept_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Dept</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="useractive_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Active</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">6</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="user_id_lbl">
-            <property name="name">user_id_lbl</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">ID</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">7</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkEntry" id="username_txt">
             <property name="name">username_txt</property>
             <property name="visible">True</property>
@@ -2569,42 +2503,6 @@ FRIDAY
           <packing>
             <property name="left_attach">1</property>
             <property name="top_attach">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="firstname_txt">
-            <property name="name">firstname_txt</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <signal name="changed" handler="on_firstname_txt_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="lastname_txt">
-            <property name="name">lastname_txt</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <signal name="changed" handler="on_lastname_txt_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSwitch" id="user_active_switch">
-            <property name="name">user_active_switch</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <signal name="state-set" handler="on_user_active_switch_state_set" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">6</property>
           </packing>
         </child>
         <child>
@@ -2622,30 +2520,6 @@ FRIDAY
           </packing>
         </child>
         <child>
-          <object class="GtkComboBoxText" id="userlevel_combo">
-            <property name="name">userlevel_combo</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <signal name="changed" handler="on_userlevel_combo_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkComboBoxText" id="user_dept_combo">
-            <property name="name">user_dept_combo</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <signal name="changed" handler="on_user_dept_combo_changed" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">5</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkButton" id="user_cancel_btn">
             <property name="label" translatable="yes">CANCEL</property>
             <property name="name">user_cancel_btn</property>
@@ -2657,76 +2531,6 @@ FRIDAY
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">10</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="user_id_txt">
-            <property name="name">user_id_txt</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">7</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="lang_lbl">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Lang</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="lastmodified_lbl">
-            <property name="name">lastmodified_lbl</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Last Modified</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">8</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkComboBoxText" id="lang_combo">
-            <property name="name">lang_combo</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="lastmodified_txt">
-            <property name="name">lastmodified_txt</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">8</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="user_save_btn">
-            <property name="label" translatable="yes">SAVE</property>
-            <property name="name">user_save_btn</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <signal name="clicked" handler="on_user_save_btn_clicked" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">3</property>
-            <property name="top_attach">0</property>
           </packing>
         </child>
         <child>
@@ -2742,7 +2546,216 @@ FRIDAY
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkButton" id="user_save_btn">
+            <property name="label" translatable="yes">SAVE</property>
+            <property name="name">user_save_btn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_user_save_btn_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">10</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="firstname_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">First Name</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="firstname_txt">
+            <property name="name">firstname_txt</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <signal name="changed" handler="on_firstname_txt_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lang_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Lang</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="lang_combo">
+            <property name="name">lang_combo</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lastname_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Last Name</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="lastname_txt">
+            <property name="name">lastname_txt</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <signal name="changed" handler="on_lastname_txt_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="userlevel_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">User Level</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="userlevel_combo">
+            <property name="name">userlevel_combo</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <signal name="changed" handler="on_userlevel_combo_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="dept_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Dept</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxText" id="user_dept_combo">
+            <property name="name">user_dept_combo</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <signal name="changed" handler="on_user_dept_combo_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="useractive_lbl">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Active</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="user_active_switch">
+            <property name="name">user_active_switch</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <signal name="state-set" handler="on_user_active_switch_state_set" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="user_id_lbl">
+            <property name="name">user_id_lbl</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">ID</property>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="user_id_txt">
+            <property name="name">user_id_txt</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="top_attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lastmodified_lbl">
+            <property name="name">lastmodified_lbl</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Last Modified</property>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="lastmodified_txt">
+            <property name="name">lastmodified_txt</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="user_pad_target">
+            <property name="name">user_pad_target</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="top_attach">6</property>
+          </packing>
         </child>
         <child>
           <placeholder/>

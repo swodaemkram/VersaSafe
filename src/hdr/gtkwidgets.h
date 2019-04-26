@@ -58,10 +58,13 @@ typedef struct
 	GtkWidget *numpad_window;
 
 	// keyboard
-	GtkWidget *pad_target;
+	GtkWidget *login_pad_target;
 	GtkWidget *keyboard_grid;
 	GtkWidget *numpad_grid;
 
+	GtkWidget *kbrd_tab_btn;
+	GtkWidget *case_btn;
+	GtkWidget *kb_bksp_btn;
 	GtkWidget *a_btn;
     GtkWidget *b_btn;
     GtkWidget *c_btn;
@@ -97,6 +100,8 @@ typedef struct
 	GtkWidget *settings_close_btn;
 
 	// user
+	GtkWidget *user_pad_target;
+	GtkLabel *user_saved_lbl;
 	GtkWidget *user_close_btn;
 	GtkWidget *user_cancel_btn;
 	GtkWidget *user_save_btn;
@@ -119,6 +124,9 @@ typedef struct
 	GtkLabel *user_id_txt;
 	GtkLabel *lastmodified_txt;
 	GtkComboBoxText *lang_combo;
+	GtkEntryBuffer *username_buffer;
+	GtkEntryBuffer *firstname_buffer;
+	GtkEntryBuffer *lastname_buffer;
 
 
 
