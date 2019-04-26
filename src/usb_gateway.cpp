@@ -603,7 +603,8 @@ void mei_reset_func(void)
 //-----------------------------------------------------------------------------------------------------
 string mei_verify_bill_func(void)
 {
-	 return validator->mei_verify_bill();
+	 //return validator->mei_verify_bill();
+	validator->mei_verify_bill();
 }
 //------------------------------------------------------------------------------------------------------
 

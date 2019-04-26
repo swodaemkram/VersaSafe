@@ -408,33 +408,37 @@ string mei_poll(void){
 //TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop this is for DEBUG only
 	unsigned int thecrc;
 	string mei_rply1 = {0};
+	time_t starttime = time(0);
 
-	while(1){
-	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
-	thecrc = 0;
-	thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
-	pollpkt[6] = '\x03';                                //Stuff ETX
-	pollpkt[7] = thecrc;                                //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
-	mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
-	mei_rply1 = mei_getresponse();                   //Get Reply
-	char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
-	thecrc = 0;                                      // Zero Out CRC
-	thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
-	pollpktAk[6] = '\x03';                                 //Stuff ETX
-	pollpktAk[7] = thecrc;                                 //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
-	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
-	mei_rply1 = "";
-	mei_rply1 = mei_getresponse();
+		while(1){
 
-	if (mei_rply1[5] =='\x08'){
-		printf("\nI Verified a $1.00 Bill!\n\n");
-		exit(0);
+		time_t currenttime = time(0);
+		int difftime = currenttime - starttime;
+		//cout<<difftime<<endl;
+		//if (difftime >= 30) return("time out");
+		char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
+		thecrc = 0;
+		thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
+		pollpkt[6] = '\x03';                                //Stuff ETX
+		pollpkt[7] = thecrc;                                //Stuff CRC
+		//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
+		mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
+		mei_rply1 = mei_getresponse();                   //Get Reply
+		char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
+		thecrc = 0;                                      // Zero Out CRC
+		thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
+		pollpktAk[6] = '\x03';                                 //Stuff ETX
+		pollpktAk[7] = thecrc;                                 //Stuff CRC
+		//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+		mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
+		mei_rply1 = "";
+		mei_rply1 = mei_getresponse();
+
+		if (mei_rply1[5] =='\x08'){
+			printf("\nI Verified a $1.00 Bill!\n\n");
+		return("Valid $1.00 Bill");
 
 	}
-
-
 
 	}
 }
