@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkTextBuffer"/>
+  <object class="GtkTextBuffer"/>
   <object class="GtkWindow" id="admin_window">
     <property name="can_focus">False</property>
     <property name="type">popup</property>
@@ -10,9 +12,6 @@
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
-    <child>
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -149,6 +148,9 @@ REMOVAL</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkEntryBuffer" id="firstname_buffer"/>
   <object class="GtkWindow" id="keyboard_window">
@@ -158,11 +160,15 @@ REMOVAL</property>
     <property name="resizable">False</property>
     <property name="deletable">False</property>
     <child>
+<<<<<<< HEAD
+      <object class="GtkGrid">
+=======
       <placeholder/>
     </child>
     <child>
       <object class="GtkGrid" id="keyboard_grid">
         <property name="name">keyboard_grid</property>
+>>>>>>> refs/remotes/origin/gary2
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="row_spacing">4</property>
@@ -554,6 +560,9 @@ REMOVAL</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkEntryBuffer" id="lastname_buffer"/>
   <object class="GtkWindow" id="lockconfig_window">
@@ -575,9 +584,6 @@ REMOVAL</property>
     <property name="deletable">False</property>
     <property name="gravity">center</property>
     <signal name="delete-event" handler="on_lockconfig_close_btn_clicked" swapped="no"/>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="name">lockselector</property>
@@ -590,7 +596,7 @@ REMOVAL</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label" translatable="yes">Time Lock</property>
-            <property name="xalign">0.79000002145767212</property>
+            <property name="xalign">0.7900000214576721</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -1303,6 +1309,9 @@ REMOVAL</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkWindow" id="login_window">
     <property name="name">login_window</property>
@@ -1314,9 +1323,6 @@ REMOVAL</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
     <signal name="destroy" handler="on_login_window_destroy" swapped="no"/>
-    <child>
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -1579,22 +1585,10 @@ REMOVAL</property>
         <child>
           <placeholder/>
         </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
   <object class="GtkWindow" id="main_menu">
@@ -1608,9 +1602,6 @@ REMOVAL</property>
     <property name="window_position">center-always</property>
     <property name="deletable">False</property>
     <property name="gravity">center</property>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="height_request">300</property>
@@ -1722,6 +1713,9 @@ REMOVAL</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkWindow" id="maint_window">
     <property name="name">maint_window</property>
@@ -1734,9 +1728,6 @@ REMOVAL</property>
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -1834,6 +1825,12 @@ REMOVAL</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
+  </object>
+  <object class="GtkTextBuffer" id="mei_maint_monitor_display_buffer">
+    <property name="text" translatable="yes">Mark Is cool</property>
   </object>
   <object class="GtkWindow" id="mei_maint_window">
     <property name="name">mei_maint_window</property>
@@ -1843,15 +1840,11 @@ REMOVAL</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
     <property name="deletable">False</property>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="row_spacing">5</property>
-        <property name="column_spacing">4</property>
+        <property name="row_spacing">1</property>
         <property name="row_homogeneous">True</property>
         <property name="column_homogeneous">True</property>
         <child>
@@ -1864,32 +1857,6 @@ REMOVAL</property>
           <packing>
             <property name="left_attach">1</property>
             <property name="top_attach">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="mei_reset_btn">
-            <property name="label" translatable="yes">RESET</property>
-            <property name="name">mei_reset_btn</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <signal name="clicked" handler="on_mei_reset_btn_clicked" swapped="no"/>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton">
-            <property name="label" translatable="yes">button</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-          </object>
-          <packing>
-            <property name="left_attach">1</property>
-            <property name="top_attach">1</property>
           </packing>
         </child>
         <child>
@@ -1907,7 +1874,45 @@ REMOVAL</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkButton" id="mei_monitor_btn">
+            <property name="label" translatable="yes">Monitor</property>
+            <property name="name">mei_monitor_btn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_mei_monitor_btn_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="mei_reset_btn">
+            <property name="label" translatable="yes">RESET</property>
+            <property name="name">mei_reset_btn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_mei_reset_btn_clicked" swapped="no"/>
+          </object>
+          <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkTextView" id="mei_maint_display">
+            <property name="name">mei_maint_display</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="wrap_mode">word</property>
+            <property name="buffer">mei_maint_monitor_display_buffer</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="top_attach">1</property>
+          </packing>
         </child>
         <child>
           <placeholder/>
@@ -1922,6 +1927,9 @@ REMOVAL</property>
           <placeholder/>
         </child>
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
   <object class="GtkWindow" id="numpad_window">
@@ -2247,9 +2255,6 @@ LEVEL</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
     <child>
-      <placeholder/>
-    </child>
-    <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -2342,10 +2347,16 @@ NOTE</property>
         <child>
           <placeholder/>
         </child>
+<<<<<<< HEAD
+=======
         <child>
           <placeholder/>
         </child>
+>>>>>>> refs/remotes/origin/gary2
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
   <object class="GtkWindow" id="status_window">
@@ -2360,9 +2371,6 @@ NOTE</property>
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
-    <child>
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -2456,6 +2464,9 @@ NOTE</property>
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkTextBuffer" id="textbuffer1">
     <property name="text" translatable="yes">AUDITLOK XL
@@ -2472,9 +2483,6 @@ FRIDAY
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
-    <child>
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -2809,6 +2817,9 @@ FRIDAY
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
   </object>
   <object class="GtkEntryBuffer" id="username_buffer"/>
   <object class="GtkWindow" id="utd_maint_window">
@@ -2821,9 +2832,6 @@ FRIDAY
     <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="deletable">False</property>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
     <child>
       <object class="GtkGrid">
         <property name="visible">True</property>
@@ -3058,6 +3066,9 @@ ADDR</property>
           <placeholder/>
         </child>
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
 </interface>

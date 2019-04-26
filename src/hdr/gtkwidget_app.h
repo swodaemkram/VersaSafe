@@ -269,6 +269,7 @@
 	// mei maint window
 	appGET(mei_reset_btn);
 	appGET(mei_close_btn);
+	appGET(mei_monitor_btn);
 	appGET(mei_maint_title);
 	// buttons
 /*

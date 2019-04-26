@@ -225,6 +225,7 @@ typedef struct
 // mei maint window
 	GtkWidget *mei_reset_btn;
 	GtkWidget *mei_close_btn;
+	GtkWidget *mei_monitor_btn;
 	GtkWidget *mei_maint_title;
 
 	GtkTextBuffer *textbuffer1;

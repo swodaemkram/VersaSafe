@@ -13,6 +13,7 @@
  =======================================================================================================================
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,24 +42,26 @@ using namespace std;
 using namespace LibSerial;
 
 string mei_getresponse(); //get a response from the MEI Validator
-unsigned mei_do_crc(char buff[], int buffer_len); //Preform cec on packet
+unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
+string mei_poll(void); //Poll MEI Device
+void mei_reset(void);
+string get_mei_driver_version(void);
+string mei_verify_bill(void);
 
 
+SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
+//Version of the Driver
+	string get_mei_driver_version(void){
+		return "ver 00.00.91";
+	}
 
 /*
 ===============================================================================================================================
-This was a function I used to make a map of were everything goes
+Start of the MEI Class
 ===============================================================================================================================
 */
 class mei {
-
-public:
-	string get_mei_driver_version(void){
-
-		return "ver 00.00.80";
-	}
-
 /*
 ===============================================================================================================================
 Start of MEI crc Function
@@ -67,7 +70,7 @@ Start of MEI crc Function
 
 private:
 
-unsigned  mei_do_crc(char buff[], int buffer_len){
+unsigned int mei_do_crc(char buff[], int buffer_len){
 			 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]); //DEBUG CODE
 			 //printf("%d\n",buffer_len); //DEBUG CODE
 			 int i=1;
@@ -95,13 +98,14 @@ Connect to MEI Validator
 private:
 char mei_buffer[200];
 int mei_status;
-SerialStream mei_my_serial;
+//SerialStream mei_my_serial;
 
 public:
 bool mei_detected;
 string mei_portname;
 bool detected=false;
 
+public:
 		mei(string pname)
 		{
 			mei_detected=false;
@@ -111,7 +115,8 @@ bool detected=false;
 
 		~mei(void)
 		{
-            if (mei_my_serial)
+            printf("\nCloseing Comm port!\n");
+			if (mei_my_serial)
             mei_my_serial.Close();
 			mei_detected=false;
 		}
@@ -127,18 +132,19 @@ bool detected=false;
 Connect to MEI Validator Returns 1 on success 0 on fail
 ===========================================================================================================================
  */
+public:
 
-int mei_connect(void)
+	int mei_connect(void)
 		{
 
-printf("Connect\n");
+printf("Connecting.....\n");
 			// check the port before trying to use it
 			if (!mei_checkport(mei_portname) )
 			{
 				sprintf(mei_buffer,"Unable to open %s for MEI validator",mei_portname.c_str() );
     	        WriteSystemLog(mei_buffer);
-				mei_detected=true;
-				return 0;
+    	        mei_detected = false;
+    	        return 0;
 			}
 	printf("Connect:open\n");
             mei_my_serial.Open(mei_portname);
@@ -147,6 +153,7 @@ printf("Connect\n");
             if (mei_my_serial.good() )
             {
 printf("Serial good\n");
+				printf("MEI Connected to %s Port\n",mei_portname.c_str());
 				sprintf(mei_buffer,"Connected to MEI validator ON %s",mei_portname.c_str() );
 				WriteSystemLog(mei_buffer);
                 mei_my_serial.SetBaudRate(SerialStreamBuf::BAUD_9600);
@@ -155,7 +162,9 @@ printf("Serial good\n");
                 mei_my_serial.SetParity(SerialStreamBuf::PARITY_EVEN);
                 mei_my_serial.SetNumOfStopBits(1);
                 mei_setup();
+                printf("MEI Validator Connected....");
                 return (1);		// success
+
             }
 
 		sprintf(mei_buffer,"Failed to Connect to MEI validator ON %s",mei_portname.c_str() );
@@ -174,6 +183,7 @@ printf("Serial good\n");
 					return false;
 
 		}
+
 /*
 ===============================================================================================================================
  Connection to MEI Validator Completed
@@ -202,16 +212,17 @@ bool mei_check_connection(void)
 MEI Validator Setup processed after the Comm port connection is made
 ===============================================================================================================================
  */
+private:
 
 void mei_setup(void)
 {
 	string mei_rply ="";
-	//mei_rply = mei_getmodel();
+	mei_rply = mei_getmodel();
 	//mei_reset();
-	mei_rply = mei_verify_bill();
+	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
-
-
+	mei_detected = true;
+	return;
 }
 /*
 ================================================================================================================================
@@ -265,6 +276,7 @@ string mei_getresponse(){
 			int w = 0;
 			while(w <= (char_pos -1) ){
 				printf("%02x",input_buffer[w]);
+
 				printf("|");
 				w++;
 			}
@@ -296,7 +308,7 @@ private:
 
 void mei_sendstring(string str)
 {
-		str = "";
+
 		mei_my_serial << str;
 }
 
@@ -312,12 +324,13 @@ public:
 
 void mei_reset(void)
 {
+
+	if(!mei_my_serial) mei_connect();
 	int pktlen = 0;
 	printf("MEI Reset Command Triggered\n");
-	char pkt[16] = "\x02\x08\x60\x7f\x7f\x7f\x03\x17";
-	pktlen = sizeof(pkt);
+	char pkt[] = {0x02,0x08,0x60,0x7f,0x7f,0x7f,0x03,0x17};
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write( pkt, pktlen ) ;
+	mei_my_serial << pkt;//<----DO NOT DO THIS ANY MORE USE mei_my_serial.write instead
 
 }
 /*
@@ -332,22 +345,22 @@ public:
 string mei_getmodel(void)
 {
 	printf("MEI GetModel called\n");
-	int pktlen = 0;
-	char pkt[16] = "\x02\x08\x60\x00\x00\x04\x03\x6c";
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x04,0x03,0x6c};
 	string mei_rply1 = "";
-	pktlen = sizeof(pkt);
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write( pkt, pktlen ) ;
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
 	mei_rply1 = mei_getresponse();
-	char pktAk[16] = "\x02\x08\x01\x00\x00\x04\x03\x0d"; //ACK Packet to send
-	pktlen = sizeof(pktAk);
-	mei_my_serial.write( pktAk, pktlen ) ;
-//TODO need to remove all the non-printable characters before returning this and the rest of these responses
+	char pktAk[16] = {0x02,0x08,0x01,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
+	//mei_my_serial << pktAk;
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	//TODO need to remove all the non-printable characters before returning this and the rest of these responses
 	return(mei_rply1);
 }
 /*
 ==============================================================================================================================
 The End of the MEI Get Model Command
+==============================================================================================================================
+MEI Verify Bill Command
 ==============================================================================================================================
  */
 
@@ -357,7 +370,7 @@ string mei_verify_bill()
 {
 
 	printf("MEI Verify Bill called\n");
-	//int pktlen = 0;
+	string mei_poll_response = {0};
 	unsigned int thecrc;
 	string mei_rply1 = {0};
 	char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
@@ -376,33 +389,64 @@ string mei_verify_bill()
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
 	mei_rply1 = "";
 	mei_rply1 = mei_getresponse();
+    mei_poll_response = mei_poll();                    // Poll MEI for response to command
 
-//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop
-	while(1){
-	char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
-	thecrc = 0;
-	thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
-	pollpkt[6] = '\x03';                                //Stuff ETX
-	pollpkt[7] = thecrc;                                //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
-	mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
-	mei_rply1 = mei_getresponse();                   //Get Reply
-	char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
-	thecrc = 0;                                      // Zero Out CRC
-	thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
-	pollpktAk[6] = '\x03';                                 //Stuff ETX
-	pollpktAk[7] = thecrc;                                 //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
-	mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
-	mei_rply1 = "";
-	mei_rply1 = mei_getresponse();
-	}
+
 
 }
+/*
+==============================================================================================================================
+The End of the MEI Verify Bill Command
+==============================================================================================================================
+ MEI Poll Command
+==============================================================================================================================
+ */
+private:
 
+string mei_poll(void){
 
+//TODO MEI POLL UNTIL BILL IS VERIFIED of course I need some way to escape this while loop this is for DEBUG only
+	unsigned int thecrc;
+	string mei_rply1 = {0};
+	time_t starttime = time(0);
 
+		while(1){
 
+		time_t currenttime = time(0);
+		int difftime = currenttime - starttime;
+		//cout<<difftime<<endl;
+		//if (difftime >= 30) return("time out");
+		char pollpkt[16] = "\x02\x08\x10\x1f\x14\x00\x00" ;   //Poll packet
+		thecrc = 0;
+		thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
+		pollpkt[6] = '\x03';                                //Stuff ETX
+		pollpkt[7] = thecrc;                                //Stuff CRC
+		//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
+		mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
+		mei_rply1 = mei_getresponse();                   //Get Reply
+		char pollpktAk[16] ="\x02\x08\x11\x1f\x14\x00\x00"; //ACK Packet to send
+		thecrc = 0;                                      // Zero Out CRC
+		thecrc =  mei_do_crc(pollpktAk,sizeof(pollpktAk));         //Do CRC on new packet
+		pollpktAk[6] = '\x03';                                 //Stuff ETX
+		pollpktAk[7] = thecrc;                                 //Stuff CRC
+		//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+		mei_my_serial.write(pollpktAk, sizeof(pollpktAk)) ;
+		mei_rply1 = "";
+		mei_rply1 = mei_getresponse();
+
+		if (mei_rply1[5] =='\x08'){
+			printf("\nI Verified a $1.00 Bill!\n\n");
+		return("Valid $1.00 Bill");
+
+	}
+
+	}
+}
+/*
+==============================================================================================================================
+The End of the MEI Poll Command
+==============================================================================================================================
+ */
 };
 /*
 ===============================================================================================================================
