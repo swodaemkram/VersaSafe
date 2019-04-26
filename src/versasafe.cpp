@@ -585,6 +585,66 @@ bool ValidateUser(char *user,char *pw);
 void Get_UTD_Data(void);
 
 
+//GtkWidget * active_window;	// holds a pointer to the active window
+
+
+// used for ABC/123 button with keypad/keyboard
+#define KEYBOARD 1
+#define KEYPAD   0
+int abc123=KEYBOARD;
+
+struct window
+{
+	GtkWidget * window=NULL;
+	GtkWidget * key_target=NULL;// target widget for keyboard or keypad (set to NULL if no key/num pad onscreen)
+	GtkWidget * output_target;	// target widget for output from keyboard or keypad (changed via TAB key)
+	bool keyboard_avail=FALSE;	// says if keyboard is available or not (determines visibility of ABC/123 button)
+	bool ucase=FALSE;			// determines if CASE button is visible or not
+};
+
+/*
+    widget names for key/num pad usage
+    ----------------------------------------------------------
+
+    WIDGET                  HOME WINDOW
+    ========================================
+    keyboard_grid           keyboard_window
+    numpad_grid             numpad_window
+*/
+
+
+void InstallKB(void);
+void ReHomeKB(void);
+void SetKeyboardCase(void);
+void ShowCaseBtn(void);
+
+
+
+window current_window;
+
+struct
+{
+GtkWidget * attached;		// widget kb is attached to currently
+GtkWidget * active;			// which kb is active, keyboard or numpad
+GtkWidget * target;			// output target
+bool allow_alpha;			// allow keyboard or is it numpad only
+bool allow_case;			// allow U/L case or not
+bool is_upper=FALSE;		// current status of keyboard TRUE = uppercase, FALSE = lower case
+} kb;
+
+// the following sets the output target for chars from the keyboard or keypad
+// used to get vars in the window struct
+enum display
+{
+    userlogin,
+    username,
+    userfname,
+    userlname,
+};
+
+
+
+
 struct
 {
     string code;
@@ -596,8 +656,7 @@ int lang_count;
 
 void GetLangs(void);
 
-void SetKeyboardCase(void);
-bool kb_ucase=TRUE;
+
 
 void SetLockTimerLabels(char * lockname);
 void StoreLockTime(char * hourmin, bool islock, bool ishour);
@@ -1004,7 +1063,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 //    ShowLogin();
 	ShowSplashWindow();
 //	ShowStatus("this is a test message");
-	REPARENT(app_ptr->numpad_window,app_ptr->pad_target,app_ptr->numpad_grid)
+	REPARENT(app_ptr->numpad_window,app_ptr->login_pad_target,app_ptr->numpad_grid)
 
 	// enter the GTK event loop
 	STARTUP_COMPLETE=TRUE;
@@ -2323,6 +2382,16 @@ void ShowUser(void)
 
 	user_info_saved=TRUE;
 
+	// setup window structures
+
+	kb.attached = app_ptr->user_pad_target;
+	kb.active = app_ptr->numpad_grid;
+	kb.target= app_ptr->username_txt;
+	kb.allow_alpha=TRUE;	// do not allow alpha keyboard
+	kb.allow_case=TRUE;
+	kb.is_upper=TRUE;	// allow upper/lower case
+	abc123=KEYPAD;
+
 	GetUserLevels();
 	GetDepartments();
 	PopulateUserLevelCombo();
@@ -2714,37 +2783,72 @@ void ShowLogin(void)
 	entered_focus=0;
 	bzero(entered_user,INLEN);
 	bzero(entered_pw,INLEN);
-    gtk_widget_show(app_ptr->login_window);
+
+	// document current window properties
+	kb.attached= app_ptr->login_pad_target;
+	kb.active=app_ptr->numpad_grid;
+	kb.target=app_ptr->user_entry;
+	kb.allow_alpha=FALSE;
+	kb.allow_case=FALSE;
+    abc123=KEYPAD;
+	kb.is_upper=FALSE;
+	ShowCaseBtn();		// show/hide CASE btn
+	InstallKB();		// reparent the kb widget into the current window
+
+
+	gtk_widget_show(app_ptr->login_window);
+
 }
+
+
+
+
+/*
+	send the user input data from the soft keyboard or keypad to the appropriate widget
+
+*/
 
 void SetEntryText(void)
 {
-	if (entered_focus==0)
-		gtk_entry_set_text(GTK_ENTRY(app_ptr->user_entry),entered_user);
-	else
+	if (kb.target == app_ptr->user_entry)
 	{
-		// now mask the pw
-		int pwlen = strlen(entered_pw);
+	    if (entered_focus==0)
+			gtk_entry_set_text(GTK_ENTRY(app_ptr->user_entry),entered_user);
+		else
+		{
+            // now mask the pw
+            int pwlen = strlen(entered_pw);
+            for (int n=0; n < pwlen; n++)
+                display_pw[n] = '*';
+   	        gtk_entry_set_text(GTK_ENTRY(app_ptr->pw_entry),display_pw);
+		}
+	}//endif
 
-		for (int n=0; n < pwlen; n++)
-			display_pw[n] = '*';
- 		gtk_entry_set_text(GTK_ENTRY(app_ptr->pw_entry),display_pw);
-	}
+
 }
 
 void StoreInput(char x)
 {
-	if (entered_focus==0)
-		entered_user[user_index++]=x;
-	else
-		entered_pw[pw_index++]=x;
+//TODO must fix
+int output_target;
+	switch(output_target)
+	{
+	case userlogin:
+		if (entered_focus==0)
+			entered_user[user_index++]=x;
+		else
+			entered_pw[pw_index++]=x;
+		break;
+	case username:
+    case userfname:
+    case userlname:
+    	break;
+	}
 }
 
-// 0 = 123
-// 1 = abc
-int abc123=0;
 
-//TODO - ABC button
+
+
 extern "C" bool on_abc_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	string msg;
@@ -2756,26 +2860,28 @@ extern "C" bool on_abc_btn_clicked( GtkButton *button, AppWidgets *app)
 	if (abc123==0)
 	{
 		// NUMPAD SHOWS
+		kb.active=app_ptr->numpad_grid;
 	    msg = getMessage(370,FALSE); // "ABC"
     	gtk_button_set_label( GTK_BUTTON(app_ptr->abc_btn),msg.c_str() );
 
-		// put the keypad back home->keypad_window
-        REPARENT(app_ptr->pad_target,app_ptr->keyboard_window,app_ptr->keyboard_grid)
+		// put the keyboard back home->keyboard_window
+        REPARENT(app_ptr->login_pad_target,app_ptr->keyboard_window,app_ptr->keyboard_grid)
 
 		// put the numpad on the login screen
-		REPARENT(app_ptr->numpad_window,app_ptr->pad_target,app_ptr->numpad_grid)
+		REPARENT(app_ptr->numpad_window,app_ptr->login_pad_target,app_ptr->numpad_grid)
 	}
 	else
 	{
 		// KEYBOARD SHOWS
+		kb.active=app_ptr->keyboard_grid;
         msg = getMessage(371,FALSE); // "123"
         gtk_button_set_label( GTK_BUTTON(app_ptr->abc_btn),msg.c_str() );
 
 		// put the numpad back homw->numpad_window
-        REPARENT(app_ptr->pad_target,app_ptr->numpad_window,app_ptr->numpad_grid)
+        REPARENT(app_ptr->login_pad_target,app_ptr->numpad_window,app_ptr->numpad_grid)
 
 		// put the keypad on the login screen
-        REPARENT(app_ptr->keyboard_window,app_ptr->pad_target,app_ptr->keyboard_grid)
+        REPARENT(app_ptr->keyboard_window,app_ptr->login_pad_target,app_ptr->keyboard_grid)
 	}
 
 
@@ -2895,13 +3001,17 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 	bool ret= ValidateUser(entered_user,entered_pw);
 
 	if (ret)
+	{
+	    ReHomeKB();
 		ShowMainMenu();
+	}
 //TODO - show login error popup here??
 }
 
 
 extern "C" bool on_login_back_btn_clicked( GtkButton *button, AppWidgets *app)
 {
+    ReHomeKB();
     gtk_widget_hide(app_ptr->login_window);
     ShowSplashWindow();
 }
@@ -2921,16 +3031,29 @@ extern "C" bool on_login_back_btn_clicked( GtkButton *button, AppWidgets *app)
 
 void TabButton(void)
 {
-    //user_entry
-    // pw_entry
-    entered_focus ^=1;  // toggle focus
 
-    if (entered_focus == 0)
-        gtk_widget_grab_focus(app_ptr->user_entry);
-    else
-        gtk_widget_grab_focus(app_ptr->pw_entry);
+	// LOGIN
+	if (kb.attached == app_ptr->login_pad_target)
+	{
+        //user_entry
+        // pw_entry
+        entered_focus ^=1;  // toggle focus
+
+        if (entered_focus == 0)
+            gtk_widget_grab_focus(app_ptr->user_entry);
+        else
+            gtk_widget_grab_focus(app_ptr->pw_entry);
+	}
+
+	// ADD/EDIT USER
+	if (kb.attached == app_ptr->user_pad_target)
+	{
+	}
+
     printf("TAB\n");
 }
+
+
 
 void BackSpace(void)
 {
@@ -2953,7 +3076,7 @@ void BackSpace(void)
 
 
 extern "C" bool on_kb_bksp_btn_clicked( GtkButton *button, AppWidgets *app) { BackSpace();}
-extern "C" bool on_case_btn_clicked( GtkButton *button, AppWidgets *app) { kb_ucase ^=1; SetKeyboardCase();}
+extern "C" bool on_case_btn_clicked( GtkButton *button, AppWidgets *app) { kb.is_upper ^=1; SetKeyboardCase();}
 extern "C" bool on_kbrd_tab_btn_clicked( GtkButton *button, AppWidgets *app) {TabButton();}
 
 /*
@@ -4064,13 +4187,34 @@ void SetScreenSizes(void)
 }
 
 
+/*
+	show the CASE btn on the keyboard, or not depending upon value of showit
+
+*/
+
+void ShowCaseBtn(void)
+{
+
+	if (kb.allow_case)
+	{
+	    gtk_widget_show(app_ptr->case_btn);
+		kb.is_upper=TRUE;
+		SetKeyboardCase();
+	}
+	else
+	    gtk_widget_hide(app_ptr->case_btn);
+
+
+}
+
+
 
 void SetKeyboardCase(void)
 {
 	string msg;
 	int x;
 
-	if (kb_ucase)
+	if (kb.is_upper)
 		x=400;		// UCASE chars
 	else
 		x=430;		// LCASE chars
@@ -5100,6 +5244,58 @@ void GetLangs(void)
 		printf("Lang: %s  Code:%s  Active: %d\n",langs[n].name.c_str(),langs[n].code.c_str(),langs[n].active);
 		GetRow(&localDBF);	// get next row
 	}
+
+}
+
+
+/*
+    install the keyboard/numpad as defined in kb struct
+*/
+
+void InstallKB(void)
+{
+	if (abc123==KEYBOARD)
+	{
+    	REPARENT(app_ptr->keyboard_window, kb.attached, kb.active);
+	}
+	else
+	{
+        REPARENT(app_ptr->numpad_window, kb.attached, kb.active);
+	}
+}
+
+
+/*
+	whichever is active onscreen (keyboard or keypad), reparent back to its home window from kb.target
+	to make room to parent it somewhere else (a new window)
+
+    widget names for key/num pad usage
+	----------------------------------------------------------
+
+	WIDGET					HOME WINDOW
+	========================================
+    keyboard_grid			keyboard_window
+    numpad_grid				numpad_window
+
+*/
+void ReHomeKB(void)
+{
+
+// REPARENT(old_parent,new_parent,widget)
+
+
+		if (abc123== KEYBOARD)
+		{
+			// rehome the keyboard widget
+			REPARENT(GTK_CONTAINER(kb.attached),  app_ptr->keyboard_window, app_ptr->keyboard_grid);
+		}
+		else
+		{
+			// rehome the keypad widget
+			REPARENT(GTK_CONTAINER(kb.attached), app_ptr->numpad_window,app_ptr->numpad_grid);
+		}
+
+
 
 }
 

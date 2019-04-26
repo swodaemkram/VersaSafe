@@ -55,6 +55,9 @@
 	#define appGET_MENUITEM(xx) app->xx=GTK_MENU_ITEM(gtk_builder_get_object(builder,#xx))
 	#define appGET_TEXTBUFFER(xx) app->xx=GTK_TEXT_BUFFER(gtk_builder_get_object(builder,#xx))
 
+    #define appGET_ENTRYBUFFER(xx) app->xx=GTK_ENTRY_BUFFER(gtk_builder_get_object(builder,#xx))
+
+
 	#define appGET_COMBOBOX(xx) app->xx=GTK_COMBO_BOX(gtk_builder_get_object(builder,#xx))
 	#define appGET_TOGGLE(xx) app->xx=GTK_TOGGLE_BUTTON(gtk_builder_get_object(builder,#xx))
 
@@ -84,8 +87,11 @@
 	// keyboard
 	appGET(keyboard_grid);
 	appGET(numpad_grid);
-	appGET(pad_target);
+	appGET(login_pad_target);
 
+	appGET(kbrd_tab_btn);
+	appGET(kb_bksp_btn);
+	appGET(case_btn);
 	appGET(a_btn);
     appGET(b_btn);
     appGET(c_btn);
@@ -121,6 +127,8 @@
 	appGET(settings_close_btn);
 
 	// user window
+	appGET(user_pad_target);
+	appGET_LABEL(user_saved_lbl);
 	appGET(user_close_btn);
 	appGET(user_cancel_btn);
 	appGET(user_save_btn);
@@ -144,6 +152,9 @@
 	appGET_COMBOBOXTEXT(lang_combo);
 	appGET_LABEL(lastmodified_txt);
 
+	appGET_ENTRYBUFFER(username_buffer);
+	appGET_ENTRYBUFFER(lastname_buffer);
+	appGET_ENTRYBUFFER(firstname_buffer);
 
 	// admin
 	appGET(user_btn);
