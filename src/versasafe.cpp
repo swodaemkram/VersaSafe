@@ -615,6 +615,7 @@ void InstallKB(void);
 void ReHomeKB(void);
 void SetKeyboardCase(void);
 void ShowCaseBtn(void);
+void ShowAbcBtn(void);
 
 
 
@@ -1028,7 +1029,6 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 
 //	ShowMainMenu();
-//	ShowLogin();
 //	gtk_widget_show_all(app->main_menu);
 //	gtk_widget_hide(app->popup_window);
 
@@ -1058,7 +1058,6 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 //		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_menu) );
 	#endif
 
-//    ShowLogin();
 	ShowSplashWindow();
 //	ShowStatus("this is a test message");
 	REPARENT(app_ptr->numpad_window,app_ptr->login_pad_target,app_ptr->numpad_grid)
@@ -2753,12 +2752,18 @@ bool ValidateUser(char * user,char * pw)
 	sprintf(query,"SELECT username,password FROM users WHERE username='%s' AND password=PASSWORD('%s');",user,pw);
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);
+
+printf("VALIDATE:: numrows: %d\n",numrows);
 	if (numrows != 0)
 	{
+
+printf("Found user: %s\n",localDBF.row[0]);
 		current_user= string(localDBF.row[0]);
 		current_pw = string(localDBF.row[1]);
 		return TRUE;
 	}
+
+printf("USER NOT LOCATED\n");
 	return FALSE;
 }
 
@@ -2789,6 +2794,7 @@ void ShowLogin(void)
     abc123=KEYPAD;
 	kb.is_upper=FALSE;
 	ShowCaseBtn();		// show/hide CASE btn
+	ShowAbcBtn();
 	InstallKB();		// reparent the kb widget into the current window
 
 
@@ -2988,20 +2994,37 @@ extern "C" bool on_fr_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_he_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    printf("NEBREW btn\n");
+    printf("HEBREW btn\n");
 }
 
 extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    gtk_widget_hide(app_ptr->login_window);
+	string msg;
 	bool ret= ValidateUser(entered_user,entered_pw);
+
 
 	if (ret)
 	{
+		// LOGIN SUCCESS
+	    gtk_widget_hide(app_ptr->login_window);
 	    ReHomeKB();
 		ShowMainMenu();
 	}
-//TODO - show login error popup here??
+	else
+	{
+		// LOGIN FAILED
+		entered_focus=0;
+		user_index=0;
+		pw_index=0;
+		bzero(entered_user,INLEN);
+		bzero(entered_pw,INLEN);
+	    SetEntryText();
+		sprintf(buffer,"LOGIN ERROR: username: %s   pw: %s",entered_user,entered_pw);
+		WriteSystemLog(buffer);
+		msg=GetMessage();
+        ShowStatus("Error: invalid username or password");
+	}
+
 }
 
 
@@ -4186,6 +4209,19 @@ void ShowCaseBtn(void)
 	else
 	    gtk_widget_hide(app_ptr->case_btn);
 
+
+}
+
+
+void ShowAbcBtn(void)
+{
+	if (kb.allow_alpha)
+    {
+        gtk_widget_show(app_ptr->abc_btn);
+        kb.is_upper=TRUE;
+    }
+    else
+        gtk_widget_hide(app_ptr->abc_btn);
 
 }
 
