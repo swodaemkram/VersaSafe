@@ -53,7 +53,7 @@
 102,x,UTD Load Window
 
 120,x,Error writing lockrec struct to locks table
-
+121,x,ERROR: Invalid username or password
 
 
 200,x,Load

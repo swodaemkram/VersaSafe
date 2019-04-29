@@ -82,7 +82,12 @@
 	appGET(settings_window);
 	appGET(keyboard_window);
 	appGET(numpad_window);
+	appGET(userlist_window);
 
+
+	// userlist
+	appGET(userlist_close_btn);
+	appGET(user_listbox);
 
 	// keyboard
 	appGET(keyboard_grid);
@@ -141,6 +146,8 @@
 	appGET_LABEL(useractive_lbl);
 	appGET_LABEL(user_id_lbl);
 	appGET_LABEL(lastmodified_lbl);
+	appGET(user_add_btn);
+	appGET(user_del_btn);
 
 	appGET(username_txt);
 	appGET(firstname_txt);

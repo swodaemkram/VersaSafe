@@ -56,6 +56,12 @@ typedef struct
 	GtkWidget *settings_window;
 	GtkWidget *keyboard_window;
 	GtkWidget *numpad_window;
+	GtkWidget *userlist_window;
+
+
+	//userlist
+	GtkWidget *userlist_close_btn;
+	GtkWidget *user_listbox;
 
 	// keyboard
 	GtkWidget *login_pad_target;
@@ -114,6 +120,8 @@ typedef struct
 	GtkLabel *user_id_lbl;
 	GtkLabel *lang_lbl;
 	GtkLabel *lastmodified_lbl;
+	GtkWidget *user_add_btn;
+	GtkWidget *user_del_btn;
 
 	GtkWidget *username_txt;
 	GtkWidget *firstname_txt;
