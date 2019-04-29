@@ -144,6 +144,20 @@ building a combobox in GLADE
 
 
 
+======================================
+building a scrolling listbox in GLADE
+======================================
+
+1. create a GtkBox in your window
+2. to that box add GtkScrolledWindow (containers tab in GLADE)
+	a. set scrollbar policy=always
+	b. set max content height= some number
+	c. add an adjustment widget
+3. add a GtkViewPort to the above
+4. add your_listbox to the above
+5. use AddListItem(GtkWidget * list, char * txt) to add items into your list
+6. be sure to use _show_all when displaying the window
+7. see ShowUserList() for example usage
 
 */
 
@@ -239,7 +253,7 @@ using namespace std;
 // xml file produced by glade
 #define XML_PORTRAIT "xml/port.glade"
 //#define XML_LANDSCAPE "xml/land.glade"
-#define XML_LANDSCAPE "xml/xlc.glade"
+#define XML_LANDSCAPE "xml/safe.glade"
 
 char XML_FILE[50];
 
@@ -567,6 +581,13 @@ void ShowLogin(void);
 void ShowSplashWindow();
 void ShowStatus(string status);
 void ShowAdmin(void);
+
+void ShowUserList(void);
+void AddListItem(GtkWidget * list, char *txt);
+static GtkWidget * create_row(const gchar *txt);
+
+
+
 void ShowUser(void);
 void ShowUserSavedStatus(void);
 
@@ -651,7 +672,7 @@ struct
     int active;
     int id;
 } langs[10];
-int lang_count;
+int lang_count;	// count of active langs in dbf
 
 void GetLangs(void);
 
@@ -2157,7 +2178,7 @@ bool ReadUserRecord(string username,string password)
 {
 	char query[200];
 	if (password != "")
-	    sprintf(query,"SELECT username,lane,fname,lname,user_level,dept,lastmodified,active,id FROM users WHERE username='%s' AND pw=PASSWORD('%s');",username.c_str(),password.c_str());
+	    sprintf(query,"SELECT username,lang,fname,lname,user_level,dept,lastmodified,active,id FROM users WHERE username='%s' AND pw=PASSWORD('%s');",username.c_str(),password.c_str());
 	else
         sprintf(query,"SELECT username,lang,fname,lname,user_level,dept,lastmodified,active,id FROM users WHERE username='%s';",username.c_str() );
 
@@ -2293,10 +2314,17 @@ struct
 */
 bool WriteUserRecord(void)
 {
+printf("WRITE USER RECORD\n");
 	char query[400];
 	sprintf(query,"UPDATE users SET username='%s', lang='%s',fname='%s',lname='%s',user_level='%s',dept='%s',active='%s' WHERE id='%s'; ", current_user_rec.username.c_str(), current_user_rec.lang.c_str(), current_user_rec.fname.c_str(), current_user_rec.lname.c_str(), current_user_rec.user_level.c_str(), current_user_rec.dept.c_str(), current_user_rec.active.c_str(), current_user_rec.id.c_str() );
+//TODO - re-activate actual SAVE of user info
+printf("QUERY: %s\n",query);
+return TRUE;
+
 	// returns 0 on success, else non-zero
 	int result =  QueryDBF(&localDBF,query);
+
+
 
 	if (result ==0)
 		return TRUE;
@@ -2366,6 +2394,9 @@ void ShowUser(void)
 			user_active_switch,user_id_lbl
 */
 
+	ShowUserList();
+return;
+
 	bool ret=ReadUserRecord(current_user,"");
 
 	// now fill in the entries in the window
@@ -2398,6 +2429,24 @@ void ShowUser(void)
     gtk_widget_show(app_ptr->user_window);
 
 }
+
+
+/*
+	add a new user
+
+*/
+extern "C" bool on_user_add_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+
+/*
+	delete displayed user
+*/
+extern "C" bool on_user_del_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
 
 
 void ShowUserSavedStatus(void)
@@ -2564,7 +2613,7 @@ void PopulateUserLangsCombo(void)
 {
     for (int n=0; n < lang_count; n++)
     {
-		if (langs[n].active == '1')
+		if (langs[n].active == 1)
 	        gtk_combo_box_text_append_text( app_ptr->lang_combo,langs[n].code.c_str()  );
     }
 }
@@ -2806,12 +2855,14 @@ void ShowLogin(void)
 
 
 /*
-	send the user input data from the soft keyboard or keypad to the appropriate widget
+	send the user input data from the soft keyboard or keypad to the appropriate widget target
 
 */
 
 void SetEntryText(void)
 {
+
+	// LOGIN WINDOW
 	if (kb.target == app_ptr->user_entry)
 	{
 	    if (entered_focus==0)
@@ -2829,22 +2880,24 @@ void SetEntryText(void)
 
 }
 
+
+/*
+	store the users inpu to the appropriate var based on which window we are on
+
+*/
+
 void StoreInput(char x)
 {
-//TODO must fix
-int output_target;
-	switch(output_target)
-	{
-	case userlogin:
+
+
+	// LOGIN WINDOW
+    if (kb.target == app_ptr->user_entry)
+    {
 		if (entered_focus==0)
 			entered_user[user_index++]=x;
 		else
 			entered_pw[pw_index++]=x;
-		break;
-	case username:
-    case userfname:
-    case userlname:
-    	break;
+
 	}
 }
 
@@ -3018,10 +3071,14 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 		pw_index=0;
 		bzero(entered_user,INLEN);
 		bzero(entered_pw,INLEN);
+		bzero(display_pw,INLEN);
+        entered_focus=0;
 	    SetEntryText();
-		sprintf(buffer,"LOGIN ERROR: username: %s   pw: %s",entered_user,entered_pw);
-		WriteSystemLog(buffer);
-		msg=GetMessage();
+        entered_focus=1;
+        SetEntryText();
+		sprintf(gen_buffer,"LOGIN ERROR: username: %s   pw: %s",entered_user,entered_pw);
+		WriteSystemLog(gen_buffer);
+		msg=getMessage(121,FALSE);
         ShowStatus("Error: invalid username or password");
 	}
 
@@ -4189,6 +4246,8 @@ void SetScreenSizes(void)
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->admin_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->user_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->settings_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->userlist_window), screenres.horiz, screenres.vert);
+
 }
 
 
@@ -4777,9 +4836,92 @@ extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
+//=========================================================
+//				START USER LIST
+//=========================================================
+
+void ShowUserList(void)
+{
+
+printf("SHOWUSERLIST\n");
+	string str1="gary";
+	string str2="";
+
+	for (int n=0; n <30; n++)
+	{
+		str2= str1 + to_string(n);
+		sprintf(gen_buffer,"%s",str2.c_str());
+		AddListItem(app_ptr->user_listbox,gen_buffer );
+	}
+    gtk_widget_show_all(app_ptr->userlist_window);
+}
 
 
 
+
+extern "C" bool on_userlist_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->userlist_window);
+}
+
+
+
+//=========================================================
+//              END USER LIST
+//=========================================================
+
+
+
+
+//=========================================================
+//				START LISTBOX FUNCTIONS
+//=========================================================
+
+/*
+	taken from...
+	https://github.com/linuxmint/gtk/blob/master/tests/testlist3.c
+
+
+	to populate the listbox with items, use the following
+
+	example call:
+    char str[]="gary";
+    AddListItem(app_ptr->user_listbox,str);
+
+
+
+	NOTE: after populating the list items, you must use show_all for everything to display, as...
+    gtk_widget_show_all(app_ptr->userlist_window);
+
+
+*/
+
+// add the text to a listbox
+void AddListItem(GtkWidget * list, char *txt)
+{
+    GtkWidget *row;
+    row = create_row(txt);
+    gtk_list_box_insert(GTK_LIST_BOX(list),row,-1);
+}
+
+
+// create a row for a listbox
+static GtkWidget * create_row(const gchar *txt)
+{
+    GtkWidget *row, *box, *label;
+
+    row = gtk_list_box_row_new();
+    box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    label = gtk_label_new(txt);
+    gtk_container_add(GTK_CONTAINER(row),box);
+    gtk_container_add(GTK_CONTAINER(box),label);
+    return row;
+}
+
+
+//=========================================================
+//              END LISTBOX FUNCTIONS
+//=========================================================
 
 
 
@@ -5247,7 +5389,7 @@ void Get_UTD_Data(void)
 */
 void GetLangs(void)
 {
-    char query[]="SELECT code,name,active  FROM langs";
+    char query[]="SELECT code,name,active  FROM langs WHERE active='1'";
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);    // populate gen_buffer
 	lang_count=numrows;
