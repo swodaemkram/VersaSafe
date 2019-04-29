@@ -312,4 +312,34 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+DROP TABLE IF EXISTS `inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inventory` (
+  `device_id` int(5),
+  `field_1` float(12,2) DEFAULT 0,
+  `field_2` float(12,2) DEFAULT 0,
+  `field_3` float(12,2) DEFAULT 0,
+  `field_4` float(12,2) DEFAULT 0,
+  `field_5` float(12,2) DEFAULT 0,
+  `field_6` float(12,2) DEFAULT 0,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inventory';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `inv_map`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inv_map` (
+  `field` int(5),
+  `denom` int(5),
+  `units` varchar(10),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inv_map';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+
 -- Dump completed on 2019-04-24  9:49:52
