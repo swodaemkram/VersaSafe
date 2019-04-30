@@ -1,4 +1,3 @@
-
 /*
 	Program: FlowForm OSL (FOSL)
 	Module: gtkwidgets.h
