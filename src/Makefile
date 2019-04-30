@@ -63,7 +63,7 @@ usb.cpp \
 usb_gateway.cpp \
 net_gateway.cpp \
 drivers/jcm_driver.cpp \
-#drivers/mei_driver.cpp
+drivers/mei_driver.cpp
 
 
 OBJECTS=$(SOURCES:.cpp=.o)
