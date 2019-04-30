@@ -104,6 +104,25 @@ hdr/gtkwidget_app.h
 1 add the new ref as necessary
 
 
+
+======================================
+building a scrolling listbox in GLADE
+======================================
+
+1. create a GtkBox in your window
+2. to that box add GtkScrolledWindow (containers tab in GLADE)
+    a. set scrollbar policy=always
+    b. set max content height= some number
+    c. add an adjustment widget
+3. add a GtkViewPort to the above
+4. add your_listbox to the above
+5. use AddListItem(GtkWidget * list, char * txt) to add items into your list
+6. be sure to use _show_all when displaying the window
+7. see ShowUserList() for example usage
+
+
+
+
 versasafe
 
 1 add a ShowXXXX() function where XXX is the apprppriate name
@@ -116,5 +135,7 @@ SetLabels()
 
 local/english.lang (etc)
 1 add in appropriate language lines for the buttons,labels etc
+
+
 
 
