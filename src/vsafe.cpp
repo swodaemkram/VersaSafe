@@ -1,4 +1,3 @@
-
 /*
 	Program: VersaSafe
 	Module: versasafe.cpp (primary module)

@@ -12,8 +12,9 @@ DT := $(shell /bin/date "+%Y-%m-%d--%H-%M-%S")
 #compile with no stripping set to ON
 #FEATURES="nostrip" make
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/
-PROJECT="VersaSafe"
-EXECUTABLE=versasafe
+PROJECT="VSafe"
+EXECUTABLE=vsafe
+
 
 # set the compiler options
 SHELL=/bin/bash

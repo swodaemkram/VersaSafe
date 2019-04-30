@@ -342,4 +342,17 @@ CREATE TABLE `inv_map` (
 
 
 
+DROP TABLE IF EXISTS `devices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `devices` (
+  `device_id` int(5),
+  `description` varchar(25),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='devices';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+
 -- Dump completed on 2019-04-24  9:49:52
