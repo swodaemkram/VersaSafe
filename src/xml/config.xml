@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
 	<screen>
@@ -43,5 +44,9 @@
 		<maint>enabled</maint>
 		<dbf>disabled</dbf>
 	</remote>
+       <remoteserver>
+            <ip>127.0.0.1</ip>
+            <port>1234</port>
+        </remoteserver>
 </config>
 
