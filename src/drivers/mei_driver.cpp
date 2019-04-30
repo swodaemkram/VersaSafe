@@ -472,7 +472,7 @@ MEI Verify Bill Command
 
 public:
 
-string mei_verify_bill()
+string mei_verify_bill(void)
 {
 
 	printf("MEI Verify Bill called\n");

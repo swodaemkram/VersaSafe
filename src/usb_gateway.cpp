@@ -49,7 +49,7 @@ mei * validator = NULL;
 int init_mei(void);
 void mei_reset_func(void);
 string get_mei_driver(void);
-//string mei_verify_bill_func(void);
+string mei_verify_bill_func(void);
 //string mei_getmodel(void);
 //string mei_get_info(void);
 //void mei_enable(void);
@@ -575,7 +575,6 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-
 	printf("\nInitializing MEI Validator ....\n");
 		mei * validator = new mei("/dev/ttyUSB0");
 		printf("\nMEI Validator Initialized!\n");
@@ -612,6 +611,7 @@ void mei_reset_func(void)
 //string mei_verify_bill_func(void)
 //{
 //	string x= mei_verify_bill();
+//	return(0);
 //}
 //------------------------------------------------------------------------------------------------------
 
