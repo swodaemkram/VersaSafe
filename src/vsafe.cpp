@@ -1,6 +1,7 @@
+
 /*
-	Program: VersaSafe
-	Module: versasafe.cpp (primary module)
+	Program: VSafe
+	Module: vsafe.cpp (primary module)
 	Author: Gary Conway <gary.conway@fireking.com>
 	Created: 12-1-2017
 	Updated:
@@ -217,6 +218,7 @@ using namespace std;
 //#include <gtkimageviewer-2.0/gtk-image-viewer.h>
 //#include <cairo.h>
 
+
 //#include <libusb-1.0/libusb.h>
 #include "tinyxml/tinyxml.h"
 #include "mysql.h"
@@ -263,6 +265,11 @@ void PrintConfig(void);
 // color scheme resource file
 #define RES_FILE "../res/flowformrc"
 
+
+// CLOUD CONNECTION
+SOCKET * cloud_server = new SOCKET(TCP_CONNECTION); // instantiate our cloud socket
+void ConnectCloud(void);
+void SendCloud(char * msg);
 
 
 
@@ -760,9 +767,13 @@ struct
     char logremotedbf[10];
 
     // remote
-    char clientportal[10];
+    char clientportal[10];	// enabled/disabled
     char maintportal[10];
     char dbfportal[10];
+
+	// remoteserver
+	char cloud_ip[20];
+	char cloud_port[10];;
 
 } cfg;
 
@@ -968,7 +979,7 @@ Initiate the MEI validator in the USB Gateway if Enabled
 */
 if ( strcmp(cfg.validator1,"enabled")==0)
 {
-	init_mei();    //init MEI validator (in usb_gateway)
+//	init_mei();    //init MEI validator (in usb_gateway)
 }
 /*
 =============================================================================================
@@ -1071,7 +1082,8 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	SetMainScreenFont();
 	SetMainScreenTitle();
 
-
+	// if enabled, connect to the remote server
+	ConnectCloud();
 
 
 	#ifdef FULLSCREEN
@@ -3227,6 +3239,7 @@ extern "C" bool on_touch_here_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_verify_note_btn_clicked( GtkButton *button, AppWidgets *app)
 {
+	mei_verify_bill() ;
 	printf("VERIFY NOTE\n");
 }
 
@@ -3305,6 +3318,12 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 
+}
+
+
+extern "C" bool on_mei_stack_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	mei_stack();
 }
 
 //===================================================================
@@ -5163,6 +5182,25 @@ bool ConfigSetup(bool silent)
 		}
 
 
+
+        if(elemName == "remoteserver")
+        {
+            pelem = elem->FirstChildElement("ip");
+            if (pelem)
+                strcpy(cfg.cloud_ip, (char*) pelem->GetText());
+            else
+                strcpy(cfg.cloud_ip,  (char*)"127.0.0.1");
+
+           pelem = elem->FirstChildElement("port");
+            if (pelem)
+                strcpy(cfg.cloud_port, (char*) pelem->GetText());
+            else
+                strcpy(cfg.cloud_port,  (char*)"1234");
+
+
+		}
+
+
 		if (elemName == "remoteDBF")
 		{
 
@@ -5293,6 +5331,8 @@ void PrintConfig(void)
 */
 void KillConnections(void)
 {
+	if ( strcmp(cfg.clientportal,"enabled") ==0)
+		delete cloud_server;	// kill our connection to the cloud
 }
 
 
@@ -5454,9 +5494,59 @@ void ReHomeKB(void)
 			REPARENT(GTK_CONTAINER(kb.attached), app_ptr->numpad_window,app_ptr->numpad_grid);
 		}
 
+}
 
+
+
+/*
+	connect to our cloud server
+
+*/
+void ConnectCloud(void)
+{
+    int res;
+    SOCKET * cloud_server = new SOCKET(TCP_CONNECTION);
+    res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) );
+    if (res !=0 )
+    {
+        // res has the error code
+		sprintf(gen_buffer,"Unable to connect to remote server on %s:%s",cfg.cloud_ip,cfg.cloud_port);
+		WriteSystemLog(gen_buffer);
+printf("%s\n",gen_buffer);
+    }
+	else
+	{
+		sprintf(gen_buffer,"Success:: connected to the remote server on %s:%s",cfg.cloud_ip,cfg.cloud_port);
+        WriteSystemLog(gen_buffer);
+printf("%s\n",gen_buffer);
+ 	}
 
 }
+
+
+void SendCloud(char * msg)
+{
+	int res;
+    res=cloud_server->SendMessage(gen_buffer);
+    if (res !=0)
+    {
+        // res has the error code
+    }
+    int bytecount;
+    char *ptr;
+    ptr=cloud_server->ReceiveMessage(&bytecount);
+    if (ptr == NULL)
+    {
+        // no data
+    }
+    else
+    {
+        //ptr points to our char[] data
+        // bytecount has number of bytes in buffer
+    }
+
+}
+
 
 
 
@@ -5479,6 +5569,9 @@ string Markup(string str)
 
 	return str;
 }
+
+
+
 
 
 
