@@ -1,3 +1,4 @@
+
 /*
 	SOCKET Class Declaration Module
     Author: Gary Conway <gconway@flowcorp.com>
@@ -20,7 +21,7 @@
 
 	OPTION 1:
 	---------
-	You can set up a LISTENER by calling Server() that monitors a port for connection request. once a 
+	You can set up a LISTENER by calling Server() that monitors a port for connection request. once a
 	request is recieved it will then accept the connection.
 
 
@@ -29,7 +30,7 @@
 	You can call Client() and connect to a remote IP:PORT.
 
 
-	With either of the above options, you can call ReceiveMessage() to check for and retrieve any data 
+	With either of the above options, you can call ReceiveMessage() to check for and retrieve any data
 	that has been received. You can also call SendMessage() to transmit a message over either of the
 	connection types.
 
