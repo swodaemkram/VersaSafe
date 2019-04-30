@@ -36,34 +36,45 @@ using namespace std;
 #include "hdr/usb_gateway.h"
 #include "hdr/fire.h"
 
-//MEI Validator driver
-#include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
-#include "drivers/mei_driver.h"
-
-//MEI Validator public functions
-
-int init_mei(void);
-void mei_reset(void);
-string mei_get_info(void);
-void mei_enable(void);
-void mei_dissable(void);
-void mei_accept(void);
-void mei_enable_bookmark(void);
-void mei_enable_in(int meienableincount);
-void mei_accept_in(string meibillstoaccept);
-void mei_dissable_time(int meidissabletimeinsec);
-int * mei_get_inventory(void);
-void mei_connect(string pname);
-string mei_status(void);
-string get_mei_driver_version(void);
-string mei_getmodel(void);
-string mei_stack(void);
-string mei_verify_bill(void);
-
-
 // VEND BOARD DRIVER (D8C)
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
 #include "drivers/d8c.class"
+#include "drivers/mei_driver.class"
+
+
+
+//======================================================================================================
+//Beginning of MEI Declarations
+//======================================================================================================
+
+//MEI Validator public functions
+
+mei * validator = NULL;
+int init_mei(void);
+void mei_reset_func(void);
+string get_mei_driver(void);
+string mei_verify_bill_func(void);
+string mei_getmodel_func(void);
+//string mei_get_info(void);
+//void mei_enable(void);
+//void mei_dissable(void);
+//void mei_accept(void);
+//void mei_enable_bookmark(void);
+//void mei_enable_in(int meienableincount);
+//void mei_accept_in(string meibillstoaccept);
+//void mei_dissable_time(int meidissabletimeinsec);
+//int * mei_get_inventory(void);
+//void mei_connect(string pname);
+//string mei_status(void);
+//string mei_stack(void);
+
+//======================================================================================================
+//End of MEI Declarations
+//======================================================================================================
+
+
+
+
 
 d8c * utd = NULL;
 // public VEND functions
@@ -566,44 +577,44 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-
 	printf("\nInitializing MEI Validator ....\n");
-		int index=0;
-		mei * utd = new mei("/dev/ttyUSB0");
+		mei * validator = new mei("/dev/ttyUSB0");
 		printf("\nMEI Validator Initialized!\n");
-
+		return(0);
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 // Command to Get the MEI Driver Version
 //---------------------------------------------------------------------------------------------------
 
-string get_mei_driver_version(void)
-{
-	return get_mei_driver_version();
-}
+//string get_mei_driver(void)
+//{
+//	return get_mei_driver_version();
+//}
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
 //  Command to Reset MEI Validator can take up to 10 seconds
 //-----------------------------------------------------------------------------------------------------
-void mei_reset(void)
+void mei_reset_func(void)
 {
-	return mei_reset();
+	validator->mei_reset();
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
 // Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
 //-----------------------------------------------------------------------------------------------------
-string mei_getmodel(void)
+string mei_getmodel_func(void)
 {
-	string x= mei_getmodel();
+	string x = validator->mei_getmodel();
+	return(0);
 }
 //-----------------------------------------------------------------------------------------------------
-// Comman to MEI to stack Bills
+// Command to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
-string mei_verify_bill(void)
+string mei_verify_bill_func(void)
 {
-	string x= mei_verify_bill();
+	string x= validator->mei_verify_bill();
+	return(0);
 }
 //------------------------------------------------------------------------------------------------------
 

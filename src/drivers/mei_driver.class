@@ -49,7 +49,7 @@ void mei_reset(void);
 string mei_verify_bill(void);
 void mei_stack_documents(void);
 
-//SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
+SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
 //Version of the Driver//KEEP THIS GLOBAL ALSO
 //	string get_mei_driver_version(void){
@@ -67,7 +67,7 @@ class mei {
 Start of MEI crc Function
 ===============================================================================================================================
 */
-SerialStream mei_my_serial;
+//SerialStream mei_my_serial;
 private:
 
 unsigned int mei_do_crc(char buff[], int buffer_len){
@@ -217,8 +217,8 @@ private:
 void mei_setup(void)
 {
 	string mei_rply ="";
-	//mei_rply = mei_getmodel();
-	mei_reset();
+	mei_rply = mei_getmodel();
+	//mei_reset();
 	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 	mei_detected = true;
@@ -267,18 +267,18 @@ string mei_getresponse(){
 //------------------------------------------------------------------------------------------------
 
 	//printf("char_pos = %d\n",char_pos); [DEBUG]
-				char sent_crc = {0};
-                sent_crc = input_buffer[char_pos - 1];
+				//MARKchar sent_crc = {0};
+                //MARKsent_crc = input_buffer[char_pos - 1];
 				//printf("sent_crc = %02x\n",sent_crc); [DEBUG]
-				int thecrc = 0;
-				thecrc = 0;
-				thecrc =  mei_do_crc(input_buffer,char_pos);
+				//MARKint thecrc = 0;
+				//MARKthecrc = 0;
+				//MARKthecrc =  mei_do_crc(input_buffer,char_pos);
 				//printf("the crc = %02x",thecrc); //[DEBUG]
-				int thesize = strlen(input_buffer) - 1;
+				//MARKint thesize = strlen(input_buffer) - 1;
 				//printf("The rxed crc = %02x\n",input_buffer[thesize]);
-				if (thecrc != input_buffer[thesize]){
-					return("");
-				}
+				//MARKif (thecrc != input_buffer[thesize]){
+				//MARK	return("");
+				//MARK}
 //-------------------------------------------------------------------------------------------------
 //End of CRC check of Packet
 //-------------------------------------------------------------------------------------------------
@@ -453,14 +453,16 @@ string mei_getmodel(void)
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write(pkt, sizeof(pkt)) ;
 	mei_rply1 = mei_getresponse();
-	//cleantext = mei_clean_string(mei_rply1, sizeof(mei_rply1));
+	printf("Reply 1 was -> %s\n",mei_rply1.c_str());
+	cleantext = mei_clean_string(mei_rply1, sizeof(mei_rply1));
 
-	char pktAk[16] = {0x02,0x08,0x01,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
 	//mei_my_serial << pktAk;
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
 	//TODO need to remove all the non-printable characters before returning this and the rest of these responses
 
-	return(mei_rply1);
+	//return(mei_rply1);
+	return(cleantext);
 }
 /*
 ==============================================================================================================================
@@ -649,17 +651,16 @@ string mei_clean_string(string incomming, int lenofincomming)
 
 {
 	string outgoing ={0};
+	int charcount = 0;
+	int currentcount = 0;
 
-				int charcount = 0;
-				int currentcount = 0;
-				cout<<"Mark is cool!"<<endl;
-				while (charcount < lenofincomming)
+				while (charcount <= lenofincomming)
 				{
-					if (!isprint(incomming[charcount]))
+					if (isprint(incomming[charcount]))
 					{
 						outgoing[currentcount] = incomming[charcount];
 						currentcount++;
-						cout<<outgoing<<endl;
+
 					}
 
 				     charcount++;

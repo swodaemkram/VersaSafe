@@ -968,7 +968,7 @@ Initiate the MEI validator in the USB Gateway if Enabled
 */
 if ( strcmp(cfg.validator1,"enabled")==0)
 {
-//	init_mei();    //init MEI validator (in usb_gateway)
+	init_mei();    //init MEI validator (in usb_gateway)
 }
 /*
 =============================================================================================
