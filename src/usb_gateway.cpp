@@ -35,13 +35,17 @@ using namespace std;
 #include "drivers/apuLock.class"        // include the LOCK driver class
 #include "hdr/usb_gateway.h"
 #include "hdr/fire.h"
+
+// VEND BOARD DRIVER (D8C)
+//Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
+#include "drivers/d8c.class"
+#include "drivers/mei_driver.class"
+
+
+
 //======================================================================================================
 //Beginning of MEI Declarations
 //======================================================================================================
-
-//MEI Validator driver
-#include "drivers/mei_driver.cpp"       //include the MEI Validator driver class & Header file
-#include "drivers/mei_driver.h"
 
 //MEI Validator public functions
 
@@ -50,7 +54,7 @@ int init_mei(void);
 void mei_reset_func(void);
 string get_mei_driver(void);
 string mei_verify_bill_func(void);
-//string mei_getmodel(void);
+string mei_getmodel_func(void);
 //string mei_get_info(void);
 //void mei_enable(void);
 //void mei_dissable(void);
@@ -70,9 +74,7 @@ string mei_verify_bill_func(void);
 
 
 
-// VEND BOARD DRIVER (D8C)
-//Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
-#include "drivers/d8c.class"
+
 
 d8c * utd = NULL;
 // public VEND functions
@@ -601,23 +603,24 @@ void mei_reset_func(void)
 //-----------------------------------------------------------------------------------------------------
 // Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
 //-----------------------------------------------------------------------------------------------------
-//string mei_getmodel_func(void)
-//{
-//	string x= mei_getmodel();
-//}
+string mei_getmodel_func(void)
+{
+	string x = validator->mei_getmodel();
+	return(0);
+}
 //-----------------------------------------------------------------------------------------------------
-// Comman to MEI to stack Bills
+// Command to MEI to stack Bills
 //-----------------------------------------------------------------------------------------------------
-//string mei_verify_bill_func(void)
-//{
-//	string x= mei_verify_bill();
-//	return(0);
-//}
+string mei_verify_bill_func(void)
+{
+	string x= validator->mei_verify_bill();
+	return(0);
+}
 //------------------------------------------------------------------------------------------------------
 
 
-//string mei_stack(void){
-//}
+string mei_stack(void){
+}
 
 
 
