@@ -348,12 +348,18 @@ DROP TABLE IF EXISTS `devices`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `devices` (
   `device_id` int(5),
-  `description` varchar(25),
+  `description` varchar(30),
+  `model` varchar(25),
   `id` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='devices';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+LOCK TABLES `devices` WRITE;
+/*!40000 ALTER TABLE `devices` DISABLE KEYS */;
+INSERT INTO `devices` VALUES ('100','MEI validator','SCNL6627R','1');
+/*!40000 ALTER TABLE `devices` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 -- Dump completed on 2019-04-24  9:49:52

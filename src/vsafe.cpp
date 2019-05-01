@@ -3239,7 +3239,7 @@ extern "C" bool on_touch_here_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_verify_note_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	mei_verify_bill() ;
+	mei_verify_bill_func() ;
 	printf("VERIFY NOTE\n");
 }
 
@@ -5519,6 +5519,15 @@ printf("%s\n",gen_buffer);
 		sprintf(gen_buffer,"Success:: connected to the remote server on %s:%s",cfg.cloud_ip,cfg.cloud_port);
         WriteSystemLog(gen_buffer);
 printf("%s\n",gen_buffer);
+
+    char msg[]="hello world";
+    printf("Sending: %s\n",msg);
+    SendCloud(msg);
+
+	sleep(2);
+
+	printf("Sending: %s\n",msg);
+	SendCloud(msg);
  	}
 
 }
@@ -5543,6 +5552,7 @@ void SendCloud(char * msg)
     {
         //ptr points to our char[] data
         // bytecount has number of bytes in buffer
+		printf("RCVD: %s\n",ptr);
     }
 
 }
