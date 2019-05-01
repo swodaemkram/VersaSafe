@@ -45,8 +45,8 @@
 		<dbf>disabled</dbf>
 	</remote>
        <remoteserver>
-            <ip>127.0.0.1</ip>
-            <port>1234</port>
+            <ip>192.168.108.102</ip>
+            <port>61000</port>
         </remoteserver>
 </config>
 
