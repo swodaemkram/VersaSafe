@@ -446,20 +446,18 @@ public:
 
 string mei_getmodel(void)
 {
-	string cleantext = "";
+	string cleantext;
 	printf("MEI GetModel called\n");
 	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x04,0x03,0x6c};
-	string mei_rply1 = "";
+	string mei_rply1 = {0};
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write(pkt, sizeof(pkt)) ;
 	mei_rply1 = mei_getresponse();
-	printf("Reply 1 was -> %s\n",mei_rply1.c_str());
-	cleantext = mei_clean_string(mei_rply1, sizeof(mei_rply1));
-
+	//printf("Reply 1 was -> %s\n",mei_rply1.c_str());
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
 	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
 	//mei_my_serial << pktAk;
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
-	//TODO need to remove all the non-printable characters before returning this and the rest of these responses
 
 	//return(mei_rply1);
 	return(cleantext);
@@ -650,21 +648,21 @@ private:
 string mei_clean_string(string incomming, int lenofincomming)
 
 {
-	string outgoing ={0};
+	string outgoing;
+	outgoing.resize(incomming.size(),'\x00');
 	int charcount = 0;
 	int currentcount = 0;
 
-				while (charcount <= lenofincomming)
-				{
-					if (isprint(incomming[charcount]))
-					{
-						outgoing[currentcount] = incomming[charcount];
-						currentcount++;
+		while(charcount <= incomming.size()){
 
-					}
+			if (isprint(incomming[charcount]) && incomming[charcount] !='\x60'){
+				outgoing[currentcount] = incomming[charcount];
+				currentcount++;
+			}
 
-				     charcount++;
-	            }
+
+			charcount++;
+		}
 
 	return(outgoing);
 }
