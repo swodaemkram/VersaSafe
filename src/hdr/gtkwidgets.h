@@ -243,6 +243,7 @@ typedef struct
 	GtkWidget *mei_close_btn;
 	GtkWidget *mei_maint_title;
 	GtkWidget *mei_stack_btn;
+	GtkWidget *mei_inventory_btn;
 
 	GtkTextBuffer *textbuffer1;
 
