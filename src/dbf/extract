@@ -1,10 +1,9 @@
 #!/bin/bash
 
 
-if [ -d "/home/garyc" ]; then
-    mysqldump -uroot -p'v|per101' fking > fking.sql
-else
-    mysqldump -uroot -p'b0whunter' fking > fking.sql
-fi
+mysqldump -ufkinguser101 -p'glimpbust345' fking > fking.sql
+
+#mysqldump -ufkinguser101 -p'glimpbust345' fking users devices > x.sql
+
 
 

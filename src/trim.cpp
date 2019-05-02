@@ -314,6 +314,12 @@ vector<string> split( const string &src, const string &delim)
 /*
 	ReplaceAll( string, find string, replacement string
 	replace all occurrences of the "find" string with the "replacement" string
+
+	EXAMPLE:
+	string tbl="users devices";
+    ReplaceAll( tbl, " ", "_");
+	tbl now="users_devices";
+
 */
 
 void ReplaceAll( string& str, const string& find_str, const string& repl_str)

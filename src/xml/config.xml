@@ -45,8 +45,11 @@
 		<dbf>disabled</dbf>
 	</remote>
        <remoteserver>
-            <ip>192.168.108.102</ip>
+            <ip>127.0.0.1</ip>
             <port>61000</port>
         </remoteserver>
+	<timeouts>
+		<validator>30</validator>
+	</timeouts>
 </config>
 

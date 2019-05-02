@@ -272,6 +272,9 @@ void ConnectCloud(void);
 void SendCloud(char * msg);
 
 
+bool SendTableToServer(string tbl);
+string DumpSQLTable(string tbl);		// tbl can be a single table name or several tbls separated by space
+
 
 /*
     remove the currently displayed widget from the actuator_configuration_frame so that
@@ -773,8 +776,10 @@ struct
 
 	// remoteserver
 	char cloud_ip[20];
-	char cloud_port[10];;
+	char cloud_port[10];
 
+	// timeouts
+	char validator_timeout[10];
 } cfg;
 
 
@@ -1083,7 +1088,9 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	SetMainScreenTitle();
 
 	// if enabled, connect to the remote server
-	ConnectCloud();
+//	ConnectCloud();
+	string tbl="users devices";
+	SendTableToServer(tbl);
 
 
 	#ifdef FULLSCREEN
@@ -5215,6 +5222,16 @@ bool ConfigSetup(bool silent)
 
 		}
 
+        if (elemName == "timeouts")
+        {
+           pelem = elem->FirstChildElement("validator");
+            if (pelem)
+                strcpy(cfg.validator_timeout, (char*) pelem->GetText());
+            else
+                strcpy(cfg.validator_timeout, (char*) "30");
+
+		}
+
 
 		if (elemName == "remoteDBF")
 		{
@@ -5512,6 +5529,71 @@ void ReHomeKB(void)
 }
 
 
+/*
+
+	send tbl to the remote server
+	tbl can actually be several tables separated by space
+
+*/
+
+bool SendTableToServer(string tbl)
+{
+	string tbl_name;
+
+
+	tbl_name= DumpSQLTable(tbl);	// uses mysqldump to dump table to tmp/tbl.sql
+
+	if (tbl_name=="error")
+	{
+		return FALSE;
+	}
+
+	printf("TABLE NAME:: %s\n",tbl_name.c_str() );
+
+
+}
+
+
+
+/*
+    use mysqldump to dump 'tbl' to 'tmp/tbl.sql'
+
+    returns pathname of the created table
+    returns "error" on error
+*/
+
+string DumpSQLTable(string tbl)
+{
+    FILE * nix;
+    char run_string[100];
+    char tbl_name[50];
+
+	string fixed = tbl;
+
+    // convert the passed string, converting spaces to underscore
+    ReplaceAll( fixed, " ", "_");
+
+    // create the system string of the command to run
+    sprintf(run_string,"mysqldump -u'%s' -p'%s' %s %s > tmp/%s.sql", cfg.usertxt, cfg.pwtxt, cfg.dbftxt, tbl.c_str(), fixed.c_str() );
+
+printf("RUNNING:: %s\n",run_string);
+
+    sprintf(tbl_name,"tmp/%s.sql",fixed.c_str() );
+
+    // popen() creates a pipe so we can read the output
+    if ( !(nix = popen(run_string,"r")))
+        return "error";
+
+
+    pclose(nix);
+
+    return string(tbl_name);
+
+}
+
+
+
+
 
 /*
 	connect to our cloud server
@@ -5522,7 +5604,6 @@ void ConnectCloud(void)
     int res;
 	string msg1;
 
-    SOCKET * cloud_server = new SOCKET(TCP_CONNECTION);
     res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) );
     if (res !=0 )
     {
@@ -5546,11 +5627,12 @@ printf("%s\n",gen_buffer);
     char msg[200]="hello world";
     printf("Sending: %s\n",msg);
     SendCloud(msg);
-
+/*
 	sleep(2);
 
 	printf("Sending: %s\n",msg);
 	SendCloud(msg);
+*/
  	}
 
 }
@@ -5568,6 +5650,11 @@ void SendCloud(char * msg)
 	{
 		printf("data sent successfully\n");
 	}
+
+int n;
+for (n=0; n<10; n++)
+{
+
     int bytecount;
     char *ptr;
     ptr=cloud_server->ReceiveMessage(&bytecount);
@@ -5581,6 +5668,10 @@ void SendCloud(char * msg)
         // bytecount has number of bytes in buffer
 		printf("RCVD: %s\n",ptr);
     }
+
+	sleep(1);
+}
+
 
 }
 
