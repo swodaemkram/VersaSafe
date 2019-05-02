@@ -289,6 +289,7 @@
 	appGET(mei_close_btn);
 	appGET(mei_maint_title);
 	appGET(mei_stack_btn);
+	appGET(mei_inventory_btn);
 
 /*
 	appGET(one_btn);

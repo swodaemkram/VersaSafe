@@ -67,7 +67,8 @@
 224,X,UNLOAD ALL
 225,x,UTD MAINTENANCE
 226,x,RESET
-
+227,x,STACK
+228,x,INVENTORY
 
 
 240,x,MAINTENANCE
@@ -159,4 +160,11 @@
 453,x,x
 454,x,y
 455,x,z
+
+# socket class error messages
+700,x,SOCKET::unable to create socket
+701,x,SOCKET::no such host IP
+702,x,SOCKET::unable to connect via socket
+704,x,SOCKET::unable to create receive buffer
+705,x,SOCKET::unable to create general purpose buffer
 

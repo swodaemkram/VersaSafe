@@ -3317,7 +3317,7 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-
+	mei_reset_func();
 }
 
 
@@ -3325,6 +3325,13 @@ extern "C" bool on_mei_stack_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	mei_stack();
 }
+
+
+extern "C" bool on_mei_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    mei_inventory();
+}
+
 
 //===================================================================
 //				END MEI MAINT WINDOW
@@ -4562,6 +4569,14 @@ void SetLabels(void)
     msg=getMessage(226,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->mei_reset_btn),msg.c_str() );
 
+    msg=getMessage(227,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_stack_btn),msg.c_str() );
+
+    msg=getMessage(228,FALSE);
+    gtk_button_set_label(GTK_BUTTON(app_ptr->mei_inventory_btn),msg.c_str() );
+
+
+
     msg=getMessage(50,FALSE);
     gtk_button_set_label(GTK_BUTTON(app_ptr->mei_close_btn),msg.c_str() );
 
@@ -5505,14 +5520,21 @@ void ReHomeKB(void)
 void ConnectCloud(void)
 {
     int res;
+	string msg1;
+
     SOCKET * cloud_server = new SOCKET(TCP_CONNECTION);
     res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) );
     if (res !=0 )
     {
-        // res has the error code
+       // res has the error code (usable with getMessage()
 		sprintf(gen_buffer,"Unable to connect to remote server on %s:%s",cfg.cloud_ip,cfg.cloud_port);
 		WriteSystemLog(gen_buffer);
 printf("%s\n",gen_buffer);
+
+		msg1=getMessage(res,FALSE);
+		sprintf(gen_buffer,"%s",msg1.c_str() );
+		WriteSystemLog(gen_buffer);
+		printf("%s\n",gen_buffer);
     }
 	else
 	{
@@ -5520,7 +5542,8 @@ printf("%s\n",gen_buffer);
         WriteSystemLog(gen_buffer);
 printf("%s\n",gen_buffer);
 
-    char msg[]="hello world";
+	sleep(2);
+    char msg[200]="hello world";
     printf("Sending: %s\n",msg);
     SendCloud(msg);
 
@@ -5535,12 +5558,16 @@ printf("%s\n",gen_buffer);
 
 void SendCloud(char * msg)
 {
-	int res;
-    res=cloud_server->SendMessage(gen_buffer);
-    if (res !=0)
+	bool res;
+    res=cloud_server->SendMessage(msg);	// returns bool, TRUE= success, else FALSE
+    if (!res)
     {
-        // res has the error code
+		printf("ERROR sending data\n");
     }
+	else
+	{
+		printf("data sent successfully\n");
+	}
     int bytecount;
     char *ptr;
     ptr=cloud_server->ReceiveMessage(&bytecount);
