@@ -269,11 +269,12 @@ void PrintConfig(void);
 // CLOUD CONNECTION
 SOCKET * cloud_server = new SOCKET(TCP_CONNECTION); // instantiate our cloud socket
 void ConnectCloud(void);
-void SendCloud(char * msg);
+void SendCloud(string pkttype, string filename, char * msg);
 
-
+ // tbl can be a single table name or several tbls separated by space
+// for either of the following functions
 bool SendTableToServer(string tbl);
-string DumpSQLTable(string tbl);		// tbl can be a single table name or several tbls separated by space
+string DumpSQLTable(string tbl);
 
 
 /*
@@ -766,7 +767,8 @@ struct
 
     // logs
     char logdbf[10];
-    char logfile[10];
+    char logenabled[10];		// enabled/disabled
+	char logfile[40];
     char logremotedbf[10];
 
     // remote
@@ -1088,9 +1090,10 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	SetMainScreenTitle();
 
 	// if enabled, connect to the remote server
-//	ConnectCloud();
-	string tbl="users devices";
-	SendTableToServer(tbl);
+	ConnectCloud();
+
+//	string tbl="users devices";
+//	SendTableToServer(tbl);
 
 
 	#ifdef FULLSCREEN
@@ -5174,11 +5177,17 @@ bool ConfigSetup(bool silent)
 			else
 				strcpy(cfg.logremotedbf,  (char*)"disabled");
 
-			pelem = elem->FirstChildElement("file");
+			pelem = elem->FirstChildElement("fileenable");
 			if (pelem)
-				strcpy(cfg.logfile, (char*) pelem->GetText());
+				strcpy(cfg.logenabled, (char*) pelem->GetText());
 			else
-				strcpy(cfg.logfile,  (char*)"disabled");
+				strcpy(cfg.logenabled,  (char*)"disabled");
+
+            pelem = elem->FirstChildElement("logfile");
+            if (pelem)
+                strcpy(cfg.logfile, (char*) pelem->GetText());
+            else
+                strcpy(cfg.logfile,  (char*)"/var/log/vsafe.log");
 
 		}
 
@@ -5338,7 +5347,8 @@ void PrintConfig(void)
 	// logs
 	printf("LOGS\n");
     printf("logdbf: %s\n", cfg.logdbf);
-    printf("logfile: %s\n", cfg.logfile);
+    printf("logenabled: %s\n", cfg.logenabled);
+	printf("logfile: %s\n",cfg.logfile);
     printf("logremotedbf: %s\n", cfg.logremotedbf);
 
     // remote
@@ -5560,6 +5570,8 @@ bool SendTableToServer(string tbl)
 
     returns pathname of the created table
     returns "error" on error
+
+	NOTE: tbl can be a single name or multiple separated by spaces
 */
 
 string DumpSQLTable(string tbl)
@@ -5626,7 +5638,7 @@ printf("%s\n",gen_buffer);
 	sleep(2);
     char msg[200]="hello world";
     printf("Sending: %s\n",msg);
-    SendCloud(msg);
+    SendCloud("MSG","",msg);
 /*
 	sleep(2);
 
@@ -5638,9 +5650,39 @@ printf("%s\n",gen_buffer);
 }
 
 
-void SendCloud(char * msg)
+/*
+	Supported packet types
+	"MSG" - simply a text message
+	"FILE" - a file is in the payload section
+
+
+	PACKET FORMAT
+	type	char [30]	- will determine destination for the payload
+	fname	char [30]	- if type= 'FILE' => goes to this filename
+	payload	xxxx
+
+
+	type[30] fname[50] payload[xx]
+
+
+*/
+
+#define CLOUD_PTYPE_LEN 30
+#define CLOUD_FNAME_LEN 50
+
+void SendCloud(string ptype, string fname, char * msg)
 {
+
 	bool res;
+	char pkttype[CLOUD_PTYPE_LEN];
+	char filename[CLOUD_FNAME_LEN];
+
+	bzero(pkttype,CLOUD_PTYPE_LEN);
+	bzero(filename,CLOUD_FNAME_LEN);
+	strncpy(pkttype,ptype.c_str(),CLOUD_PTYPE_LEN);
+	strncpy(filename,fname.c_str(),CLOUD_FNAME_LEN);
+
+
     res=cloud_server->SendMessage(msg);	// returns bool, TRUE= success, else FALSE
     if (!res)
     {
@@ -5674,6 +5716,7 @@ for (n=0; n<10; n++)
 
 
 }
+
 
 
 

@@ -348,7 +348,8 @@ DROP TABLE IF EXISTS `devices`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `devices` (
   `device_id` int(5),
-  `description` varchar(30),
+  `class_id` int(5),
+  `mfg` varchar(20),
   `model` varchar(25),
   `id` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
@@ -357,8 +358,27 @@ CREATE TABLE `devices` (
 
 LOCK TABLES `devices` WRITE;
 /*!40000 ALTER TABLE `devices` DISABLE KEYS */;
-INSERT INTO `devices` VALUES ('100','MEI validator','SCNL6627R','1');
+INSERT INTO `devices` VALUES (100,100,'MEI','SCNL6627R',1),(101,200,'fki','xUTD-model',2);
 /*!40000 ALTER TABLE `devices` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `device_class`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `device_class` (
+  `class` varchar(30),
+  `class_id` int(5),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='device_class';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+LOCK TABLES `device_class` WRITE;
+/*!40000 ALTER TABLE `device_class` DISABLE KEYS */;
+INSERT INTO `device_class` VALUES ('validator',100,1),('utd',200,2),('ucd',300,3),('lock',400,4),('pelicano',500,5),('gsr50',600,6);
+/*!40000 ALTER TABLE `device_class` ENABLE KEYS */;
 UNLOCK TABLES;
 
 

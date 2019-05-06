@@ -1,9 +1,4 @@
 #!/bin/bash
 
 
-if [ -d "/home/garyc" ]; then
-	mysql -uroot -p'v|per101' fking < fking.sql
-else
-	mysql -uroot -p'b0whunter' fking < fking.sql
-fi
-
+mysql -u'fkinguser101' -p'glimpbust345' fking < fking.sql

@@ -37,7 +37,8 @@
 	<logs>
 		<mysql>disabled</mysql>
 		<remotedbf>disabled</remotedbf>
-		<file>enabled</file>
+		<fileenable>enabled</fileenable>
+		<logfile>/var/logs/vsafe.log</logfile>
 	</logs>
 	<remote>
 		<clientportal>enabled</clientportal>
