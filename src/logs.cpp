@@ -25,7 +25,7 @@ using namespace std;
 #include <stdint.h>
 #include <stdio.h>
 
-char syslog[]="../logs/fireking.log";
+char syslog[]="/var/log/fireking.log";
 char partlog[] = "../logs/parthistory.log";
 
 
@@ -68,7 +68,7 @@ bool WriteSystemLog(char * newmsg)
 	char sysmsg[500];
 
 	chomp(newmsg);
-
+/*
 	switch(OpMode)
 	{
 	case Manual_mode:
@@ -90,7 +90,7 @@ bool WriteSystemLog(char * newmsg)
 		msg = "unknown";
 		break;
 	}
-
+*/
 	char *ptr = TimeStamp();
 	chomp(ptr);
 	
