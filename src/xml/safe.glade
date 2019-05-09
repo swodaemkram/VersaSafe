@@ -2971,6 +2971,7 @@ FRIDAY
                 <property name="name">seluser_lbl</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="label" translatable="yes">user</property>
               </object>
               <packing>
                 <property name="expand">False</property>
