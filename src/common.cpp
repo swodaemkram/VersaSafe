@@ -49,6 +49,7 @@ void ShowFreeMem(int state);
 void GetDate(void);
 void ShowLinuxVersion(void);
 int CreateDirectory(char *path);
+string DumpSQLTable(string tbl);
 
 
 // file system oriented functions
@@ -60,7 +61,7 @@ bool CreateBackup(char *filename);
 bool CopyFile(char *srcfile, char * destfile);
 int FileDirExists(char * dirpath);
 int MakeDir(char * dirpath);
-
+string ReadFile(string filename);
 
 
 
@@ -78,8 +79,8 @@ int current_year;
 int current_month;
 int current_day;
 
-bool fhs_ready_bit;
-int inches_mm;	// 0=inches, 1=mm
+//bool fhs_ready_bit;
+//int inches_mm;	// 0=inches, 1=mm
 
 
 /*
@@ -255,6 +256,30 @@ bool CopyFile(char *srcfile, char * destfile)
 
 }
 
+
+/*
+	read a file into a string
+
+	RETURNS: file in a string -OR- "file not found"
+
+
+*/
+
+string ReadFile(string filename)
+{
+	string file_contents;
+
+    if ( !file_exists(filename.c_str() ))
+	{
+		return "file not found";
+	}
+
+
+	ifstream infile { filename.c_str() };
+	file_contents { istreambuf_iterator<char>(infile), istreambuf_iterator<char>() };
+
+	return file_contents;
+}
 
 
 /*

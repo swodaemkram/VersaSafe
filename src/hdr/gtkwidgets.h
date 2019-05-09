@@ -122,6 +122,9 @@ typedef struct
 	GtkLabel *lastmodified_lbl;
 	GtkWidget *user_add_btn;
 	GtkWidget *user_del_btn;
+	GtkWidget *user_up_btn;
+	GtkWidget *user_dn_btn;
+	GtkWidget *user_edit_btn;
 
 	GtkWidget *username_txt;
 	GtkWidget *firstname_txt;

@@ -44,6 +44,7 @@ extern void GeneralSetup(void);
 extern void ShowLinuxVersion(void);
 
 
+
 extern char * TimeStamp(void);
 
 
@@ -66,5 +67,5 @@ extern int CreateDirectory(char *path);
 extern bool CopyFile(char *srcfile, char * destfile);
 extern int FileDirExists(char * dirpath);
 extern int MakeDir(char * dirpath);
-
+extern string ReadFile(string filename);
 

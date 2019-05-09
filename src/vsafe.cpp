@@ -269,7 +269,7 @@ void PrintConfig(void);
 // CLOUD CONNECTION
 SOCKET * cloud_server = new SOCKET(TCP_CONNECTION); // instantiate our cloud socket
 void ConnectCloud(void);
-void SendCloud(string pkttype, string filename, char * msg);
+bool SendCloud(string pkttype, string filename, char * msg);
 
  // tbl can be a single table name or several tbls separated by space
 // for either of the following functions
@@ -297,7 +297,7 @@ string DumpSQLTable(string tbl);
 string current_user;
 string current_pw;
 
-struct
+struct user_rec
 {
 	string username;
 	string password;
@@ -306,10 +306,14 @@ struct
 	string lname;
 	string user_level;
 	string dept;
+	string created;
 	string lastmodified;
 	string active;
 	string id;
-} current_user_rec;
+};
+
+
+user_rec current_user_rec;
 
 bool WriteUserRecord(void);
 bool ReadUserRecord(string username,string password);
@@ -340,6 +344,11 @@ void PopulateDeptCombo(void);
 void PopulateUserLangsCombo(void);
 void PopulateUserLevelCombo(void);
 void SetCurrentUserSelections(void);
+
+unsigned int user_count;
+int GetUserCount(void);	// sets above var
+user_rec *users=NULL;
+void GetAllUsers(void);
 
 
 
@@ -595,6 +604,7 @@ void ShowAdmin(void);
 void ShowUserList(void);
 void AddListItem(GtkWidget * list, char *txt);
 static GtkWidget * create_row(const gchar *txt);
+const char* GetRowText(void);
 
 
 
@@ -782,6 +792,9 @@ struct
 
 	// timeouts
 	char validator_timeout[10];
+
+	// api
+	char api_port[10];
 } cfg;
 
 
@@ -794,6 +807,8 @@ struct
 
 void local_cleanup(void)
 {
+
+	delete[] users;
 
 	KillConnections();
 
@@ -1092,8 +1107,8 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	// if enabled, connect to the remote server
 	ConnectCloud();
 
-//	string tbl="users devices";
-//	SendTableToServer(tbl);
+	string tbl="users devices";
+	SendTableToServer(tbl);
 
 
 	#ifdef FULLSCREEN
@@ -2450,6 +2465,80 @@ return;
     gtk_widget_show(app_ptr->user_window);
 
 }
+
+
+/*
+	Get the selected row from user_listbox and return the text
+
+	the listbox is arranged as follows...
+
+	GTK+3 only
+
+	Gtk_listbox
+	|____Gtk_listboxrow
+		|_____ Gtk_box
+				|_______Gtk_label (which is where our text resides
+
+	to retrieve the text, first get the selected row pointer
+	then get a list of the children (there is only one, a box)
+	get that child
+	then get its children, there is only one, a label
+	then get the text from the label
+
+*/
+
+const char* GetRowText(void)
+{
+    // we havea GtkListBoxRow --> GtkBox --> GtkLabel
+
+    // get the selected row
+    GtkListBoxRow * selrow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+    // get the children of the selected row (a box)
+    GList *children = gtk_container_get_children(GTK_CONTAINER(selrow));
+    // get the box connected to the above row
+    GtkWidget *childbox = GTK_WIDGET(children->data);   // get children of the row, eg a box
+
+    // get the children of the above box (a label)
+    GList *childlbl = gtk_container_get_children(GTK_CONTAINER(childbox));
+
+    // get the data from the label
+    const gchar * txt = gtk_label_get_text(GTK_LABEL(childlbl->data) );
+
+	// be a good neighbor
+    g_list_free(children);
+    g_list_free(childlbl);
+
+	return txt;
+}
+
+
+
+extern "C" bool on_user_up_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+//	gint index=gtk_list_box_row_get_index (GtkListBoxRow *row);
+//    gint index=gtk_list_box_row_get_index (selrow);
+
+	const char * txt = GetRowText();
+printf("===============================\n");
+printf("SELECTED::: %s\n",txt);
+printf("===============================\n");
+
+
+}
+
+extern "C" bool on_user_dn_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+}
+
+extern "C" bool on_user_edit_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	gint index;
+	GtkListBoxRow * row = gtk_list_box_get_row_at_index ((GtkListBox *) app_ptr->user_listbox,  index);
+	GtkListBoxRow * grow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+}
+
 
 
 /*
@@ -4886,16 +4975,18 @@ extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
 void ShowUserList(void)
 {
 
-printf("SHOWUSERLIST\n");
-	string str1="gary";
-	string str2="";
+	GetAllUsers();
 
-	for (int n=0; n <30; n++)
+printf("SHOWUSERLIST\n");
+
+	for (int n=0; n <user_count; n++)
 	{
-		str2= str1 + to_string(n);
-		sprintf(gen_buffer,"%s",str2.c_str());
+		sprintf(gen_buffer,"%s %s %s",users[n].username.c_str(), users[n].fname.c_str(), users[n].lname.c_str()  );
 		AddListItem(app_ptr->user_listbox,gen_buffer );
 	}
+
+
+
     gtk_widget_show_all(app_ptr->userlist_window);
 }
 
@@ -4939,12 +5030,16 @@ extern "C" bool on_userlist_close_btn_clicked( GtkButton *button, AppWidgets *ap
 
 */
 
+
 // add the text to a listbox
 void AddListItem(GtkWidget * list, char *txt)
 {
     GtkWidget *row;
     row = create_row(txt);
     gtk_list_box_insert(GTK_LIST_BOX(list),row,-1);
+
+
+
 }
 
 
@@ -4965,6 +5060,68 @@ static GtkWidget * create_row(const gchar *txt)
 //=========================================================
 //              END LISTBOX FUNCTIONS
 //=========================================================
+
+
+/*
+	get a count of all users in the database
+
+*/
+
+int GetUserCount(void)
+{
+    char query[200];
+    sprintf(query,"SELECT id FROM users");
+
+    int result =  QueryDBF(&localDBF,query);
+	user_count = GetRow(&localDBF);
+
+}
+
+
+
+/*
+	read all active users in the database and populate users array of structs
+
+*/
+
+void GetAllUsers(void)
+{
+	GetUserCount();
+
+	users = new user_rec[user_count];
+
+	char query[200];
+	sprintf(query,"SELECT username,lang,fname,lname,user_level,dept,created,lastmodified,active,id FROM users WHERE active='1'");
+
+	int result =  QueryDBF(&localDBF,query);
+	int numrows = GetRow(&localDBF);
+
+    if (numrows !=0)
+    {
+		for (int n=0; n < numrows; n++)
+		{
+			users[n].username = string(localDBF.row[0]);
+			users[n].lang = string(localDBF.row[1]);
+			users[n].fname =  string(localDBF.row[2]);
+			users[n].lname = string(localDBF.row[3]);
+			users[n].user_level = localDBF.row[4];
+			users[n].dept = string(localDBF.row[5]);
+            users[n].created = string(localDBF.row[6]);
+			users[n].lastmodified = string(localDBF.row[7]);
+			users[n].active = localDBF.row[8];
+			users[n].id = localDBF.row[9];
+
+//       printf("User: %s  %s  %s\n",users[n].username.c_str(), users[n].fname.c_str(), users[n].lname.c_str() );
+			GetRow(&localDBF);  // get next row
+		}
+
+
+//	int numusers = sizeof(users)/sizeof(users[0]);
+//	printf("Users (calc): %d   returned: %d\n",numusers , numrows);
+	}
+
+	return;
+}
 
 
 
@@ -5241,6 +5398,14 @@ bool ConfigSetup(bool silent)
 
 		}
 
+        if(elemName == "logs")
+        {
+            pelem = elem->FirstChildElement("mysql");
+            if (pelem)
+                strcpy(cfg.logdbf, (char*) pelem->GetText());
+            else
+                strcpy(cfg.logdbf, (char*) "disabled");
+		}
 
 		if (elemName == "remoteDBF")
 		{
@@ -5544,23 +5709,39 @@ void ReHomeKB(void)
 	send tbl to the remote server
 	tbl can actually be several tables separated by space
 
+	RETURNS: TRUE on success, else FALSE
 */
 
 bool SendTableToServer(string tbl)
 {
 	string tbl_name;
-
+	string fcontents;
+	bool ret;
 
 	tbl_name= DumpSQLTable(tbl);	// uses mysqldump to dump table to tmp/tbl.sql
 
 	if (tbl_name=="error")
 	{
 		return FALSE;
+
 	}
 
 	printf("TABLE NAME:: %s\n",tbl_name.c_str() );
 
+	// read the file into a string
+	fcontents=ReadFile(tbl_name);
 
+//TODO must log this
+	if (fcontents == "file not found")
+	{
+		printf("ERROR: file not found\n");
+		return FALSE;
+	}
+
+	ret=SendCloud("FILE", tbl, (char *) fcontents.c_str() );
+	if (!ret) return FALSE;
+
+	return TRUE;
 }
 
 
@@ -5665,28 +5846,39 @@ printf("%s\n",gen_buffer);
 	type[30] fname[50] payload[xx]
 
 
+	NOTE: msg must be an ASCIZ string and therefore cannot contain binary data
+
 */
 
 #define CLOUD_PTYPE_LEN 30
 #define CLOUD_FNAME_LEN 50
 
-void SendCloud(string ptype, string fname, char * msg)
+bool SendCloud(string ptype, string fname, char * msg)
 {
 
 	bool res;
 	char pkttype[CLOUD_PTYPE_LEN];
 	char filename[CLOUD_FNAME_LEN];
 
+	int pktlen= CLOUD_PTYPE_LEN+CLOUD_FNAME_LEN+strlen(msg);
+	char packet[pktlen];
+
 	bzero(pkttype,CLOUD_PTYPE_LEN);
 	bzero(filename,CLOUD_FNAME_LEN);
 	strncpy(pkttype,ptype.c_str(),CLOUD_PTYPE_LEN);
 	strncpy(filename,fname.c_str(),CLOUD_FNAME_LEN);
 
+	// now assemble the packet
+	memcpy(packet,pkttype,CLOUD_PTYPE_LEN);
+	memcpy(&packet[CLOUD_PTYPE_LEN],&filename[0],CLOUD_FNAME_LEN);
+	memcpy(&packet[CLOUD_PTYPE_LEN+CLOUD_FNAME_LEN],msg,strlen(msg));
 
-    res=cloud_server->SendMessage(msg);	// returns bool, TRUE= success, else FALSE
+
+    res=cloud_server->SendMessageBinary(packet,pktlen);	// returns bool, TRUE= success, else FALSE
     if (!res)
     {
 		printf("ERROR sending data\n");
+		return FALSE;
     }
 	else
 	{
@@ -5714,7 +5906,7 @@ for (n=0; n<10; n++)
 	sleep(1);
 }
 
-
+	return TRUE;
 }
 
 
