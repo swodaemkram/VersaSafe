@@ -38,7 +38,7 @@
 		<mysql>disabled</mysql>
 		<remotedbf>disabled</remotedbf>
 		<fileenable>enabled</fileenable>
-		<logfile>/var/logs/vsafe.log</logfile>
+		<logfile>/var/logs/fireking.log</logfile>
 	</logs>
 	<remote>
 		<clientportal>enabled</clientportal>
@@ -52,5 +52,8 @@
 	<timeouts>
 		<validator>30</validator>
 	</timeouts>
+	<api>
+		<port>1132</port>
+	</api>
 </config>
 

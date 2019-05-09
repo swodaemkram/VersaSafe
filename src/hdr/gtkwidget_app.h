@@ -88,6 +88,9 @@
 	// userlist
 	appGET(userlist_close_btn);
 	appGET(user_listbox);
+	appGET(user_up_btn);
+	appGET(user_dn_btn);
+	appGET(user_edit_btn);
 
 	// keyboard
 	appGET(keyboard_grid);
