@@ -91,6 +91,7 @@
 	appGET(user_up_btn);
 	appGET(user_dn_btn);
 	appGET(user_edit_btn);
+	appGET_LABEL(seluser_lbl);
 
 	// keyboard
 	appGET(keyboard_grid);

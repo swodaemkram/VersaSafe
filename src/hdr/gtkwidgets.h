@@ -62,6 +62,7 @@ typedef struct
 	//userlist
 	GtkWidget *userlist_close_btn;
 	GtkWidget *user_listbox;
+	GtkLabel *seluser_lbl;
 
 	// keyboard
 	GtkWidget *login_pad_target;
