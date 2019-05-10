@@ -267,16 +267,16 @@ bool CopyFile(char *srcfile, char * destfile)
 
 string ReadFile(string filename)
 {
-	string file_contents;
 
-    if ( !file_exists(filename.c_str() ))
+    if ( !file_exists(  (char *)filename.c_str() ))
 	{
-		return "file not found";
+		string fnf="file not found";
+		return fnf;
 	}
 
 
 	ifstream infile { filename.c_str() };
-	file_contents { istreambuf_iterator<char>(infile), istreambuf_iterator<char>() };
+	string file_contents { istreambuf_iterator<char>(infile), istreambuf_iterator<char>() };
 
 	return file_contents;
 }

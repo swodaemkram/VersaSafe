@@ -798,6 +798,10 @@ struct
 } cfg;
 
 
+int GetAPIport(void);
+
+
+
 
 
 
@@ -2430,8 +2434,6 @@ void ShowUser(void)
 			user_active_switch,user_id_lbl
 */
 
-	ShowUserList();
-return;
 
 	bool ret=ReadUserRecord(current_user,"");
 
@@ -2467,95 +2469,8 @@ return;
 }
 
 
-/*
-	Get the selected row from user_listbox and return the text
-
-	the listbox is arranged as follows...
-
-	GTK+3 only
-
-	Gtk_listbox
-	|____Gtk_listboxrow
-		|_____ Gtk_box
-				|_______Gtk_label (which is where our text resides
-
-	to retrieve the text, first get the selected row pointer
-	then get a list of the children (there is only one, a box)
-	get that child
-	then get its children, there is only one, a label
-	then get the text from the label
-
-*/
-
-const char* GetRowText(void)
-{
-    // we havea GtkListBoxRow --> GtkBox --> GtkLabel
-
-    // get the selected row
-    GtkListBoxRow * selrow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
-
-    // get the children of the selected row (a box)
-    GList *children = gtk_container_get_children(GTK_CONTAINER(selrow));
-    // get the box connected to the above row
-    GtkWidget *childbox = GTK_WIDGET(children->data);   // get children of the row, eg a box
-
-    // get the children of the above box (a label)
-    GList *childlbl = gtk_container_get_children(GTK_CONTAINER(childbox));
-
-    // get the data from the label
-    const gchar * txt = gtk_label_get_text(GTK_LABEL(childlbl->data) );
-
-	// be a good neighbor
-    g_list_free(children);
-    g_list_free(childlbl);
-
-	return txt;
-}
 
 
-
-extern "C" bool on_user_up_btn_clicked( GtkButton *button, AppWidgets *app)
-{
-//	gint index=gtk_list_box_row_get_index (GtkListBoxRow *row);
-//    gint index=gtk_list_box_row_get_index (selrow);
-
-	const char * txt = GetRowText();
-printf("===============================\n");
-printf("SELECTED::: %s\n",txt);
-printf("===============================\n");
-
-
-}
-
-extern "C" bool on_user_dn_btn_clicked( GtkButton *button, AppWidgets *app)
-{
-}
-
-extern "C" bool on_user_edit_btn_clicked( GtkButton *button, AppWidgets *app)
-{
-	gint index;
-	GtkListBoxRow * row = gtk_list_box_get_row_at_index ((GtkListBox *) app_ptr->user_listbox,  index);
-	GtkListBoxRow * grow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
-
-}
-
-
-
-/*
-	add a new user
-
-*/
-extern "C" bool on_user_add_btn_clicked( GtkButton *button, AppWidgets *app)
-{
-}
-
-
-/*
-	delete displayed user
-*/
-extern "C" bool on_user_del_btn_clicked( GtkButton *button, AppWidgets *app)
-{
-}
 
 
 
@@ -2800,7 +2715,7 @@ extern "C" bool on_admin_close_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_user_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	ShowUser();
+	ShowUserList();
 }
 
 extern "C" bool on_eod_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -4981,7 +4896,7 @@ printf("SHOWUSERLIST\n");
 
 	for (int n=0; n <user_count; n++)
 	{
-		sprintf(gen_buffer,"%s %s %s",users[n].username.c_str(), users[n].fname.c_str(), users[n].lname.c_str()  );
+		sprintf(gen_buffer,"%s %s %s %s",users[n].username.c_str(), users[n].fname.c_str(), users[n].lname.c_str(), users[n].user_level.c_str()  );
 		AddListItem(app_ptr->user_listbox,gen_buffer );
 	}
 
@@ -4996,6 +4911,181 @@ printf("SHOWUSERLIST\n");
 extern "C" bool on_userlist_close_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     gtk_widget_hide(app_ptr->userlist_window);
+}
+
+
+
+/*
+    Get the selected row from user_listbox and return the text
+
+    the listbox is arranged as follows...
+
+    GTK+3 only
+
+    Gtk_listbox
+    |____Gtk_listboxrow
+        |_____ Gtk_box
+                |_______Gtk_label (which is where our text resides
+
+    to retrieve the text, first get the selected row pointer
+    then get a list of the children (there is only one, a box)
+    get that child
+    then get its children, there is only one, a label
+    then get the text from the label
+
+*/
+
+const char* GetRowText(void)
+{
+    // we havea GtkListBoxRow --> GtkBox --> GtkLabel
+
+    // get the selected row
+    GtkListBoxRow * selrow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+    // get the children of the selected row (a box)
+    GList *children = gtk_container_get_children(GTK_CONTAINER(selrow));
+    // get the box connected to the above row
+    GtkWidget *childbox = GTK_WIDGET(children->data);   // get children of the row, eg a box
+
+    // get the children of the above box (a label)
+    GList *childlbl = gtk_container_get_children(GTK_CONTAINER(childbox));
+
+    // get the data from the label
+    const gchar * txt = gtk_label_get_text(GTK_LABEL(childlbl->data) );
+
+
+    gtk_label_set_label( GTK_LABEL(app_ptr->seluser_lbl),txt );
+
+
+    // be a good neighbor
+    g_list_free(children);
+    g_list_free(childlbl);
+
+    return txt;
+}
+
+
+extern "C" bool on_user_listbox_row_selected( GtkButton *button, AppWidgets *app)
+{
+    const char * txt = GetRowText();
+
+    vector <string> usr=split(txt," ");     // usr[0] = username usr[1] = fname usr[2] = lname
+
+
+    printf("===============================\n");
+    printf("SELECTED::: %s\n",txt);
+    printf("===============================\n");
+
+}
+
+
+
+
+
+
+extern "C" bool on_user_up_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    GtkListBoxRow * row;
+
+    // get current row
+    row= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+
+    // get current row's index
+    gint index = gtk_list_box_row_get_index (row);
+//printf("UP INDEX: %d\n",index);
+
+    if (index >0)
+        index--;    // move to prev row
+    else
+        return TRUE;
+
+    // get the row at the new index
+    row = gtk_list_box_get_row_at_index ( (GtkListBox *)app_ptr->user_listbox,  index);
+
+    // now select the new row
+    gtk_list_box_select_row ((GtkListBox *)app_ptr->user_listbox,row);
+
+
+}
+
+
+
+
+extern "C" bool on_user_dn_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    GtkListBoxRow * row;
+
+    // get current row
+    row= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+// NOT NEEDED, DOES THIS AUTOMAGICALLY
+// un-select current row
+//  gtk_list_box_unselect_row ((GtkListBox *)app_ptr->user_listbox,  row);
+
+    // get current row's index
+    gint index = gtk_list_box_row_get_index (row);
+//printf("DOWN INDEX: %d\n",index);
+
+    if (index < user_count-1)
+        index++;    // move to next row
+    else
+        return TRUE;
+
+    // get the row at the new index
+    row = gtk_list_box_get_row_at_index ( (GtkListBox *)app_ptr->user_listbox,  index);
+
+    // now select the new row
+    gtk_list_box_select_row ((GtkListBox *)app_ptr->user_listbox,row);
+
+}
+
+extern "C" bool on_user_edit_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    const char * txt = GetRowText();
+
+    vector <string> usr=split(txt," ");     // usr[0] = username usr[1] = fname usr[2] = lname
+
+    // set curent_user before calling
+	current_user=usr[0];
+    ShowUser();
+
+}
+
+
+
+/*
+    add a new user
+
+*/
+extern "C" bool on_user_add_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+
+}
+
+/*
+    delete displayed user
+*/
+extern "C" bool on_user_del_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    const char * txt = GetRowText();
+
+    vector <string> usr=split(txt," ");     // usr[0] = username usr[1] = fname usr[2] = lname
+
+    // set curent_user before calling
+    current_user=usr[0];
+
+    char query[200];
+    sprintf(query,"DELETE FROM users WHERE username='%s';",usr[0].c_str() );
+
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+
+    if (numrows !=0)
+		ShowStatus("User DELETED");
+	else
+		ShowStatus("ERROR deleting user");
+
 }
 
 
@@ -5398,14 +5488,16 @@ bool ConfigSetup(bool silent)
 
 		}
 
-        if(elemName == "logs")
+        if(elemName == "api")
         {
-            pelem = elem->FirstChildElement("mysql");
+            pelem = elem->FirstChildElement("port");
             if (pelem)
                 strcpy(cfg.logdbf, (char*) pelem->GetText());
             else
-                strcpy(cfg.logdbf, (char*) "disabled");
+                strcpy(cfg.logdbf, (char*) "1132");
 		}
+
+
 
 		if (elemName == "remoteDBF")
 		{
@@ -5910,6 +6002,10 @@ for (n=0; n<10; n++)
 }
 
 
+int GetAPIport(void)
+{
+    return atoi(cfg.api_port);
+}
 
 
 
