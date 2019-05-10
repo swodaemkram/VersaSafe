@@ -1012,11 +1012,10 @@ void mei_add_to_inventory_database(float value, int therow )
 	  results = mysql_use_result(conn);
       row = mysql_fetch_row(results);
 	  printf("%s %s %s %s %s %s %s %s\n", row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
-	  currenttotal = row[therow];
-	  total = currenttotal + value;
+	  //currenttotal = row[therow];
+	  //total = currenttotal + value;
 	  printf("\nthe total is %f\n",total);
-
-	  //mysql_query(conn, "INSERT INTO inventory ")
+	  mysql_query(conn, "UPDATE `fking`.`inventory` SET `field_1`='2.00' WHERE `id`='1'");
 
 
 
