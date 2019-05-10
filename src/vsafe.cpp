@@ -2604,7 +2604,6 @@ extern "C" void on_user_dept_combo_changed( GtkComboBox *widget, gpointer user_d
 }
 
 
-//TODO
 extern "C" void on_user_active_switch_state_set( GtkComboBox *widget, gpointer user_data)
 {
     user_info_saved=FALSE;
@@ -2613,31 +2612,38 @@ extern "C" void on_user_active_switch_state_set( GtkComboBox *widget, gpointer u
 }
 
 
-
+int dept_index;
 void PopulateDeptCombo(void)
 {
 	for (int n=0; n < dept_count; n++)
 	{
+		if (depts[n].department == current_user_rec.dept) dept_index=n;
 		gtk_combo_box_text_append_text(app_ptr->user_dept_combo,depts[n].department.c_str() );
 	}
 }
 
 
+int user_level_index;
 void PopulateUserLevelCombo(void)
 {
 
     for (int n=0; n < user_level_count; n++)
     {
-		if ( user_levels[n].level != GOD_MODE)		// dont show this one
+		if (user_levels[n].level == stoi(current_user_rec.user_level)) user_level_index=n;
+
+//		if ( user_levels[n].level != GOD_MODE)		// dont show this one
 	        gtk_combo_box_text_append_text( app_ptr->userlevel_combo,user_levels[n].name.c_str()  );
     }
 
 }
 
+int lang_index=0;
 void PopulateUserLangsCombo(void)
 {
+
     for (int n=0; n < lang_count; n++)
     {
+		if (langs[n].code == current_user_rec.lang) lang_index=n;
 		if (langs[n].active == 1)
 	        gtk_combo_box_text_append_text( app_ptr->lang_combo,langs[n].code.c_str()  );
     }
@@ -2645,14 +2651,12 @@ void PopulateUserLangsCombo(void)
 
 
 /*
-//TODO - SetCurrentUserSelections() - must finish
 
 	set current selection for..
 	active (user_active_switch)
 	lang (lang_combo)
 	user_level (userlevel_combo)
 	dept (user_dept_combo)
-	language (lang_combo)
 
 */
 void SetCurrentUserSelections(void)
@@ -2664,19 +2668,15 @@ void SetCurrentUserSelections(void)
 
     gtk_switch_set_state (app_ptr->user_active_switch, uactive);
 
-/*
-    gchar *item_text = 0;   // selected item text from text combo box
 
-    // get selected item text from GtkComboBoxText object
-    item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->lock_hr));
-    if (item_text == NULL)
-    {
-    }
-    temp =  (string) item_text;
-    g_free(item_text);
-*/
+// set lang selection
+	gtk_combo_box_set_active ( GTK_COMBO_BOX(app_ptr->lang_combo),lang_index );
 
-//    gtk_combo_box_set_active(app_ptr->lock_hr,index);
+// set user_level selection
+	gtk_combo_box_set_active (GTK_COMBO_BOX(app_ptr->userlevel_combo), user_level_index);
+
+// set dept selection
+	gtk_combo_box_set_active (GTK_COMBO_BOX(app_ptr->user_dept_combo), dept_index);
 
 
 
@@ -5082,9 +5082,17 @@ extern "C" bool on_user_del_btn_clicked( GtkButton *button, AppWidgets *app)
     int numrows = GetRow(&localDBF);
 
     if (numrows !=0)
+	{
+		sprintf(gen_buffer,"DELETED user %s",usr[0].c_str());
 		ShowStatus("User DELETED");
+	}
 	else
-		ShowStatus("ERROR deleting user");
+	{
+        sprintf(gen_buffer,"ERROR deleting user %s",usr[0].c_str());
+ 		ShowStatus("ERROR deleting user");
+	}
+
+	WriteSystemLog(gen_buffer);
 
 }
 
