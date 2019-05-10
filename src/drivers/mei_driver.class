@@ -12,7 +12,6 @@
  No Flow Control
  =======================================================================================================================
  */
-
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,28 +33,52 @@
 #include <SerialPort.h>
 #include "mei_driver.h"
 #include "../hdr/global.h"
-#include "../trim.inc"   //Looks as if I am unable to use Gary's trim function for some reason with my IDE no big deal
-                         //more then one way to skin a cat
+#include "../trim.inc"
 #include "../logs.inc"
+#include <mysql.h>          //ONLY NEEDED TO PUT CASH IN DATABASE DIRECTLY WILL BE REMOVED IN THE FUTURE
+
+
+
+
+
 
 using namespace std;
 using namespace LibSerial;
 
-string mei_getresponse();                              //get a response from the MEI Validator
+string mei_getresponse(void);                              //get a response from the MEI Validator
 unsigned int mei_do_crc(char buff[], int buffer_len); //Preform crc on packet
 string mei_poll(void);                                //Poll MEI Device
 void mei_reset(void);                                 //Reset MEI
-//string get_mei_driver_version(void);
+string get_mei_driver_version(void);
 string mei_verify_bill(void);                        //Verify Bill
 void mei_stack_documents(void);                      //Put Bill in Drawer after verify
+void mei_stack_document_cmd(void);                    //Command sent to MEI to make it stack
+string mei_get_boort_ver_cmd(void);                   //Get Boot Version
+string mei_get_bnf_cmd(void);							//BNF command
+string mei_get_perf_cmd(void);							//Get Performance Command
+string mei_get_qp_cmd(void);								//TODO Figure out what this does
+string mei_get_version_cmd(void) ;                        // Get Version
+string mei_get_var_name_cmd(void);						// Get Variant Name
+string mei_get_app_version_cmd(void);					//Get Application Version
+string mei_get_serial_cmd(void)	;						//Get Serial Number
+
+
+
 
 SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
 //Version of the Driver//KEEP THIS GLOBAL ALSO
 	string get_mei_driver_version(void){
-		return "ver 00.00.99";
+		return "ver 00.01.09";
 	}
-
+/*
+===============================================================================================================================
+Global Variables
+===============================================================================================================================
+ */
+	string mei_query_type = "status";
+	string old_mei_rply1;
+	float mei_invntry;
 /*
 ===============================================================================================================================
 Start of the MEI Class
@@ -67,7 +90,6 @@ class mei {
 Start of MEI crc Function
 ===============================================================================================================================
 */
-//SerialStream mei_my_serial;
 private:
 
 unsigned int mei_do_crc(char buff[], int buffer_len){
@@ -99,7 +121,6 @@ private:
 char mei_buffer[200];
 int mei_status;
 
-
 public:
 bool mei_detected;
 string mei_portname;
@@ -126,7 +147,6 @@ public:
 		{
 			return mei_detected;
 		}
-
 /*
 ===========================================================================================================================
 Connect to MEI Validator Returns 1 on success 0 on fail
@@ -183,7 +203,6 @@ printf("Serial good\n");
 					return false;
 
 		}
-
 /*
 ===============================================================================================================================
  Connection to MEI Validator Completed
@@ -191,7 +210,6 @@ printf("Serial good\n");
 Private function check the connection status if connection haas been lost try to reconnect
 ===============================================================================================================================
 */
-
 private:
 
 bool mei_check_connection(void)
@@ -206,7 +224,6 @@ bool mei_check_connection(void)
 	}
 	return detected;
 }
-
 /*
 ===============================================================================================================================
 MEI Validator Setup processed after the Comm port connection is made
@@ -219,7 +236,6 @@ void mei_setup(void)
 	string mei_rply ="";
 	mei_rply = mei_getmodel();
 	//mei_reset();
-	//mei_rply = mei_verify_bill();
 	printf("MEI Validator model is a %s \n",mei_rply.c_str());
 	mei_detected = true;
 	return;
@@ -231,7 +247,6 @@ end of MEI Setup
 Get Response from MEI Validator This is the raw Hex data and needs to be processed in the returning function
 ================================================================================================================================
  */
-
 private:
 
 string mei_getresponse(){
@@ -243,60 +258,69 @@ string mei_getresponse(){
 	bzero(input_buffer,buff_size);
 	int char_pos = 0;
 	char next_char = {0};
-
+	//cout<<mei_query_type<<endl;  DEBUG STATUS OF STATE MACHINE
 	//printf("\nMEI GET RESPONSE CALLED\n");
 
-	mssleep(300); //This delay is very important it wont work without it. So I found out after several hours!
+	mssleep(200); //This delay is very important it wont work without it. So I found out after several hours!
 	while (mei_my_serial.rdbuf()->in_avail() )
 	{
-
 				mei_my_serial.get(next_char);
-		        if (next_char == '\03')
+		        if (next_char == '\03')                 //wait for the ETX then read the data
 				{
-					input_buffer[char_pos++]='\03';
-					mei_my_serial.get(next_char);
-					input_buffer[char_pos++]=next_char;
+					input_buffer[char_pos++]='\03';     //put the ETX character in the data
+					mei_my_serial.get(next_char);       //Get the next character this is the crc
+					input_buffer[char_pos++]=next_char; //Put the crc back in the string
 					break;
 				}
 			   input_buffer[char_pos] = next_char;
 		       char_pos++;
-
 		}
 //------------------------------------------------------------------------------------------------
-//    Check CRC of RXed packed
+//    Check CRC of RXed packet
 //------------------------------------------------------------------------------------------------
+			char crc_input_buffer[buff_size] = {0};
+			strncpy(crc_input_buffer,input_buffer,buff_size);
+			int y = 0;
 
-	//printf("char_pos = %d\n",char_pos); [DEBUG]
-				//MARKchar sent_crc = {0};
-                //MARKsent_crc = input_buffer[char_pos - 1];
-				//printf("sent_crc = %02x\n",sent_crc); [DEBUG]
-				//MARKint thecrc = 0;
-				//MARKthecrc = 0;
-				//MARKthecrc =  mei_do_crc(input_buffer,char_pos);
-				//printf("the crc = %02x",thecrc); //[DEBUG]
-				//MARKint thesize = strlen(input_buffer) - 1;
-				//printf("The rxed crc = %02x\n",input_buffer[thesize]);
-				//MARKif (thecrc != input_buffer[thesize]){
-				//MARK	return("");
-				//MARK}
+			while(y <= char_pos){
+				crc_input_buffer[y] = input_buffer[y];
+				y++;
+			}
+
+			int the_crc = input_buffer[char_pos - 1];
+			//printf("\nThe RXed CRC = %02x\n",the_crc);//DEBUG
+
+			crc_input_buffer[0]='\x00';
+			crc_input_buffer[char_pos - 2] = '\x00';
+			crc_input_buffer[char_pos - 1] = '\x00';
+
+			int local_crc = 0;
+			local_crc = mei_do_crc(crc_input_buffer, char_pos);
+			//printf("\nThe Local CRC = %02x\n",local_crc);//DEBUG
+            if(the_crc != local_crc)  //if the CRC was bad throw away data !
+            {
+            	return("");
+            }
 //-------------------------------------------------------------------------------------------------
 //End of CRC check of Packet
 //-------------------------------------------------------------------------------------------------
 // Print Rxed Packet in Hex so we can look at it
 //-------------------------------------------------------------------------------------------------
-//           printf("Hex Response from MEI = "); [DEBUG]
+           printf("Hex Response from MEI = ");// [DEBUG]
 			int w = 0;
 			while(w <= (char_pos -1) ){
-				printf("%02x",input_buffer[w]);
+				printf("\033[1;34m %02x",input_buffer[w]);
 				printf("|");
 				w++;
 			}
+//			printf("\n\033[0m");
 //-------------------------------------------------------------------------------------------------
 //Translate Data to English
 //-------------------------------------------------------------------------------------------------
-// Proccess Byto 0
+// Process Byte 0
 //-------------------------------------------------------------------------------------------------
-			switch (input_buffer[3])
+
+            switch (input_buffer[3])
 			{
 
 			case '\x00':
@@ -319,8 +343,9 @@ string mei_getresponse(){
 				printf(" MEI Validator is Stacking");
 				break;
 
-			case '\x16'	:
-				printf(" MEI Validator has Stacked");
+			case '\x11'	:
+				printf("\033[1;32m MEI Validator has Stacked\n\033[0m");
+				//return("Stacked");
 				break;
 
 			case '\x20' :
@@ -329,43 +354,51 @@ string mei_getresponse(){
 
 			case  '\x41':
 				printf("\033[1;32m MEI Validator has Returned\033[0m");
+				//return("Document Returned");
 				break;
 
 			}
+
 //----------------------------------------------------------------------------------------------
 //End of Processing Byte 0
 //----------------------------------------------------------------------------------------------
 // Process Byte 1
 //----------------------------------------------------------------------------------------------
+
 			switch (input_buffer[4])
 						{
 
 						case '\x01' :
 							printf(" | MEI Validator Cheated !");
+							return("Validator Cheated !");
 							break;
 
 						case '\x02' :
 							printf(" | MEI Validator Rejected !");
+							return("Validator Rejected !");
 							break;
 
 						case '\x04' :
-							printf(" | MEI Validator is Jamed");
+							printf(" | MEI Validator is Jamed !");
+							return("Validator is Jamed");
 							break;
 
 						case '\x08' :
-							printf(" | MEI Validator is Full");
+							printf(" | MEI Validator is Full !");
+							return("Validator if Full");
 							break;
 
-						case '\x10'	:
-							printf(" | MEI Validator Cassette has been removed");
+						case '\x00'	:
+							printf(" | Cassette has been removed !");
 							break;
-
 						}
+
 //---------------------------------------------------------------------------------------------
 // End of Processing Byte 1
 //---------------------------------------------------------------------------------------------
 //Processing Byte 3
 //---------------------------------------------------------------------------------------------
+
 			switch (input_buffer[5])
 									{
 
@@ -377,16 +410,16 @@ string mei_getresponse(){
 										printf(" | MEI Validator Failure !");
 										break;
 									}
+
 //----------------------------------------------------------------------------------------------
 //End of Processing Byte 3
 //----------------------------------------------------------------------------------------------
 //End of English Translation
 //----------------------------------------------------------------------------------------------
-			printf("\n");
+			printf("\n\033[0m");
 
 return string(input_buffer);
 }
-
 /*
 ===============================================================================================================================
 End of Response Function
@@ -394,7 +427,6 @@ End of Response Function
 the mssleep Function for the MEI class
 ===============================================================================================================================
 */
-
 void mssleep(int micros)
 {
     usleep(micros *1000);
@@ -410,10 +442,8 @@ private:
 
 void mei_sendstring(string str)
 {
-
 		mei_my_serial << str;
 }
-
 /*
 ==============================================================================================================================
 End of Send data to MEI
@@ -421,7 +451,6 @@ End of Send data to MEI
 MEI Reset Command (Static does not change)
 ==============================================================================================================================
  */
-
 public:
 
 void mei_reset(void)
@@ -433,7 +462,7 @@ void mei_reset(void)
 	char pkt[] = {0x02,0x08,0x60,0x7f,0x7f,0x7f,0x03,0x17};
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial << pkt;//<----DO NOT DO THIS ANY MORE USE mei_my_serial.write instead
-
+	sleep(2);
 }
 /*
 =============================================================================================================================
@@ -453,13 +482,10 @@ string mei_getmodel(void)
 	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write(pkt, sizeof(pkt)) ;
 	mei_rply1 = mei_getresponse();
-	//printf("Reply 1 was -> %s\n",mei_rply1.c_str());
 	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
-	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x04,0x03,0x0d}; //ACK Packet to send
-	//mei_my_serial << pktAk;
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x04,0x03,0x6d}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
 	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
-
-	//return(mei_rply1);
 	return(cleantext);
 }
 /*
@@ -469,35 +495,18 @@ The End of the MEI Get Model Command
 MEI Verify Bill Command
 ==============================================================================================================================
  */
-
 public:
 
 string mei_verify_bill(void)
 {
 
+	mei_query_type = "verify";						//set state machine to verify
 	printf("MEI Verify Bill called\n");
-	mei_reset();                                    //Reset the MEI
 	string mei_poll_response = {0};
-	unsigned int thecrc;
 	string mei_rply1 = {0};
-	char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
-	thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
-	pkt[6] = '\x03';                                //Stuff ETX
-	pkt[7] = thecrc;                                //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
-	mei_rply1 = mei_getresponse();                   //Get Reply
-	char pktAk[16] ="\x02\x08\x01\x2c\x7f\x10\x00"; //ACK Packet to send
-	thecrc = 0;                                      // Zero Out CRC
-	thecrc =  mei_do_crc(pktAk,sizeof(pktAk));         //Do CRC on new packet
-	pktAk[6] = '\x03';                                 //Stuff ETX
-	pktAk[7] = thecrc;                                 //Stuff CRC
-	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
-	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
-	mei_rply1 = "";
-	mei_rply1 = mei_getresponse();
-    mei_poll_response = mei_poll();                    // Poll MEI for response to command
-   	return(mei_poll_response);
+	mei_poll_response = mei_poll();                // Poll MEI for response to command
+    mei_query_type = "stndby"; 			    	//lets set the state machine back to standby
+	return(mei_poll_response);
 
 }
 /*
@@ -515,49 +524,148 @@ string mei_poll(void){
 	string mei_rply1 = {0};
 	time_t starttime = time(0);
 	string mei_old = {0};
+	int difftime = 0;
+	int ackstate = 0;
+	int polldelay = 0;
 
-		while(1){
-
-         if (mei_rply1[3] != mei_old[3]){                              //reset time out if MEI is doing something
-        	 time_t starttime = time(0);
-        	 mei_old[3] = mei_rply1[3];
-         }
+	while(1){
 
 		time_t currenttime = time(0);
-		int difftime = currenttime - starttime;
-		//cout<<difftime<<endl;
+		difftime = currenttime - starttime;
 		if (difftime >= 30) {
 			printf("\nTIME OUT!\n");
 			return("time out");
+			mei_query_type = "standby";
 		}
 
-		char pollpkt[8] = "\x02\x08\x10\x7f\x5c\x00\x00" ; //NEW POLL PACKET
+		//char pollpkt[8] = "\x02\x08\x10\x7f\x5c\x00\x00" ; //NEW POLL PACKET (RETURNS DOC)
+
+		char pollpkt[8] = "\x02\x08\x10\x1f\x14\x00"; //Test poll packet (WAITS ESCROWED UNTIL STACK COMMAND or RETURN COMMAND)
+
 		thecrc = 0;
 		thecrc =  mei_do_crc(pollpkt,sizeof(pollpkt));          //Do CRC
 		pollpkt[6] = '\x03';                                //Stuff ETX
 		pollpkt[7] = thecrc;                                //Stuff CRC
 		//printf("This is the cmd packet I'm sending 1st --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pollpkt[0],pollpkt[1],pollpkt[2],pollpkt[3],pollpkt[4],pollpkt[5],pollpkt[6],pollpkt[7]);
-		mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
-		mei_rply1 = mei_getresponse();                   //Get Reply
-		mei_ack(pollpkt, sizeof(pollpkt));
-		mei_rply1 = "";
-		mei_rply1 = mei_getresponse();
 
+if (ackstate == 0)
+{
+		mei_my_serial.write( pollpkt, sizeof(pollpkt)) ;         //Send Command
+		mei_rply1 = "";
+		mei_rply1 = mei_getresponse();                          //Get Reply
+		if (mei_rply1 == "")
+		{
+			printf("NO RESPONSE FROM MEI PLEASE CHECK CONNECTION!\n");
+			goto THEBOTTOM;
+		}
+		ackstate = 1;
+}
+else
+{
+		mei_ack(pollpkt, sizeof(pollpkt));						//Send ACK
+		mei_rply1 = "";
+		mei_rply1 = mei_getresponse();                          //Get ACK Reply
+		if (mei_rply1 == "")
+				{
+					printf("NO RESPONSE FROM MEI PLEASE CHECK CONNECTION!\n");
+					goto THEBOTTOM;
+				}
+		ackstate = 0;
+}
+//--------------------------------------------------------------------------------------------------------------
+//		Duplicate removal
+//--------------------------------------------------------------------------------------------------------------
+		mei_rply1[0] = '\x01';                      //Get rid of all the changing data we don't care about
+		mei_rply1[1] = '\x01';						//Get rid of all the changing data we don't care about
+		mei_rply1[2] = '\x01';						//Get rid of all the changing data we don't care about
+		mei_rply1[mei_rply1.size()-1] = '\x01';     //Get rid of all the changing data we don't care about
+													//We need the zero to terminate the string
+		if (mei_rply1 != old_mei_rply1){
+
+		int w = 0;
+		while(w <= mei_rply1.size())
+		{
+						printf("%02x",mei_rply1[w]);//Print the hex data while we debug
+						printf("|");                //Print a pipe character between the HEX
+						w++;
+		}
+		old_mei_rply1 = mei_rply1;
+		printf("\n");
+
+		}
+//--------------------------------------------------------------------------------------------------------------
+// Delay for good data the MEI has a tendency to send crap for several polls
+//              We will delay for 30 Packets
+//--------------------------------------------------------------------------------------------------------------
+		//if (polldelay++ <= 20 )goto THEBOTTOM;
+//--------------------------------------------------------------------------------------------------------------
+//Check for Removal of Cassette
+//--------------------------------------------------------------------------------------------------------------
+if (mei_rply1[4] == '\x00'){
+	printf("\nCASSETTE HAS BEEN REMOVED !\n");
+	printf("RESETTING INVENTORY !\n");
+	difftime = 0;            //reset timeout until cassette is returned
+	starttime = currenttime; //reset timeout until cassette is returned
+	mei_invntry = 0;
+}
+//--------------------------------------------------------------------------------------------------------------
+// Check State Machine for mode of operation
+//--------------------------------------------------------------------------------------------------------------
+if (mei_rply1[3] == '\x04' &&  mei_query_type == "stack")
+	{
+		 mei_stack_document_cmd();
+		 difftime = 0;            //reset timeout
+		 starttime = currenttime; //reset timeout
+	}
+//------------------------------------------------------------------------------------------------------------
+// Acknowledge Stacked Bills
+//------------------------------------------------------------------------------------------------------------
+if (mei_rply1[3] == '\x11')
+{
+switch(mei_rply1[5])
+{
+	case '\x08':
+		printf("\nStacked a $1 Bill\n\n");
+		mei_invntry = mei_invntry + 100;
+		printf("\nMEI INVENTORY = %f\n",mei_invntry);
+		break;
+
+	case '\x28':
+		printf("\nStacked a $20 Bill\n\n");
+		mei_invntry = mei_invntry + 2000;
+		printf("\nMEI INVENTORY = %f\n",mei_invntry);
+		break;
+}
+
+}
 //---------------------------------------------------------------------------------------------------------------
 // We Verified a $1 dollar bill
 //---------------------------------------------------------------------------------------------------------------
-		if (mei_rply1[5] =='\x08'){
+if (mei_rply1[3] == '\x04' && mei_rply1[5] == '\x08' && mei_query_type == "verify")
+{
 			printf("\nI Verified a $1.00 Bill!\n\n");
-			return("Verified a $1 Bill");
-		}
+			difftime = 0;            //reset timeout
+			starttime = currenttime; //reset timeout
+			if (mei_query_type == "verify") mei_return_document();
+			if (mei_query_type == "verify") return("Verified a $1 Bill");
+		    mei_return_document();
+		    mei_query_type = "standby";
+}
 //---------------------------------------------------------------------------------------------------------------
 // We Verified a $20 dollar bill
 //---------------------------------------------------------------------------------------------------------------
-		if (mei_rply1[5] =='\x28'){
+if (mei_rply1[3] == '\x04' && mei_rply1[5] =='\x28' && mei_query_type == "verify")
+{
 			printf("\nI Verified a $20.00 Bill!\n\n");
-			return("Verified a $20 Bill");
-		}
+			difftime = 0;            //reset timeout
+			starttime = currenttime; //reset timeout
+			if (mei_query_type == "verify") mei_return_document();
+			if (mei_query_type == "verify")return("Verified a $20 Bill");
+			mei_return_document();
+			mei_query_type = "standby";
+}
 //---------------------------------------------------------------------------------------------------------------
+THEBOTTOM: mssleep(50);
 
 	}
 }
@@ -602,38 +710,26 @@ void mei_return_document(void){
 	pkt[7] = thecrc; //stuff CRC
 	//printf("Command to Return Doc --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
 	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
-	string mei_rply1 = "";
-	mei_rply1 = mei_getresponse();
-	mei_ack(pkt, sizeof(pkt));
 	return;
 }
 /*
 ==================================================================================================================================
 End of Return Document to customer
 ==================================================================================================================================
-Stack Document                          NOT TESTED YET !!!!
+Stack Document
 ==================================================================================================================================
 */
 public:
 
 void mei_stack_documents(void){
 
-	printf("MEI Stack Bill called\n");
-		mei_reset();                                    //Reset the MEI
-		string mei_poll_response = {0};
-		unsigned int thecrc;
-		string mei_rply1 = {0};
-		char pkt[16] = "\x02\x08\x10\x2c\x7f\x10\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
-		thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
-		pkt[6] = '\x03';                                //Stuff ETX
-		pkt[7] = thecrc;                                //Stuff CRC
-		//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
-		mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
-		mei_rply1 = mei_getresponse();                   //Get Reply
-		mei_ack(pkt, sizeof(pkt));						 //Send an Ack Packet
-		mei_rply1 = "";
-		mei_rply1 = mei_getresponse();					 //Get Response from MEI
-	    mei_poll_response = mei_poll();                  // Poll MEI for response to command
+	printf("MEI Stack Documents called\n");
+	mei_query_type = "stack";						//set state machine to stack
+	string mei_poll_response = {0};
+	string mei_rply1 = {0};
+	mei_poll_response = mei_poll();                // Poll MEI for response to command
+	//mei_stack_document_cmd();						//Stack the document
+	mei_query_type = "stndby";                    //lets set the state machine back to standby
 	return;
 }
 /*
@@ -669,7 +765,263 @@ string mei_clean_string(string incomming, int lenofincomming)
 ===============================================================================================================================
 End of Clean String
 ===============================================================================================================================
+Stack Document Command sent to MEI
+===============================================================================================================================
  */
+private:
+
+void mei_stack_document_cmd(void)
+{
+
+	unsigned int thecrc;
+	char pkt[9] = "\x02\x08\x10\x7f\x3c\x00\x00\x00";  // <-- Packet without ETX or CRC //working \x02\x08\x10\x2c\x7f\x00\x03
+	thecrc =  mei_do_crc(pkt,sizeof(pkt));          //Do CRC
+	pkt[6] = '\x03';                                //Stuff ETX
+	pkt[7] = thecrc;                                //Stuff CRC
+	//printf("Sending Stack Doc--> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write( pkt, sizeof(pkt)) ;         //Send Command
+	return;
+}
+/*
+===============================================================================================================================
+End of Stack Document Command sent to MEI
+===============================================================================================================================
+Boot Version Command
+===============================================================================================================================
+*/
+public:
+
+string mei_get_boort_ver_cmd(void)
+{
+
+	string cleantext;
+	printf("MEI get boot version called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x06,0x03,0x6e};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x06,0x03,0x6f}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of Boot Version Command
+===============================================================================================================================
+Get Serial Command
+===============================================================================================================================
+*/
+public:
+
+string mei_get_serial_cmd(void)
+{
+	string cleantext;
+	printf("MEI get serial called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x05,0x03,0x6d};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x05,0x03,0x6e}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of Get Serial Command
+===============================================================================================================================
+Get App Version
+===============================================================================================================================
+*/
+public:
+
+string mei_get_app_version_cmd(void)
+{
+	string cleantext;
+	printf("MEI get App Version called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x07,0x03,0x6f};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x07,0x03,0x66}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of Get App Version Command
+===============================================================================================================================
+Get Var Name
+===============================================================================================================================
+*/
+public:
+
+string mei_get_var_name_cmd(void)
+{
+	string cleantext;
+	printf("MEI get Var Name called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x08,0x03,0x60};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x08,0x03,0x61}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of Get Var Name Command
+===============================================================================================================================
+Get Version Command
+===============================================================================================================================
+*/
+public:
+
+string mei_get_version_cmd(void)
+{
+	string cleantext;
+	printf("MEI get Version called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x09,0x03,0x69};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x09,0x03,0x70}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of GetVersion Command
+===============================================================================================================================
+Get QP Command
+===============================================================================================================================
+*/
+
+public:
+
+string mei_get_qp_cmd(void)
+{
+	string cleantext;
+	printf("MEI get Version called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x0b,0x03,0x63};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x0b,0x03,0x64}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of QP Command
+===============================================================================================================================
+Get Performance Command
+===============================================================================================================================
+*/
+public:
+
+string mei_get_perf_cmd(void)
+{
+	string cleantext;
+	printf("MEI get Performance called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x0c,0x03,0x64};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x0c,0x03,0x65}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of Performance Command
+===============================================================================================================================
+Get BNF Command
+===============================================================================================================================
+*/
+public:
+
+string mei_get_bnf_cmd(void)
+{
+	string cleantext;
+	printf("MEI get bnf called\n");
+	char pkt[] = {0x02,0x08,0x60,0x00,0x00,0x10,0x03,0x18};
+	string mei_rply1 = {0};
+	//printf("This is the cmd packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pkt[0],pkt[1],pkt[2],pkt[3],pkt[4],pkt[5],pkt[6],pkt[7]);
+	mei_my_serial.write(pkt, sizeof(pkt)) ;
+	mei_rply1 = mei_getresponse();
+	cleantext = mei_clean_string(mei_rply1, mei_rply1.length());
+	char pktAk[16] = {0x02,0x08,0x61,0x00,0x00,0x10,0x03,0x19}; //ACK Packet to send
+	//printf("This is the Ack packet I'm sending --> %02x%02x%02x%02x%02x%02x%02x%02x\n\n",pktAk[0],pktAk[1],pktAk[2],pktAk[3],pktAk[4],pktAk[5],pktAk[6],pktAk[7]);
+	mei_my_serial.write(pktAk, sizeof(pktAk)) ;
+	return(cleantext);
+}
+/*
+===============================================================================================================================
+End of BNF Command
+===============================================================================================================================
+Add Inventory to the MYSQL database
+===============================================================================================================================
+*/
+public: //For now this is public so I can test it
+
+void mei_add_to_inventory_database(string)
+{
+
+	MYSQL* conn;
+	MYSQL_RES *results;
+	MYSQL_ROW row;
+
+
+	conn = mysql_init(NULL);
+	conn = mysql_real_connect(conn,"localhost","fkinguser101","glimpbust345","fking",0,NULL,0);
+	 if(conn)
+	        cout<<"connection to fking databse successful "<<endl;
+	     else
+	        cout<<"connection problem: "<<mysql_error(conn)<<endl;
+
+
+	 if(mysql_query(conn, "SELECT * FROM inventory WHERE device_id = 2"))
+	 	{
+	 		printf("mysql: selection error: %s\n", mysql_error(conn));
+	 		mysql_close(conn);
+	 	}
+
+
+
+      cout<<results<<endl;
+
+      mysql_free_result(results);
+	 //mysql_close(conn);
+
+	 return;
+
+}
+/*
+==============================================================================================================================
+End of Database Work
+==============================================================================================================================
+*/
 };
 /*
 ===============================================================================================================================
