@@ -52,7 +52,7 @@ extern string mei_getmodel_func(void);
 //extern string get_mei_driver(void);
 //extern int mei_connect(void);
 //extern string mei_getmodel(void);
-extern string mei_stack(void);
+extern void mei_stack(void);
 //extern string mei_get_info(void);
 //extern void mei_enable(void);
 //extern void mei_dissable(void);
@@ -64,4 +64,4 @@ extern string mei_stack(void);
 //extern int * mei_get_inventory(void);
 //extern bool mei_detected(void);
 //extern string mei_status(void);
-
+extern void mei_inventory(void);

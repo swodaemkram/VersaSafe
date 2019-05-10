@@ -63,7 +63,6 @@ string mei_getmodel_func(void);
 //void mei_enable_in(int meienableincount);
 //void mei_accept_in(string meibillstoaccept);
 //void mei_dissable_time(int meidissabletimeinsec);
-//int * mei_get_inventory(void);
 //void mei_connect(string pname);
 //string mei_status(void);
 //string mei_stack(void);
@@ -609,19 +608,28 @@ string mei_getmodel_func(void)
 	return(0);
 }
 //-----------------------------------------------------------------------------------------------------
-// Command to MEI to stack Bills
+// Command to MEI Verify Bills
 //-----------------------------------------------------------------------------------------------------
 string mei_verify_bill_func(void)
 {
-	string x= validator->mei_verify_bill();
-	return(0);
+	string x = validator->mei_verify_bill();
+	return("done");
 }
 //------------------------------------------------------------------------------------------------------
-
-
-string mei_stack(void){
+// Command to Stack Bills
+//------------------------------------------------------------------------------------------------------
+void mei_stack(void)
+{
+	validator->mei_stack_documents();
 }
+//------------------------------------------------------------------------------------------------------
+// Command to Retrieve Inventory
+//------------------------------------------------------------------------------------------------------
+void mei_inventory(void)
+{
+	validator->mei_add_to_inventory_database("1000");
 
+}
 
 
 
