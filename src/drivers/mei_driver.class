@@ -628,6 +628,7 @@ switch(mei_rply1[5])
 		printf("\nStacked a $1 Bill\n\n");
 		mei_invntry = mei_invntry + 100;
 		printf("\nMEI INVENTORY = %f\n",mei_invntry);
+		mei_add_to_inventory_database(100.00, 1 );
 		break;
 
 	case '\x28':
@@ -985,12 +986,15 @@ Add Inventory to the MYSQL database
 */
 public: //For now this is public so I can test it
 
-void mei_add_to_inventory_database(string)
+void mei_add_to_inventory_database(float value, int therow )
 {
 
 	MYSQL* conn;
 	MYSQL_RES *results;
 	MYSQL_ROW row;
+    float total;
+	float currenttotal;
+    printf("The Value = %f the Row is %d", value, therow);
 
 
 	conn = mysql_init(NULL);
@@ -1000,21 +1004,27 @@ void mei_add_to_inventory_database(string)
 	     else
 	        cout<<"connection problem: "<<mysql_error(conn)<<endl;
 
-
-	 if(mysql_query(conn, "SELECT * FROM inventory WHERE device_id = 2"))
+	 if(mysql_query(conn, "SELECT * FROM inventory WHERE id = 1"))
 	 	{
 	 		printf("mysql: selection error: %s\n", mysql_error(conn));
 	 		mysql_close(conn);
 	 	}
+	  results = mysql_use_result(conn);
+      row = mysql_fetch_row(results);
+	  printf("%s %s %s %s %s %s %s %s\n", row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
+	  currenttotal = row[therow];
+	  total = currenttotal + value;
+	  printf("\nthe total is %f\n",total);
+
+	  //mysql_query(conn, "INSERT INTO inventory ")
 
 
 
-      cout<<results<<endl;
 
-      mysql_free_result(results);
-	 //mysql_close(conn);
+	  mysql_free_result(results);
+	  mysql_close(conn);
 
-	 return;
+	  return;
 
 }
 /*

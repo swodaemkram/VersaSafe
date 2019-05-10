@@ -627,7 +627,7 @@ void mei_stack(void)
 //------------------------------------------------------------------------------------------------------
 void mei_inventory(void)
 {
-	validator->mei_add_to_inventory_database("1000");
+	validator->mei_add_to_inventory_database(100,1);
 
 }
 
