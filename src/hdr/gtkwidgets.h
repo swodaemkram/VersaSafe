@@ -64,6 +64,7 @@ typedef struct
 	GtkLabel *perms_title;
 	GtkWidget *perm_close_btn;
 	GtkGrid *perms_grid;
+	GtkWidget *perm_save_btn;
 
 
 

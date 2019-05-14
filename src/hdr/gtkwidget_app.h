@@ -90,6 +90,7 @@
 
 	// perms
 	appGET(perm_close_btn);
+	appGET(perm_save_btn);
 	appGET_LABEL(perms_title);
 	appGET_GRID(perms_grid);
 

@@ -91,6 +91,8 @@
 #admin window
 300,x,USERS
 
+310,x,Permissions Saved
+311,x,ERROR: saving permissions
 
 350,x,User Name
 351,x,First Name
