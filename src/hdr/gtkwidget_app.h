@@ -55,6 +55,8 @@
 	#define appGET_MENUITEM(xx) app->xx=GTK_MENU_ITEM(gtk_builder_get_object(builder,#xx))
 	#define appGET_TEXTBUFFER(xx) app->xx=GTK_TEXT_BUFFER(gtk_builder_get_object(builder,#xx))
 
+    #define appGET_GRID(xx) app->xx=GTK_GRID(gtk_builder_get_object(builder,#xx))
+
     #define appGET_ENTRYBUFFER(xx) app->xx=GTK_ENTRY_BUFFER(gtk_builder_get_object(builder,#xx))
 
 
@@ -83,6 +85,15 @@
 	appGET(keyboard_window);
 	appGET(numpad_window);
 	appGET(userlist_window);
+	appGET(perms_window);
+
+
+	// perms
+	appGET(perm_close_btn);
+	appGET_LABEL(perms_title);
+	appGET_GRID(perms_grid);
+
+
 
 
 	// userlist

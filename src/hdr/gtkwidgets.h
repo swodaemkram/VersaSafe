@@ -57,6 +57,15 @@ typedef struct
 	GtkWidget *keyboard_window;
 	GtkWidget *numpad_window;
 	GtkWidget *userlist_window;
+	GtkWidget *perms_window;
+
+
+	//perms
+	GtkLabel *perms_title;
+	GtkWidget *perm_close_btn;
+	GtkGrid *perms_grid;
+
+
 
 
 	//userlist
