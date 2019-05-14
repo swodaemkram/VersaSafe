@@ -364,6 +364,7 @@ void SetPermValues(void);
 
 int GetUserLevelIndex(int user_level);
 void GetPerms(void);
+bool WritePerms(void);
 void GetUserLevels(void);
 void GetDepartments(void);
 
@@ -2368,6 +2369,37 @@ void GetPerms(void)
 }
 
 
+/*
+	write data from perms[] back to DBF
+	perm_count has number of elements
+
+	RETURNS: TRUE if OK, else FALSE
+*/
+bool WritePerms(void)
+{
+	char query[200];
+	bool res=TRUE;
+
+	for (int n=0; n < perm_count; n++)
+	{
+		sprintf(query,"UPDATE perms SET cr='%d', add_users='%d', edit_users='%d',deposits='%d',reports='%d' WHERE user_level='%d';",perms[n].cr,perms[n].au,perms[n].eu,perms[n].dep,perms[n].rpt,user_levels[n].level);
+		// returns 0 on success, else error code
+	    int result =  QueryDBF(&localDBF,query);
+		if (result !=0)
+		{
+			res=FALSE;	// flag the error
+			// if there was an error, gen_buffer has the error msg
+			WriteSystemLog(gen_buffer);
+		}
+
+	}
+
+	return res;
+
+
+}
+
+
 
 
 /*
@@ -2512,10 +2544,23 @@ void ShowPerms(void)
 	msg = getMessage(50,FALSE); // "CLOSE"
     gtk_button_set_label(GTK_BUTTON(app_ptr->perm_close_btn),msg.c_str() );
 
+    msg = getMessage(357,FALSE); // "SAVE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->perm_save_btn),msg.c_str() );
+
 
 	AddPermGrid();
 	SetPermValues();
     gtk_widget_show_all(app_ptr->perms_window);
+
+}
+
+
+extern "C" bool on_perm_save_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	if (WritePerms())
+		ShowStatus("Permissions saved");
+	else
+		ShowStatus("ERROR: saving permissions");
 
 }
 
