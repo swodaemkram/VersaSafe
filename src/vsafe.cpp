@@ -317,14 +317,26 @@ user_rec current_user_rec;
 
 bool WriteUserRecord(void);
 bool ReadUserRecord(string username,string password);
+bool CheckUser(string username);
 void PrintUserRecord(void);
+
+#define MAX_USER_LEVELS 20
+
+
+// these are used on the permissions screen, grid.. and holds a pointer to the various checkboxes onscreen
+GtkWidget * ulevel_lbl[MAX_USER_LEVELS];
+GtkWidget * ulevel_cr[MAX_USER_LEVELS];
+GtkWidget * ulevel_au[MAX_USER_LEVELS];
+GtkWidget * ulevel_eu[MAX_USER_LEVELS];
+GtkWidget * ulevel_dep[MAX_USER_LEVELS];
+GtkWidget * ulevel_rpt[MAX_USER_LEVELS];
 
 
 struct
 {
     string name;
     int level;
-} user_levels[20];
+} user_levels[MAX_USER_LEVELS];
 int user_level_count;
 
 struct
@@ -335,8 +347,23 @@ struct
 } depts[25];
 int dept_count;
 
+struct
+{
+	int user_level;
+	int cr;		// content removal
+	int au;		// add users
+	int eu;		// edit users
+	int dep;	// deposits
+	int rpt;	// reports
+} perms[MAX_USER_LEVELS];
+int perm_count;
+
 bool user_info_saved=FALSE;
 
+void SetPermValues(void);
+
+int GetUserLevelIndex(int user_level);
+void GetPerms(void);
 void GetUserLevels(void);
 void GetDepartments(void);
 
@@ -607,8 +634,11 @@ static GtkWidget * create_row(const gchar *txt);
 const char* GetRowText(void);
 
 
+void ShowPerms(void);
+void AddPermGrid(void);
 
-void ShowUser(void);
+bool global_adding_user=FALSE;
+void ShowUser(bool adding_user);
 void ShowUserSavedStatus(void);
 
 void ShowSettings(void);
@@ -2209,6 +2239,23 @@ for (int n=0;n<8;n++)
 
 
 /*
+	see if the username exists in the DBF, if so RETURN TRUE, else return FALSE
+
+*/
+bool CheckUser(string username)
+{
+    char query[200];
+	sprintf(query,"SELECT username FROM users WHERE username='%s';",username.c_str());
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	if (numrows ==0) return FALSE;
+
+	return TRUE;
+}
+
+
+
+/*
 	get current users record
 	if password=="", then search for username only
 	RETURNS: TRUE if found and current_user_rec struct filled in
@@ -2294,6 +2341,34 @@ void GetDepartments(void)
 }
 
 
+/*
+	read all permission types from the DBf:perms
+	and store into perms struct (indexed by user_level)
+
+*/
+
+void GetPerms(void)
+{
+    char query[200]="SELECT user_level,cr,add_users,edit_users,deposits,reports FROM perms;";
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+	perm_count=numrows;
+
+	for (int n=0; n < numrows; n++)
+	{
+		perms[n].user_level= atoi(localDBF.row[0]);
+		perms[n].cr = atoi(localDBF.row[1]);
+		perms[n].au= atoi(localDBF.row[2]);
+		perms[n].eu = atoi(localDBF.row[3]);
+		perms[n].dep = atoi(localDBF.row[4]);
+		perms[n].rpt = atoi(localDBF.row[5]);
+		GetRow(&localDBF);
+	}
+
+}
+
+
+
 
 /*
 	get the user levels from the DBF:user_levels table
@@ -2303,7 +2378,7 @@ void GetDepartments(void)
 
 void GetUserLevels(void)
 {
-   char query[200]="SELECT name,level FROM user_levels";
+	char query[200]="SELECT name,level FROM user_levels";
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);
 	user_level_count=numrows;
@@ -2421,12 +2496,306 @@ extern "C" bool on_sound_level_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
+//=======================================================================
+//                  START PERMS WINDOW
+//=======================================================================
+
+void ShowPerms(void)
+{
+	string msg;
+	GtkLabel *wid;
+//	AppWidgets *wid;
+
+	msg = getMessage(255,FALSE); // "PERMISSIONS"
+    gtk_label_set_label(GTK_LABEL(app_ptr->perms_title),msg.c_str() );
+
+	msg = getMessage(50,FALSE); // "CLOSE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->perm_close_btn),msg.c_str() );
+
+
+	AddPermGrid();
+	SetPermValues();
+    gtk_widget_show_all(app_ptr->perms_window);
+
+}
+
+
+extern "C" bool on_perm_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	gtk_widget_hide(app_ptr->perms_window);
+}
+
+
+
+// CR (content removal)  checkbox callback
+
+extern "C" bool UL_CR(GtkButton *button, int*   data)
+{
+//	g_print("CR %d\n", data[0] );
+
+    gboolean button_state;
+    button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
+
+    if (button_state)   printf("CR%d BUTTON IS ON\n",data[0]);
+    else                printf("CR%d BUTTON IS OFF\n",data[0]);
+
+
+	switch(data[0])
+	{
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+				break;
+	}
+}
+
+
+// AU (add user) checkbox callback
+
+extern "C" bool UL_AU(GtkButton *button, int* data)
+{
+
+    gboolean button_state;
+    button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
+
+    if (button_state)   printf("AU%d BUTTON IS ON\n",data[0]);
+    else                printf("AU%d BUTTON IS OFF\n",data[0]);
+
+	// switch on the row (eg, the user level) row is = index into perms[], eg perms[data[0]]
+    switch(data[0])
+	{
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+			break;
+	}
+}
+
+
+extern "C" bool UL_EU(GtkButton *button, int* data)
+{
+}
+
+extern "C" bool UL_DEP(GtkButton *button, int* data)
+{
+}
+
+extern "C" bool UL_RPT(GtkButton *button, int* data)
+{
+}
+
+
+// used as a passed arg on callbacks, gives the row number in the grid of permissions checkboxes
+int arr[MAX_USER_LEVELS];
+
+
+/*
+	set the checkboxes with the proper values for display/edit
+
+
+	GtkWidget * ulevel_lbl[MAX_USER_LEVELS];
+	GtkWidget * ulevel_cr[MAX_USER_LEVELS];
+	GtkWidget * ulevel_au[MAX_USER_LEVELS];
+	GtkWidget * ulevel_eu[MAX_USER_LEVELS];
+	GtkWidget * ulevel_dep[MAX_USER_LEVELS];
+	GtkWidget * ulevel_rpt[MAX_USER_LEVELS];
+
+
+struct
+{
+    int user_level;
+    int cr;     // content removal
+    int au;     // add users
+    int eu;     // edit users
+    int dep;    // deposits
+    int rpt;    // reports
+} perms[MAX_USER_LEVELS];
+int perm_count;
+
+*/
+void SetPermValues(void)
+{
+	int index;
+
+	// set the status of the permission checkboxes ON|OFF
+	for (int n=0; n < user_level_count; n++)
+	{
+		index=GetUserLevelIndex(user_levels[n].level);	// get the index into array of this user level
+
+//printf("LEVEL:%d INDEX:%d  CR:%d  AU:%d  EU:%d  DEP:%d  RPT:%d\n",user_levels[n].level,index,perms[n].cr,perms[n].au,perms[n].eu,perms[n].dep,perms[n].rpt);
+
+
+		//CR
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_cr[n]), perms[index].cr  );
+		//AU
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_au[n]),  perms[index].au  );
+		//EU
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_eu[n]),  perms[index].eu  );
+		//DEP
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_dep[n]),  perms[index].dep  );
+		//RPT
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_rpt[n]),  perms[index].rpt  );
+	}
+
+
+}
+
+
+/*
+	return the index into user_levels[] array for user_level arg
+*/
+int GetUserLevelIndex(int user_level)
+{
+	for (int n=0; n<user_level_count; n++)
+	{
+		if (user_levels[n].level == user_level) return n;
+	}
+}
+
+
+
+/*
+===========================================================================================
+
+	populate the permgrid with labels and checkboxes depending upon whats in the database
+
+=============================================================================================
+*/
+
+void AddPermGrid(void)
+{
+
+    GetUserLevels();
+	GetPerms();
+
+	for (int x=0; x<MAX_USER_LEVELS; x++)
+		arr[x]=x+1;
+
+/*
+user_level_lbl (1-x)
+user_level_cr (1-x)
+*/
+
+//5 cols, 4 rows
+
+/*
+GtkWidget * ulevel_lbl[MAX_USER_LEVELS];
+GtkWidget * ulevel_cr[MAX_USER_LEVELS];
+GtkWidget * ulevel_au[MAX_USER_LEVELS];
+GtkWidget * ulevel_eu[MAX_USER_LEVELS];
+GtkWidget * ulevel_dep[MAX_USER_LEVELS];
+GtkWidget * ulevel_rpt[MAX_USER_LEVELS];
+*/
+
+#define BASE 2
+
+// add more rows if necessary
+if ( user_level_count > BASE)
+{
+	for (int x=BASE; x< user_level_count; x++)
+	gtk_grid_insert_row (app_ptr->perms_grid,x);
+}
+
+
+// add more columns if necessary
+//gtk_grid_insert_column (app_ptr->persm_grid, gint position);
+
+
+	// create the rows:: label and checkboxes
+	for (int n=0; n < user_level_count; n++)
+	{
+
+//	printf("GRID %d\n",n);
+		// create the ROW label (user level text)
+		ulevel_lbl[n] = gtk_label_new (user_levels[n].name.c_str() );
+		// attach to grid
+		gtk_grid_attach(app_ptr->perms_grid, ulevel_lbl[n],0,n+1,1,1);       // user_level CR checkboxes
+
+
+		// CR checkbox
+		ulevel_cr[n] = gtk_check_button_new ();
+		gtk_grid_attach(app_ptr->perms_grid, ulevel_cr[n],1,n+1,1,1);
+		g_signal_connect (ulevel_cr[n], "toggled", G_CALLBACK (UL_CR),   &arr[n]);
+
+		// ADD USER checkbox
+	    ulevel_au[n] = gtk_check_button_new ();
+	    gtk_grid_attach(app_ptr->perms_grid, ulevel_au[n],2,n+1,1,1);
+	    g_signal_connect (ulevel_au[n], "toggled", G_CALLBACK (UL_AU), &arr[n]);
+
+		// EDIT USER checkbox
+	    ulevel_eu[n] = gtk_check_button_new ();
+	    gtk_grid_attach(app_ptr->perms_grid, ulevel_eu[n],3,n+1,1,1);
+	    g_signal_connect (ulevel_eu[n], "toggled", G_CALLBACK (UL_EU), &arr[n]);
+
+		// DEPOSITS checkbox
+	    ulevel_dep[n] = gtk_check_button_new ();
+	    gtk_grid_attach(app_ptr->perms_grid, ulevel_dep[n],4,n+1,1,1);
+	    g_signal_connect (ulevel_dep[n], "toggled", G_CALLBACK (UL_DEP), &arr[n]);
+
+		// REPORTS checkbox
+    	ulevel_rpt[n] = gtk_check_button_new ();
+	    gtk_grid_attach(app_ptr->perms_grid, ulevel_rpt[n],5,n+1,1,1);
+    	g_signal_connect (ulevel_rpt[n], "toggled", G_CALLBACK (UL_RPT), &arr[n]);
+
+
+	} // end for
+
+
+
+}
+
+
+/*
+//	CONTENT REMOVAL
+
+
+
+extern "C" bool on_user_level_cr1_toggled( GtkButton *button, AppWidgets *app)
+{
+	gboolean button_state;
+	button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(app_ptr->user_level_cr1) );
+
+	if (button_state)	printf("BUTTON IS ON\n");
+	else				printf("BUTTON IS OFF\n");
+}
+
+
+
+
+
+
+//=======================================================================
+//                  END PERMS WINDOW
+//=======================================================================
+
+
+
 
 //=======================================================================
 //                  START USER WINDOW
 //=======================================================================
 
-void ShowUser(void)
+/*
+	adding_user is used to tell the function we are adding a new user and to act appropriately
+
+*/
+
+
+void ShowUser(bool adding_user)
 {
 /*
 	1. read DBf
@@ -2434,8 +2803,19 @@ void ShowUser(void)
 			user_active_switch,user_id_lbl
 */
 
+	global_adding_user=adding_user;
 
-	bool ret=ReadUserRecord(current_user,"");
+	// if we are adding a user, skip the search
+	if (!adding_user)
+		bool ret=ReadUserRecord(current_user,"");
+	else
+	{
+		CheckUser(current_user);	// returns TRUE if username already exists
+//		sprintf("gen_buffer,"User %s already exists, please choose another",username.c_str());
+//		ShowStatus(gen_buffer);
+
+	}
+
 
 	// now fill in the entries in the window
 	gtk_entry_set_text(GTK_ENTRY(app_ptr->username_txt),current_user_rec.username.c_str() );
@@ -2510,6 +2890,15 @@ extern "C" bool on_user_cancel_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_user_save_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     gchar *item_text = 0;   // selected item text from text combo box
+
+
+	// if we are adding a new user, first check to see if the username exists in DBF, if so prompt user to enter another
+	if (global_adding_user)
+	{
+		sprintf(gen_buffer,"User %s already exists, please choose another",current_user_rec.username.c_str());
+		ShowStatus(gen_buffer);
+		return FALSE;
+	}
 
 // user level
     item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(app_ptr->userlevel_combo));
@@ -2725,6 +3114,12 @@ extern "C" bool on_eod_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_cr_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 }
+
+extern "C" bool on_perms_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	ShowPerms();
+}
+
 
 
 
@@ -4108,6 +4503,7 @@ gint time_slice(gpointer data)
 	}
 
 
+	MEIpoll();		// in USB_gateway.cpp
 
 	tseconds=seconds;
 	return TRUE;
@@ -4286,6 +4682,8 @@ void SetScreenSizes(void)
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->user_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->settings_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->userlist_window), screenres.horiz, screenres.vert);
+
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->perms_window), screenres.horiz, screenres.vert);
 
 }
 
@@ -5040,6 +5438,11 @@ extern "C" bool on_user_dn_btn_clicked( GtkButton *button, AppWidgets *app)
 
 }
 
+
+/*
+	edit the current user
+*/
+
 extern "C" bool on_user_edit_btn_clicked( GtkButton *button, AppWidgets *app)
 {
     const char * txt = GetRowText();
@@ -5048,20 +5451,38 @@ extern "C" bool on_user_edit_btn_clicked( GtkButton *button, AppWidgets *app)
 
     // set curent_user before calling
 	current_user=usr[0];
-    ShowUser();
+    ShowUser(FALSE);
 
 }
 
 
 
 /*
-    add a new user
+//TODO    add a new user
 
 */
 extern "C" bool on_user_add_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 
+/*
+	1. empty current_user_rec
+	2. set user_level to lowest level
+	3. set dept to default
+	4. set lang to 'en'
+	5. call ShowUser(); (show user will call ReadUser, make sure it handles this properly, likely by the flag below)
+	6. set a flag such that the SAVE button knows to create a new record
+*/
+
+	current_user_rec.username="";
+	current_user_rec.password="";
+	current_user_rec.lang="en";
+	current_user_rec.user_level="10";
+	current_user_rec.dept="";
+	current_user_rec.active="1";
+
+	ShowUser(TRUE);
 }
+
 
 /*
     delete displayed user
@@ -5078,18 +5499,19 @@ extern "C" bool on_user_del_btn_clicked( GtkButton *button, AppWidgets *app)
     char query[200];
     sprintf(query,"DELETE FROM users WHERE username='%s';",usr[0].c_str() );
 
+
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);
 
     if (numrows !=0)
 	{
 		sprintf(gen_buffer,"DELETED user %s",usr[0].c_str());
-		ShowStatus("User DELETED");
+		ShowStatus(string(gen_buffer));
 	}
 	else
 	{
         sprintf(gen_buffer,"ERROR deleting user %s",usr[0].c_str());
- 		ShowStatus("ERROR deleting user");
+ 		ShowStatus(string(gen_buffer));
 	}
 
 	WriteSystemLog(gen_buffer);

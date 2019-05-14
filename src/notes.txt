@@ -137,5 +137,86 @@ local/english.lang (etc)
 1 add in appropriate language lines for the buttons,labels etc
 
 
+SERVER
+https://safe.kyin.net:18080
+ssh port 22222
+user: gary
+pw: yawnocyrag
 
+
+
+
+//TODO
+
+1. create/edit depts
+2. permission level list
+3. perms per user_level
+
+
+
+GTK stuff
+
+
+
+ set current selection in a comboboxtext
+----------------------------------------
+see SetCurrentUserSelections() in vsafe.cpp
+// set lang selection
+    gtk_combo_box_set_active ( GTK_COMBO_BOX(app_ptr->lang_combo),lang_index );
+
+// set user_level selection
+    gtk_combo_box_set_active (GTK_COMBO_BOX(app_ptr->userlevel_combo), user_level_index);
+
+// set dept selection
+    gtk_combo_box_set_active (GTK_COMBO_BOX(app_ptr->user_dept_combo), dept_index);
+
+
+
+in a GtkListbox
+get the current selection
+----------------------------------
+    // get the selected row
+    GtkListBoxRow * selrow= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+    // get the children of the selected row (a box)
+    GList *children = gtk_container_get_children(GTK_CONTAINER(selrow));
+    // get the box connected to the above row
+    GtkWidget *childbox = GTK_WIDGET(children->data);   // get children of the row, eg a box
+
+    // get the children of the above box (a label)
+    GList *childlbl = gtk_container_get_children(GTK_CONTAINER(childbox));
+
+    // get the data from the label
+    const gchar * txt = gtk_label_get_text(GTK_LABEL(childlbl->data) );
+
+	//txt now has the selected text
+
+    // be a good neighbor
+    g_list_free(children);
+    g_list_free(childlbl);
+
+
+manually maniupulate selected row in GtkListBox
+--------------------------------------------------
+
+    GtkListBoxRow * row;
+
+    // get current row
+    row= gtk_list_box_get_selected_row ((GtkListBox *)app_ptr->user_listbox);
+
+
+    // get current row's index
+    gint index = gtk_list_box_row_get_index (row);
+//printf("UP INDEX: %d\n",index);
+
+    if (index >0)
+        index--;    // move to prev row
+    else
+        return TRUE;
+
+    // get the row at the new index
+    row = gtk_list_box_get_row_at_index ( (GtkListBox *)app_ptr->user_listbox,  index);
+
+    // now select the new row
+    gtk_list_box_select_row ((GtkListBox *)app_ptr->user_listbox,row);
 

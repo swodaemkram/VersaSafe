@@ -44,7 +44,7 @@
 #ifndef FIRE_INCLUDE
 
 	#define FIRE_INCLUDE
-	#define product_name "VersaSafe"
+	#define product_name "VSafe"
 	#define OK 0
 	#define ERROR 1
 	#define PENDING 2
