@@ -128,6 +128,7 @@
 	appGET(add_userlevel_cancel_btn);
 	appGET(new_userlevel_entry);
 	appGET_LABEL(add_userlevel_title);
+	appGET_LABEL(new_userlevel_prompt);
 
 	// perms
 	appGET(perm_close_btn);

@@ -5239,7 +5239,7 @@ void SetLabels(void)
 	SetKeyboardCase();
 
 // status popup
-    msg = getMessage(51,FALSE); // "OK"
+    msg = getMessage(48,FALSE); // "OK"
     gtk_button_set_label( GTK_BUTTON(app_ptr->status_ok_btn),msg.c_str() );
 
 
@@ -5484,6 +5484,18 @@ void SetLabels(void)
 
     msg=getMessage(145,FALSE);   // "VEND INVENTORY"
     gtk_button_set_label(GTK_BUTTON(app_ptr->vend_inventory_btn),msg.c_str() );
+
+
+	// add user level window
+    msg = getMessage(360,FALSE); // "ADD USER LEVEL"
+    gtk_label_set_label( GTK_LABEL(app_ptr->add_userlevel_title),msg.c_str() );
+
+
+    msg = getMessage(361,FALSE); // "NEW USER LEVEL NAME"
+    gtk_label_set_label( GTK_LABEL(app_ptr->new_userlevel_prompt),msg.c_str() );
+
+    msg=getMessage(49,FALSE);   // "CANCEL"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->add_userlevel_cancel_btn),msg.c_str() );
 
 
 }

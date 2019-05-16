@@ -102,8 +102,7 @@ typedef struct
 	GtkWidget *add_userlevel_cancel_btn;
 	GtkWidget *new_userlevel_entry;
 	GtkLabel *add_userlevel_title;
-
-
+	GtkLabel *new_userlevel_prompt;
 
 	//perms
 	GtkLabel *perms_title;
