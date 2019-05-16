@@ -86,16 +86,57 @@
 	appGET(numpad_window);
 	appGET(userlist_window);
 	appGET(perms_window);
+	appGET(add_user_level_window);
+	appGET(deposit_window);
+	appGET(reports_window);
 
+	// main menu
+	appGET( deposit_btn);
+    appGET(withdrawl_btn);
+    appGET(settings_btn);
+	appGET(admin_btn);
+	appGET(reports_btn);
+
+    appGET(lock_config_btn);
+    appGET(maint_btn);
+    appGET(load_btn);
+    appGET(unload_btn);
+    appGET(lock_btn);
+    appGET(logout_btn);
+
+
+	// reports window
+	appGET(reprint_receipts_btn);
+	appGET(day_totals_btn);
+	appGET(user_trans_hist_btn);
+	appGET(user_totals_btn);
+	appGET(shift_totals_btn);
+	appGET(vend_inventory_btn);
+	appGET(reports_close_btn);
+
+	// deposit window
+    appGET(deposit_cash_btn);
+    appGET(manual_deposit_btn);
+    appGET(validator_gate_btn);
+    appGET(reset_cassette_btn);
+    appGET(close_user_btn);
+	appGET(deposit_close_btn);
+
+
+	// add user level
+	appGET(add_userlevel_ok_btn);
+	appGET(add_userlevel_cancel_btn);
+	appGET(new_userlevel_entry);
+	appGET_LABEL(add_userlevel_title);
 
 	// perms
 	appGET(perm_close_btn);
 	appGET(perm_save_btn);
 	appGET_LABEL(perms_title);
 	appGET_GRID(perms_grid);
-
-
-
+	appGET_LABEL(perms_saved_lbl);
+	appGET(perm_add_btn);
+	appGET(perm_kb_target);
 
 	// userlist
 	appGET(userlist_close_btn);
@@ -221,14 +262,6 @@
    appGET(bksp_btn);
 
 
-// main window
-	appGET(lock_config_btn);
-	appGET(maint_btn);
-	appGET(load_btn);
-	appGET(unload_btn);
-	appGET(lock_btn);
-	appGET(logout_btn);
-	appGET(admin_btn);
 
 // load window
 //	appGET(load_button);

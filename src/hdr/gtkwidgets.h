@@ -58,14 +58,61 @@ typedef struct
 	GtkWidget *numpad_window;
 	GtkWidget *userlist_window;
 	GtkWidget *perms_window;
+	GtkWidget *add_user_level_window;
+	GtkWidget *deposit_window;
+	GtkWidget *reports_window;
+
+
+	// main menu
+	GtkWidget * deposit_btn;
+	GtkWidget * withdrawl_btn;
+	GtkWidget * settings_btn;
+	GtkWidget * admin_btn;
+	GtkWidget * reports_btn;
+
+	GtkWidget *lock_config_btn;	// needs to move
+    GtkWidget *maint_btn;
+    GtkWidget *load_btn;
+    GtkWidget *unload_btn;
+    GtkWidget *lock_btn;	// needs to move
+    GtkWidget *logout_btn;
+
+
+
+	// reports window
+	GtkWidget *reprint_receipts_btn;
+	GtkWidget *day_totals_btn;
+	GtkWidget *user_trans_hist_btn;
+	GtkWidget *user_totals_btn;
+	GtkWidget *shift_totals_btn;
+	GtkWidget *vend_inventory_btn;
+	GtkWidget *reports_close_btn;
+
+	// deposit window
+	GtkWidget *deposit_cash_btn;
+	GtkWidget *manual_deposit_btn;
+	GtkWidget *validator_gate_btn;
+	GtkWidget *reset_cassette_btn;
+	GtkWidget *close_user_btn;
+	GtkWidget *deposit_close_btn;
+
+
+	// add user level
+	GtkWidget *add_userlevel_ok_btn;
+	GtkWidget *add_userlevel_cancel_btn;
+	GtkWidget *new_userlevel_entry;
+	GtkLabel *add_userlevel_title;
+
 
 
 	//perms
 	GtkLabel *perms_title;
+	GtkLabel *perms_saved_lbl;
 	GtkWidget *perm_close_btn;
 	GtkGrid *perms_grid;
 	GtkWidget *perm_save_btn;
-
+	GtkWidget *perm_add_btn;
+	GtkWidget *perm_kb_target;
 
 
 
@@ -224,15 +271,6 @@ typedef struct
     GtkLabel *inv6;
     GtkLabel *inv7;
 
-
-// main window
-	GtkWidget *lock_config_btn;
-	GtkWidget *maint_btn;
-	GtkWidget *load_btn;
-	GtkWidget *unload_btn;
-	GtkWidget *lock_btn;
-	GtkWidget *logout_btn;
-	GtkWidget *admin_btn;
 
 
 // maint window

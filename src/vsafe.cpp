@@ -357,9 +357,19 @@ struct
 	int rpt;	// reports
 } perms[MAX_USER_LEVELS];
 int perm_count;
+bool perms_saved=FALSE;
+
+int perm_grid_row_count=0;	// counts rows added to the perms_grid, used to prevent adding checkboxes a second time
 
 bool user_info_saved=FALSE;
+void ShowPermSave(void);
 
+void ShowAddUserLevel(void);
+#define BASE_USER_LEVEL 200	// custom user levels start here
+int GetNextUserLevel(void);
+
+
+bool settingperms;
 void SetPermValues(void);
 
 int GetUserLevelIndex(int user_level);
@@ -628,6 +638,8 @@ void ShowLogin(void);
 void ShowSplashWindow();
 void ShowStatus(string status);
 void ShowAdmin(void);
+void ShowDeposit(void);
+void ShowReports(void);
 
 void ShowUserList(void);
 void AddListItem(GtkWidget * list, char *txt);
@@ -651,6 +663,13 @@ void TabButton(void);
 
 bool ValidateUser(char *user,char *pw);
 
+void StoreInput(char x);	// store the input from the keyboard to input_text[]
+void SetEntryText(void);	// set input_text[] into the db.target widget
+
+// used by the above 2 functions
+char input_text[100];
+int input_text_index=0;
+
 
 void Get_UTD_Data(void);
 
@@ -658,11 +677,7 @@ void Get_UTD_Data(void);
 //GtkWidget * active_window;	// holds a pointer to the active window
 
 
-// used for ABC/123 button with keypad/keyboard
-#define KEYBOARD 1
-#define KEYPAD   0
-int abc123=KEYBOARD;
-
+/*
 struct window
 {
 	GtkWidget * window=NULL;
@@ -671,6 +686,7 @@ struct window
 	bool keyboard_avail=FALSE;	// says if keyboard is available or not (determines visibility of ABC/123 button)
 	bool ucase=FALSE;			// determines if CASE button is visible or not
 };
+*/
 
 /*
     widget names for key/num pad usage
@@ -683,24 +699,32 @@ struct window
 */
 
 
-void InstallKB(void);
-void ReHomeKB(void);
+// support functions using the following kb structure
+
+void InstallKB(void);			// install the kb according to kb.struct
+void ReHomeKB(void);			// put the kb back to its home window
 void SetKeyboardCase(void);
 void ShowCaseBtn(void);
 void ShowAbcBtn(void);
 
 
 
-window current_window;
+//window current_window;
+
+// used for ABC/123 button with keypad/keyboard (kb.abc123)
+#define KEYBOARD 1
+#define KEYPAD   0
+
 
 struct
 {
-GtkWidget * attached;		// widget kb is attached to currently
-GtkWidget * active;			// which kb is active, keyboard or numpad
-GtkWidget * target;			// output target
-bool allow_alpha;			// allow keyboard or is it numpad only
-bool allow_case;			// allow U/L case or not
-bool is_upper=FALSE;		// current status of keyboard TRUE = uppercase, FALSE = lower case
+	GtkWidget * attached;		// widget kb is attached to currently
+	GtkWidget * active;			// which kb is active, keyboard or numpad
+	GtkWidget * target;			// output target
+	bool allow_alpha;			// allow keyboard or is it numpad only
+	bool allow_case;			// allow U/L case or not
+	bool is_upper=FALSE;		// current status of keyboard TRUE = uppercase, FALSE = lower case
+	int abc123=KEYBOARD;			// KEYBOARD | KEYPAD
 } kb;
 
 // the following sets the output target for chars from the keyboard or keypad
@@ -2528,16 +2552,155 @@ extern "C" bool on_sound_level_btn_clicked( GtkButton *button, AppWidgets *app)
 
 
 
+
+
+//=======================================================================
+//                  START NEW USER LEVEL WINDOW
+//=======================================================================
+
+/*
+	display the screen for adding a new user level into the DBF
+
+*/
+void ShowAddUserLevel(void)
+{
+
+	// install/show the keyboard
+    kb.attached= app_ptr->perm_kb_target;   // new hoome for keyboard/numpad widget
+    kb.active=app_ptr->keyboard_grid;       // keyboard_grid or numpad_grid
+    kb.target=app_ptr->new_userlevel_entry; // desination for output text
+    kb.allow_alpha=TRUE;
+    kb.allow_case=FALSE;	// allow upper AND lower case
+    kb.is_upper=FALSE;		// current status of keyboard TRUE = uppercase, FALSE = lower case
+    kb.abc123=KEYBOARD;    // KEYPAD | KEYBOARD
+    ShowCaseBtn();      // show/hide CASE btn
+    ShowAbcBtn();		// show/hide abc/123 btn
+    InstallKB();        // reparent the kb widget into the current window
+
+
+	gtk_widget_show(app_ptr->add_user_level_window);
+}
+
+
+	// OK button, save the new user level
+extern "C" bool on_add_userlevel_ok_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	string msg;
+	int result;
+	int numrows;
+	char query[200];
+/*
+	1. get the text from new_userlevel_entry
+	2. check perms tbl to make sure it doesnt already exist
+	3. add a new rec to perms tbl
+*/
+	const gchar * ulevel_name;
+	// 1. get the text name of new user level
+    ulevel_name = gtk_entry_get_text(GTK_ENTRY(app_ptr->new_userlevel_entry));
+
+//printf("NEW NAME:%s\n",ulevel_name);
+	//2. check perms tble to make sure new level name doesnt exist
+    sprintf(query,"SELECT name FROM user_levels WHERE name='%s';",ulevel_name);
+	// returns 0 on success, else nonzero err code
+    result =  QueryDBF(&localDBF,query);
+    numrows = GetRow(&localDBF);
+
+	// in the case of not finding the new user level name, both numrows and result = 0
+	//	printf("NUMROWS:: %d RES:: %d\n",numrows,result);
+
+//printf("NUMROWS:%d\n",numrows);
+	if (numrows >0 )	// it already exists
+	{
+		sprintf(gen_buffer,"User level %s already exists, try another",ulevel_name);
+		ShowStatus(string(gen_buffer));
+		return FALSE;
+	}
+
+//#define BASE_USER_LEVEL 200
+
+	int next_level = GetNextUserLevel();
+printf("NEXT LEVEL: %d  NEW NAME:%s\n",next_level,ulevel_name);
+
+	// 3. add a new record to user_level tbl
+	sprintf(query,"INSERT INTO user_levels SET name='%s', level='%d';",ulevel_name, next_level);
+printf("ADD QUERY: %s\n",query);
+    result =  QueryDBF(&localDBF,query);
+
+        gtk_widget_hide(app_ptr->add_user_level_window);
+		ReHomeKB();
+}
+
+
+// CANCEL button
+extern "C" bool on_add_userlevel_cancel_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+        gtk_widget_hide(app_ptr->add_user_level_window);
+        ReHomeKB();
+}
+
+
+/*
+	return the next available custom user_level
+*/
+int GetNextUserLevel(void)
+{
+//printf("GETNEXTUSERLEVEL\n");
+	int level;
+	char query[200];
+	sprintf(query,"SELECT MAX(level) FROM user_levels WHERE level >'%d' AND level < '999';",BASE_USER_LEVEL);
+    int result =  QueryDBF(&localDBF,query);
+    int numrows = GetRow(&localDBF);
+
+	if (numrows==0)
+	{
+		return BASE_USER_LEVEL;
+	}
+
+//printf("QUERY: %s\n",query);
+//printf("2NUMROWS:%d\n",numrows);
+
+if (localDBF.row[0] == NULL)
+	level=BASE_USER_LEVEL-1;
+else
+	level = atoi(localDBF.row[0]);	// get last entered custom value
+
+	return ++level;
+}
+
+
+//=======================================================================
+//                  END NEW USER LEVEL WINDOW
+//=======================================================================
+
+
+
+
+
+
 //=======================================================================
 //                  START PERMS WINDOW
 //=======================================================================
+
+void ShowPermSave(void)
+{
+	string msg;
+
+	if (perms_saved)
+	    msg = getMessage(372,FALSE); // "saved"
+	else
+       msg = getMessage(373,FALSE); // "not saved"
+
+    gtk_label_set_label(GTK_LABEL(app_ptr->perms_saved_lbl),msg.c_str() );
+}
+
 
 void ShowPerms(void)
 {
 	string msg;
 	GtkLabel *wid;
-//	AppWidgets *wid;
 
+	perms_saved=TRUE;
+	ShowPermSave();
 	msg = getMessage(255,FALSE); // "PERMISSIONS"
     gtk_label_set_label(GTK_LABEL(app_ptr->perms_title),msg.c_str() );
 
@@ -2548,19 +2711,41 @@ void ShowPerms(void)
     gtk_button_set_label(GTK_BUTTON(app_ptr->perm_save_btn),msg.c_str() );
 
 
-	AddPermGrid();
-	SetPermValues();
+
+	AddPermGrid();			// add lbls and checkboxes to perms_grid based on whats in DBF
+	SetPermValues();		// set initial values of checkboxes basedup on the DBF
     gtk_widget_show_all(app_ptr->perms_window);
+
+    perms_saved=TRUE;
+    ShowPermSave();
 
 }
 
 
+/*
+	add a new permssion to the list
+
+*/
+extern "C" bool on_perm_add_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+	ShowAddUserLevel();
+
+}
+
+
+/*
+	save the permissions as selected on the screen
+*/
 extern "C" bool on_perm_save_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	if (WritePerms())
-		ShowStatus("Permissions saved");
+		getMessage(310,FALSE);
 	else
-		ShowStatus("ERROR: saving permissions");
+		getMessage(311,FALSE);
+
+	ShowStatus(string(gen_buffer));
+	perms_saved=TRUE;
+	ShowPermSave();
 
 }
 
@@ -2571,12 +2756,14 @@ extern "C" bool on_perm_close_btn_clicked( GtkButton *button, AppWidgets *app)
 }
 
 
+// PERMISSION checkbox callbacks
+//------------------------------
 
 // CR (content removal)  checkbox callback
 
 extern "C" bool UL_CR(GtkButton *button, int*   data)
 {
-//	g_print("CR %d\n", data[0] );
+    if (settingperms) return FALSE; // avoid accidental toggle when setting initial values
 
     gboolean button_state;
     button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
@@ -2584,21 +2771,10 @@ extern "C" bool UL_CR(GtkButton *button, int*   data)
     if (button_state)   printf("CR%d BUTTON IS ON\n",data[0]);
     else                printf("CR%d BUTTON IS OFF\n",data[0]);
 
+	perms[data[0]].cr=button_state;
+    perms_saved=FALSE;
+    ShowPermSave();
 
-	switch(data[0])
-	{
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-	case 8:
-	case 9:
-	case 10:
-				break;
-	}
 }
 
 
@@ -2607,6 +2783,8 @@ extern "C" bool UL_CR(GtkButton *button, int*   data)
 extern "C" bool UL_AU(GtkButton *button, int* data)
 {
 
+	if (settingperms) return FALSE;	// avoid accidental toggle when setting initial values
+
     gboolean button_state;
     button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
 
@@ -2614,34 +2792,49 @@ extern "C" bool UL_AU(GtkButton *button, int* data)
     else                printf("AU%d BUTTON IS OFF\n",data[0]);
 
 	// switch on the row (eg, the user level) row is = index into perms[], eg perms[data[0]]
-    switch(data[0])
-	{
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-			break;
-	}
+    perms[data[0]].au=button_state;
+    perms_saved=FALSE;
+    ShowPermSave();
+
 }
 
 
 extern "C" bool UL_EU(GtkButton *button, int* data)
 {
+    if (settingperms) return FALSE; // avoid accidental toggle when setting initial values
+
+    gboolean button_state;
+    button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
+
+    if (button_state)   printf("EU%d BUTTON IS ON\n",data[0]);
+    else                printf("EU%d BUTTON IS OFF\n",data[0]);
+    perms[data[0]].eu=button_state;
+    perms_saved=FALSE;
+    ShowPermSave();
+
 }
 
 extern "C" bool UL_DEP(GtkButton *button, int* data)
 {
+    if (settingperms) return FALSE; // avoid accidental toggle when setting initial values
+    gboolean button_state;
+    button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
+    perms[data[0]].dep=button_state;
+    perms_saved=FALSE;
+    ShowPermSave();
 }
 
 extern "C" bool UL_RPT(GtkButton *button, int* data)
 {
+    if (settingperms) return FALSE; // avoid accidental toggle when setting initial values
+    gboolean button_state;
+    button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button) );
+    perms[data[0]].rpt=button_state;
+    perms_saved=FALSE;
+    ShowPermSave();
 }
+
+
 
 
 // used as a passed arg on callbacks, gives the row number in the grid of permissions checkboxes
@@ -2675,13 +2868,13 @@ int perm_count;
 void SetPermValues(void)
 {
 	int index;
-
-	// set the status of the permission checkboxes ON|OFF
+	settingperms=TRUE;
+	// set the status of the permission checkboxes ON|OFF, in keeping with the DBF
 	for (int n=0; n < user_level_count; n++)
 	{
 		index=GetUserLevelIndex(user_levels[n].level);	// get the index into array of this user level
 
-//printf("LEVEL:%d INDEX:%d  CR:%d  AU:%d  EU:%d  DEP:%d  RPT:%d\n",user_levels[n].level,index,perms[n].cr,perms[n].au,perms[n].eu,perms[n].dep,perms[n].rpt);
+printf("LEVEL:%d INDEX:%d  CR:%d  AU:%d  EU:%d  DEP:%d  RPT:%d\n",user_levels[n].level,index,perms[n].cr,perms[n].au,perms[n].eu,perms[n].dep,perms[n].rpt);
 
 
 		//CR
@@ -2696,6 +2889,10 @@ void SetPermValues(void)
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(ulevel_rpt[n]),  perms[index].rpt  );
 	}
 
+
+	settingperms=FALSE;
+    perms_saved=FALSE;
+    ShowPermSave();
 
 }
 
@@ -2727,8 +2924,11 @@ void AddPermGrid(void)
     GetUserLevels();
 	GetPerms();
 
+	// if we already have the grid populated with checkboxes, dont do it again
+	if (perm_grid_row_count == user_level_count) return;
+
 	for (int x=0; x<MAX_USER_LEVELS; x++)
-		arr[x]=x+1;
+		arr[x]=x;
 
 /*
 user_level_lbl (1-x)
@@ -2746,16 +2946,20 @@ GtkWidget * ulevel_dep[MAX_USER_LEVELS];
 GtkWidget * ulevel_rpt[MAX_USER_LEVELS];
 */
 
-#define BASE 2
+#define BASE 1
+// one row is defined, the header
 
 // add more rows if necessary
 if ( user_level_count > BASE)
 {
 	for (int x=BASE; x< user_level_count; x++)
-	gtk_grid_insert_row (app_ptr->perms_grid,x);
+	{
+		gtk_grid_insert_row (app_ptr->perms_grid,x);
+	}
 }
 
-
+        perm_grid_row_count=user_level_count;
+ 
 // add more columns if necessary
 //gtk_grid_insert_column (app_ptr->persm_grid, gint position);
 
@@ -2774,7 +2978,7 @@ if ( user_level_count > BASE)
 		// CR checkbox
 		ulevel_cr[n] = gtk_check_button_new ();
 		gtk_grid_attach(app_ptr->perms_grid, ulevel_cr[n],1,n+1,1,1);
-		g_signal_connect (ulevel_cr[n], "toggled", G_CALLBACK (UL_CR),   &arr[n]);
+		g_signal_connect (ulevel_cr[n], "clicked", G_CALLBACK (UL_CR),   &arr[n]);
 
 		// ADD USER checkbox
 	    ulevel_au[n] = gtk_check_button_new ();
@@ -2801,21 +3005,6 @@ if ( user_level_count > BASE)
 
 
 
-}
-
-
-/*
-//	CONTENT REMOVAL
-
-
-
-extern "C" bool on_user_level_cr1_toggled( GtkButton *button, AppWidgets *app)
-{
-	gboolean button_state;
-	button_state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(app_ptr->user_level_cr1) );
-
-	if (button_state)	printf("BUTTON IS ON\n");
-	else				printf("BUTTON IS OFF\n");
 }
 
 
@@ -2878,8 +3067,8 @@ void ShowUser(bool adding_user)
 	kb.target= app_ptr->username_txt;
 	kb.allow_alpha=TRUE;	// do not allow alpha keyboard
 	kb.allow_case=TRUE;
-	kb.is_upper=TRUE;	// allow upper/lower case
-	abc123=KEYPAD;
+	kb.is_upper=TRUE;		// current status of keyboard TRUE = uppercase, FALSE = lower case
+	kb.abc123=KEYPAD;
 
 	GetUserLevels();
 	GetDepartments();
@@ -3126,6 +3315,114 @@ void SetCurrentUserSelections(void)
 
 
 
+//=======================================================================
+//                  START REPORTS WINDOW
+//=======================================================================
+
+void ShowReports(void)
+{
+    gtk_widget_show(app_ptr->reports_window);
+}
+
+extern "C" bool on_reports_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->reports_window);
+}
+
+
+extern "C" bool on_reprint_receipts_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("REPRINT RECEIPTS\n");
+}
+
+extern "C" bool on_day_totals_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("DAY TOTALS\n");
+}
+
+extern "C" bool on_user_trans_hist_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("USER TRANS HISTORY\n");
+}
+
+extern "C" bool on_user_totals_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("USER TOTALS\n");
+}
+
+extern "C" bool on_shift_totals_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("SHIFT TOTALS\n");
+}
+
+extern "C" bool on_vend_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("VEND INVENTORY\n");
+}
+
+
+
+
+//=======================================================================
+//                  END REPORTS WINDOW
+//=======================================================================
+
+
+
+
+//=======================================================================
+//                  START DEPOSIT WINDOW
+//=======================================================================
+
+
+void ShowDeposit(void)
+{
+	gtk_widget_show(app_ptr->deposit_window);
+
+}
+
+
+extern "C" bool on_deposit_close_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->deposit_window);
+}
+
+
+extern "C" bool on_deposit_cash_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("DEPOSIT CASH\n");
+
+}
+
+extern "C" bool on_manual_deposit_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("MANUAL DEPOSIT\n");
+
+}
+
+extern "C" bool on_validator_gate_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("UNLOCK VALIDATOR GATE\n");
+
+}
+
+extern "C" bool on_reset_cassette_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("RESET CASSETTES\n");
+
+}
+
+extern "C" bool on_close_user_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+printf("CLOSE USER\n");
+}
+
+
+
+//=======================================================================
+//                  END DEPOSIT WINDOW
+//=======================================================================
+
 
 
 
@@ -3146,6 +3443,12 @@ extern "C" bool on_admin_close_btn_clicked( GtkButton *button, AppWidgets *app)
     gtk_widget_hide(app_ptr->admin_window);
 }
 
+extern "C" bool on_maint_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("MAINT\n");
+    ShowMaint();
+}
+
 
 extern "C" bool on_user_btn_clicked( GtkButton *button, AppWidgets *app)
 {
@@ -3163,6 +3466,17 @@ extern "C" bool on_cr_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_perms_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	ShowPerms();
+}
+
+extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+//    ShowLoad();
+    printf("LOAD\n");
+}
+
+extern "C" bool on_unload_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    printf("UNLOAD\n");
 }
 
 
@@ -3305,8 +3619,8 @@ void ShowLogin(void)
 	kb.target=app_ptr->user_entry;
 	kb.allow_alpha=FALSE;
 	kb.allow_case=FALSE;
-    abc123=KEYPAD;
-	kb.is_upper=FALSE;
+    kb.is_upper=FALSE;	// current status of keyboard TRUE = uppercase, FALSE = lower case
+    kb.abc123=KEYPAD;
 	ShowCaseBtn();		// show/hide CASE btn
 	ShowAbcBtn();
 	InstallKB();		// reparent the kb widget into the current window
@@ -3323,6 +3637,8 @@ void ShowLogin(void)
 	send the user input data from the soft keyboard or keypad to the appropriate widget target
 
 */
+
+
 
 void SetEntryText(void)
 {
@@ -3343,13 +3659,21 @@ void SetEntryText(void)
 	}//endif
 
 
+	// adding new user level window
+	if (kb.target == app_ptr->new_userlevel_entry)
+	{
+		gtk_entry_set_text(GTK_ENTRY(app_ptr->new_userlevel_entry),input_text);
+	}
+
 }
 
 
 /*
-	store the users inpu to the appropriate var based on which window we are on
+	store the users input to the appropriate var based on which window we are on
 
 */
+
+
 
 void StoreInput(char x)
 {
@@ -3364,6 +3688,19 @@ void StoreInput(char x)
 			entered_pw[pw_index++]=x;
 
 	}
+
+	// adding new user level window
+	if (kb.target == app_ptr->new_userlevel_entry)
+	{
+ 		if ( kb.is_upper)	// current status of keyboard TRUE = uppercase, FALSE = lower case
+		{
+			input_text[input_text_index++]= x;
+			ucase(input_text);
+		}
+		else
+	 		input_text[input_text_index++]=x;
+	}
+
 }
 
 
@@ -3373,11 +3710,11 @@ extern "C" bool on_abc_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	string msg;
 
-	abc123 ^= 1;
+	kb.abc123 ^= 1;
         // REPARENT(old parent, new parent, widget)
 
 
-	if (abc123==0)
+	if (kb.abc123==0)
 	{
 		// NUMPAD SHOWS
 		kb.active=app_ptr->numpad_grid;
@@ -3591,6 +3928,13 @@ void TabButton(void)
 	{
 	}
 
+    // ADD USER LEVEL
+    if (kb.attached == app_ptr->perm_kb_target)
+    {
+    }
+
+
+
     printf("TAB\n");
 }
 
@@ -3598,25 +3942,43 @@ void TabButton(void)
 
 void BackSpace(void)
 {
-    if (entered_focus==0)
+
+    if (kb.attached == app_ptr->login_pad_target)
     {
-        if (user_index==0) return;
-        entered_user[--user_index]=0;
-    }
-    else
+
+	    if (entered_focus==0)
+	    {
+	        if (user_index==0) return;
+	        entered_user[--user_index]=0;
+	    }
+	    else
+	    {
+	        if (pw_index==0) return;
+	        entered_pw[--pw_index]=0;
+	    }
+	    SetEntryText();
+	    printf("BKSP\n");
+
+	}
+
+    // ADD/EDIT USER
+    if (kb.attached == app_ptr->user_pad_target)
     {
-        if (pw_index==0) return;
-        entered_pw[--pw_index]=0;
     }
-    SetEntryText();
-    printf("BKSP\n");
+
+    // ADD USER LEVEL
+    if (kb.attached == app_ptr->perm_kb_target)
+    {
+		input_text[--input_text_index]=0;
+    }
+
 
 }
 
 
 
 
-extern "C" bool on_kb_bksp_btn_clicked( GtkButton *button, AppWidgets *app) { BackSpace();}
+extern "C" bool on_kb_bksp_btn_clicked( GtkButton *button, AppWidgets *app) { BackSpace(); SetEntryText();}
 extern "C" bool on_case_btn_clicked( GtkButton *button, AppWidgets *app) { kb.is_upper ^=1; SetKeyboardCase();}
 extern "C" bool on_kbrd_tab_btn_clicked( GtkButton *button, AppWidgets *app) {TabButton();}
 
@@ -3625,32 +3987,35 @@ extern "C" bool on_kbrd_tab_btn_clicked( GtkButton *button, AppWidgets *app) {Ta
     SetEntryText();
 */
 
-extern "C" bool on_a_btn_clicked( GtkButton *button, AppWidgets *app) { printf("A\n");}
-extern "C" bool on_b_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_c_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_d_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_e_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_f_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_g_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_h_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_i_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_j_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_k_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_l_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_m_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_n_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_o_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_p_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_q_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_r_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_s_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_t_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_u_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_v_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_w_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_x_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_y_btn_clicked( GtkButton *button, AppWidgets *app) {}
-extern "C" bool on_z_btn_clicked( GtkButton *button, AppWidgets *app) {}
+//    StoreInput('0');    SetEntryText();
+
+
+extern "C" bool on_a_btn_clicked( GtkButton *button, AppWidgets *app) { printf("A\n"); StoreInput('a');    SetEntryText();}
+extern "C" bool on_b_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('b');    SetEntryText();}
+extern "C" bool on_c_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('c');    SetEntryText();}
+extern "C" bool on_d_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('d');    SetEntryText();}
+extern "C" bool on_e_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('e');    SetEntryText();}
+extern "C" bool on_f_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('f');    SetEntryText();}
+extern "C" bool on_g_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('g');    SetEntryText();}
+extern "C" bool on_h_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('h');    SetEntryText();}
+extern "C" bool on_i_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('i');    SetEntryText();}
+extern "C" bool on_j_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('j');    SetEntryText();}
+extern "C" bool on_k_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('k');    SetEntryText();}
+extern "C" bool on_l_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('l');    SetEntryText();}
+extern "C" bool on_m_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('m');    SetEntryText();}
+extern "C" bool on_n_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('n');    SetEntryText();}
+extern "C" bool on_o_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('o');    SetEntryText();}
+extern "C" bool on_p_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('p');    SetEntryText();}
+extern "C" bool on_q_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('q');    SetEntryText();}
+extern "C" bool on_r_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('r');    SetEntryText();}
+extern "C" bool on_s_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('s');    SetEntryText();}
+extern "C" bool on_t_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('t');    SetEntryText();}
+extern "C" bool on_u_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('u');    SetEntryText();}
+extern "C" bool on_v_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('v');    SetEntryText();}
+extern "C" bool on_w_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('w');    SetEntryText();}
+extern "C" bool on_x_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('x');    SetEntryText();}
+extern "C" bool on_y_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('y');    SetEntryText();}
+extern "C" bool on_z_btn_clicked( GtkButton *button, AppWidgets *app) {StoreInput('z');    SetEntryText();}
 
 
 
@@ -4730,39 +5095,65 @@ void SetScreenSizes(void)
 
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->perms_window), screenres.horiz, screenres.vert);
 
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->add_user_level_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->deposit_window), screenres.horiz, screenres.vert);
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->reports_window), screenres.horiz, screenres.vert);
+
 }
 
 
 /*
-	show the CASE btn on the keyboard, or not depending upon value of showit
+	show the CASE btn on the keyboard, or not depending upon value of kb.allow_case
 
 */
 
 void ShowCaseBtn(void)
 {
 
-	if (kb.allow_case)
+    if (kb.attached == app_ptr->login_pad_target)
 	{
-	    gtk_widget_show(app_ptr->case_btn);
-		kb.is_upper=TRUE;
-		SetKeyboardCase();
+
+		if (kb.allow_case)
+		{
+		    gtk_widget_show(app_ptr->case_btn);
+			kb.is_upper=TRUE;
+			SetKeyboardCase();
+		}
+		else
+		{
+		    gtk_widget_hide(app_ptr->case_btn);
+			kb.is_upper=FALSE;
+		}
+
 	}
-	else
-	    gtk_widget_hide(app_ptr->case_btn);
+
+    if (kb.attached == app_ptr->perm_kb_target)
+	{
+	}
 
 
 }
 
 
+
 void ShowAbcBtn(void)
 {
-	if (kb.allow_alpha)
+    if (kb.attached == app_ptr->login_pad_target)
     {
-        gtk_widget_show(app_ptr->abc_btn);
-        kb.is_upper=TRUE;
+		if (kb.allow_alpha)
+	    {
+			// allow alpha and numeric
+	        gtk_widget_show(app_ptr->abc_btn);
+	        kb.is_upper=TRUE;
+	    }
+	    else
+	        gtk_widget_hide(app_ptr->abc_btn);
+
+	}
+
+    if (kb.attached == app_ptr->perm_kb_target)
+    {
     }
-    else
-        gtk_widget_hide(app_ptr->abc_btn);
 
 }
 
@@ -4903,6 +5294,16 @@ void SetLabels(void)
     gtk_button_set_label( GTK_BUTTON(app_ptr->admin_btn),msg.c_str() );
 
 
+    msg = getMessage(256,FALSE); // "DEPOSIT"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->deposit_btn),msg.c_str() );
+
+    msg = getMessage(257,FALSE); // "REPORTS"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->reports_btn),msg.c_str() );
+
+    msg = getMessage(258,FALSE); // "WITHDRAWL"
+    gtk_button_set_label( GTK_BUTTON(app_ptr->withdrawl_btn),msg.c_str() );
+
+
 
 
 
@@ -5038,6 +5439,51 @@ void SetLabels(void)
     gtk_button_set_label(GTK_BUTTON(app_ptr->mei_close_btn),msg.c_str() );
 
 
+
+// deposit window
+
+    msg=getMessage(50,FALSE);	// "CLOSE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->deposit_close_btn),msg.c_str() );
+
+    msg=getMessage(130,FALSE);	// "DEPOSIT CASH"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->deposit_cash_btn),msg.c_str() );
+
+    msg=getMessage(131,FALSE);	// "UNLOCK VALIDATOR GATE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->validator_gate_btn),msg.c_str() );
+
+    msg=getMessage(132,FALSE);   // "CLOSE USER"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->close_user_btn),msg.c_str() );
+
+    msg=getMessage(133,FALSE);   // "MANUAL DEPOSIT"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->manual_deposit_btn),msg.c_str() );
+
+    msg=getMessage(134,FALSE);   // "RESET CASSETTES"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->reset_cassette_btn),msg.c_str() );
+
+
+// reports window
+
+    msg=getMessage(50,FALSE);   // "CLOSE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->reports_close_btn),msg.c_str() );
+
+    msg=getMessage(140,FALSE);   // "REPRINT RECEIPTS"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->reprint_receipts_btn),msg.c_str() );
+
+    msg=getMessage(141,FALSE);   // "DAY TOTALS"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->day_totals_btn),msg.c_str() );
+
+    msg=getMessage(142,FALSE);   // "USER TRANS HIST"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->user_trans_hist_btn),msg.c_str() );
+
+    msg=getMessage(143,FALSE);   // "USER TOTALS"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->user_totals_btn),msg.c_str() );
+
+
+    msg=getMessage(144,FALSE);   // "SHIFT TOTALS"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->shift_totals_btn),msg.c_str() );
+
+    msg=getMessage(145,FALSE);   // "VEND INVENTORY"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->vend_inventory_btn),msg.c_str() );
 
 
 }
@@ -5290,25 +5736,27 @@ extern "C" bool on_settings_btn_clicked( GtkButton *button, AppWidgets *app)
 }
 
 
-
-
-extern "C" bool on_maint_btn_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_deposit_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    printf("MAINT\n");
-    ShowMaint();
-
+printf("DEPOSIT\n");
+	ShowDeposit();
 }
 
-extern "C" bool on_load_btn_clicked( GtkButton *button, AppWidgets *app)
+
+extern "C" bool on_withdrawl_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-//    ShowLoad();
-    printf("LOAD\n");
+printf("WITHDRAWL\n");
 }
 
-extern "C" bool on_unload_btn_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_reports_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    printf("UNLOAD\n");
+printf("REPORTS\n");
+	ShowReports();
 }
+
+
+
+
 
 
 extern "C" bool on_lock_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -6227,7 +6675,7 @@ void GetLangs(void)
 
 void InstallKB(void)
 {
-	if (abc123==KEYBOARD)
+	if (kb.abc123==KEYBOARD)
 	{
     	REPARENT(app_ptr->keyboard_window, kb.attached, kb.active);
 	}
@@ -6257,7 +6705,7 @@ void ReHomeKB(void)
 // REPARENT(old_parent,new_parent,widget)
 
 
-		if (abc123== KEYBOARD)
+		if (kb.abc123== KEYBOARD)
 		{
 			// rehome the keyboard widget
 			REPARENT(GTK_CONTAINER(kb.attached),  app_ptr->keyboard_window, app_ptr->keyboard_grid);
