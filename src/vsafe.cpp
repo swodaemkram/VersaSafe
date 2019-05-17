@@ -641,6 +641,10 @@ void ShowAdmin(void);
 void ShowDeposit(void);
 void ShowReports(void);
 
+void ShowDepositCash(void);
+void AddDeposit(char *txt);
+
+
 void ShowUserList(void);
 void AddListItem(GtkWidget * list, char *txt);
 static GtkWidget * create_row(const gchar *txt);
@@ -3391,6 +3395,7 @@ extern "C" bool on_deposit_close_btn_clicked( GtkButton *button, AppWidgets *app
 extern "C" bool on_deposit_cash_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 printf("DEPOSIT CASH\n");
+ShowDepositCash();
 
 }
 
@@ -5099,6 +5104,8 @@ void SetScreenSizes(void)
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->deposit_window), screenres.horiz, screenres.vert);
     gtk_window_set_default_size(GTK_WINDOW(app_ptr->reports_window), screenres.horiz, screenres.vert);
 
+    gtk_window_set_default_size(GTK_WINDOW(app_ptr->deposit_cash_window), screenres.horiz, screenres.vert);
+
 }
 
 
@@ -5461,6 +5468,11 @@ void SetLabels(void)
     gtk_button_set_label(GTK_BUTTON(app_ptr->reset_cassette_btn),msg.c_str() );
 
 
+    msg=getMessage(135,FALSE);   // "DEPOSITS MENU"
+    gtk_label_set_label(GTK_LABEL(app_ptr->deposits_title),msg.c_str() );
+
+
+
 // reports window
 
     msg=getMessage(50,FALSE);   // "CLOSE"
@@ -5485,6 +5497,9 @@ void SetLabels(void)
     msg=getMessage(145,FALSE);   // "VEND INVENTORY"
     gtk_button_set_label(GTK_BUTTON(app_ptr->vend_inventory_btn),msg.c_str() );
 
+    msg=getMessage(146,FALSE);   // "REPORTS MENU"
+    gtk_label_set_label(GTK_LABEL(app_ptr->reports_title),msg.c_str() );
+
 
 	// add user level window
     msg = getMessage(360,FALSE); // "ADD USER LEVEL"
@@ -5496,6 +5511,19 @@ void SetLabels(void)
 
     msg=getMessage(49,FALSE);   // "CANCEL"
     gtk_button_set_label(GTK_BUTTON(app_ptr->add_userlevel_cancel_btn),msg.c_str() );
+
+
+	// deposit cash window
+    msg = getMessage(150,FALSE); // "DEPOSIT CASH"
+    gtk_label_set_label( GTK_LABEL(app_ptr->deposit_cash_title),msg.c_str() );
+
+
+    msg=getMessage(151,FALSE);   // "DEPOSIT COMPLETE"
+    gtk_button_set_label(GTK_BUTTON(app_ptr->deposit_complete_btn),msg.c_str() );
+
+    msg=getMessage(152,FALSE);   // "INSERT CASH ONE BILL AT A TIME.TOUCH DEPOSIT COMPLETE WHEN FINISHED."
+    gtk_label_set_label(GTK_LABEL(app_ptr->deposit_cash_lbl),msg.c_str() );
+
 
 
 }
@@ -5783,6 +5811,41 @@ extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
     gtk_widget_hide(app_ptr->login_window);
 	ShowSplashWindow();
 }
+
+
+
+//=========================================================
+//              START DEPOSIT CASH
+//=========================================================
+
+void ShowDepositCash(void)
+{
+    gtk_widget_show_all(app_ptr->deposit_cash_window);
+}
+
+extern "C" bool on_deposit_complete_btn_clicked( GtkButton *button, AppWidgets *app)
+{
+    gtk_widget_hide(app_ptr->deposit_cash_window);
+
+}
+
+
+/*
+    add a deposit listitem to the listbox (deposit_cash_listbox)
+*/
+
+void AddDeposit(char *txt)
+{
+	AddListItem(app_ptr->deposit_cash_listbox,txt);
+}
+
+
+
+//=========================================================
+//              END DEPOSIT CASH
+//=========================================================
+
+
 
 
 

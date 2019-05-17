@@ -89,6 +89,7 @@
 	appGET(add_user_level_window);
 	appGET(deposit_window);
 	appGET(reports_window);
+	appGET(deposit_cash_window);
 
 	// main menu
 	appGET( deposit_btn);
@@ -105,6 +106,13 @@
     appGET(logout_btn);
 
 
+	// deposit cash window
+    appGET_LABEL(deposit_cash_title);
+	appGET_LABEL(deposit_cash_lbl);
+    appGET(deposit_complete_btn);
+	appGET(deposit_cash_listbox);
+
+
 	// reports window
 	appGET(reprint_receipts_btn);
 	appGET(day_totals_btn);
@@ -113,6 +121,7 @@
 	appGET(shift_totals_btn);
 	appGET(vend_inventory_btn);
 	appGET(reports_close_btn);
+	appGET_LABEL(reports_title);
 
 	// deposit window
     appGET(deposit_cash_btn);
@@ -121,6 +130,7 @@
     appGET(reset_cassette_btn);
     appGET(close_user_btn);
 	appGET(deposit_close_btn);
+	appGET_LABEL(deposits_title);
 
 
 	// add user level
