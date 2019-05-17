@@ -61,6 +61,7 @@ typedef struct
 	GtkWidget *add_user_level_window;
 	GtkWidget *deposit_window;
 	GtkWidget *reports_window;
+	GtkWidget *deposit_cash_window;
 
 
 	// main menu
@@ -78,6 +79,11 @@ typedef struct
     GtkWidget *logout_btn;
 
 
+	// deposit cash window
+	GtkLabel *deposit_cash_title;
+	GtkLabel *deposit_cash_lbl;
+	GtkWidget *deposit_complete_btn;
+	GtkWidget *deposit_cash_listbox;
 
 	// reports window
 	GtkWidget *reprint_receipts_btn;
@@ -87,6 +93,7 @@ typedef struct
 	GtkWidget *shift_totals_btn;
 	GtkWidget *vend_inventory_btn;
 	GtkWidget *reports_close_btn;
+	GtkLabel *reports_title;
 
 	// deposit window
 	GtkWidget *deposit_cash_btn;
@@ -95,6 +102,7 @@ typedef struct
 	GtkWidget *reset_cassette_btn;
 	GtkWidget *close_user_btn;
 	GtkWidget *deposit_close_btn;
+	GtkLabel *deposits_title;
 
 
 	// add user level

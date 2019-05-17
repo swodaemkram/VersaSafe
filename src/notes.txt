@@ -91,7 +91,7 @@ TO ADD A NEW GTK WINDOW
 glade
 1 add a top level window
 2 under common, make sure to set widget name, this will be the ref
-3 set modal, etc and window size
+3 set modal, etc
 4 uncheck resizable
 5 set postion to CENTER
 6 check DESTROY WITH PARENT
@@ -103,6 +103,7 @@ hdr/gtkwidgets.h
 hdr/gtkwidget_app.h
 1 add the new ref as necessary
 
+add an entry in SetScreenSizes() in vsafe.cpp to set screen size
 
 
 ======================================
