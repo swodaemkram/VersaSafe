@@ -55,17 +55,6 @@ void mei_reset_func(void);
 string get_mei_driver(void);
 string mei_verify_bill_func(void);
 string mei_getmodel_func(void);
-//string mei_get_info(void);
-//void mei_enable(void);
-//void mei_dissable(void);
-//void mei_accept(void);
-//void mei_enable_bookmark(void);
-//void mei_enable_in(int meienableincount);
-//void mei_accept_in(string meibillstoaccept);
-//void mei_dissable_time(int meidissabletimeinsec);
-//void mei_connect(string pname);
-//string mei_status(void);
-//string mei_stack(void);
 
 //======================================================================================================
 //End of MEI Declarations
@@ -577,7 +566,7 @@ string Get_d8_driver(void)
 int init_mei(void)
 {
 	printf("\nInitializing MEI Validator ....\n");
-		mei * validator = new mei("/dev/ttyUSB0");
+		mei * validator = new mei("/dev/ttyUSB0",1);
 		printf("\nMEI Validator Initialized!\n");
 		return(0);
 }
@@ -591,37 +580,7 @@ int init_mei(void)
 //	return get_mei_driver_version();
 //}
 //-----------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------
-//  Command to Reset MEI Validator can take up to 10 seconds
-//-----------------------------------------------------------------------------------------------------
-void mei_reset_func(void)
-{
-	validator->mei_reset();
-}
-//-----------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------
-// Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
-//-----------------------------------------------------------------------------------------------------
-string mei_getmodel_func(void)
-{
-	string x = validator->mei_getmodel();
-	return(0);
-}
-//-----------------------------------------------------------------------------------------------------
-// Command to MEI Verify Bills
-//-----------------------------------------------------------------------------------------------------
-string mei_verify_bill_func(void)
-{
-	string x = validator->mei_verify_bill();
-	return("done");
-}
-//------------------------------------------------------------------------------------------------------
-// Command to Stack Bills
-//------------------------------------------------------------------------------------------------------
-void mei_stack(void)
-{
-	validator->mei_stack_documents();
-}
+
 //------------------------------------------------------------------------------------------------------
 // Command to Retrieve Inventory
 //------------------------------------------------------------------------------------------------------
@@ -631,6 +590,51 @@ void mei_inventory(void)
 
 }
 
+//API COMMANDS
+ // XXX = "LOCK", "UNLOCK", "STATUS", "DELAY-YY"
+bool api_100(char *cmd)
+{
+}
+bool api_101(char cmd) {}
+bool api_102(char cmd) {}
+bool api_103(char cmd) {}
+//bool api_105(char cmd) {}
+bool api_200(char cmd) {}
+bool api_201(char cmd) {}
+bool api_220(char cmd) {}
+bool api_221(char cmd) {}
+bool api_225(char *cmd) {}
+bool api_300(char cmd) {}
+bool api_301(char cmd) {}
+bool api_302(char cmd) {}
+bool api_350(char cmd) {}
+bool api_351(char cmd) {}
+bool api_400(char cmd) {}
+bool api_500(char cmd) {}
+bool api_501(char cmd) {}
+bool api_502(char cmd) {}
+bool api_503(char cmd) {}
+bool api_504(char cmd) {}
+bool api_505(char cmd) {}
+bool api_550(char *cmd) {}
+bool api_600(char cmd) {}
+bool api_601(char cmd) {}
+bool api_602(char cmd) {}
+bool api_603(char cmd) {}
+bool api_604(char cmd) {}
+bool api_650(char cmd) {}
+bool api_510(char cmd) {}
+bool api_511(char cmd) {}
+bool api_512(char cmd) {}
+bool api_513(char cmd) {}
+bool api_700(char cmd) {}
+bool api_701(char cmd) {}
+bool api_702(char *cmd) {}
+bool api_800(char cmd) {}
+bool api_801(char cmd) {}
+bool api_900(char cmd) {}
+bool api_901(char cmd) {}
+bool api_902(char *cmd) {}
 
 
 
