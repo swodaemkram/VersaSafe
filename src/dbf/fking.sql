@@ -49,7 +49,7 @@ DROP TABLE IF EXISTS `currency`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `currency` (
-  `country_code` varchar(5) COLLATE utf8_bin NOT NULL,
+  `currency_code` varchar(5) COLLATE utf8_bin NOT NULL,
   `type` varchar(5) COLLATE utf8_bin NOT NULL,
   `value` int(4) NOT NULL,
   `symbol` varchar(10) COLLATE utf8_bin NOT NULL,
@@ -271,7 +271,9 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1);
+INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',99,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1);
+INSERT INTO `users` VALUES ('1111','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Admin','',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,2);
+INSERT INTO `users` VALUES ('2222','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Bob','Fergus',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,3);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -288,7 +290,7 @@ CREATE TABLE `utd_denom` (
   `tube_value` int(5) NOT NULL,
   `tube_count` int(2) DEFAULT '0',
   `modified_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `country_code` varchar(8) COLLATE utf8_bin DEFAULT 'USD',
+  `currency_code` varchar(8) COLLATE utf8_bin DEFAULT 'USD',
   `id` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
@@ -333,6 +335,7 @@ DROP TABLE IF EXISTS `inv_map`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `inv_map` (
+  `device_id` int(5),
   `field` int(5),
   `denom` int(5),
   `units` varchar(10),

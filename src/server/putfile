@@ -1,0 +1,3 @@
+#!/bin/bash
+cp -v server.php /var/www/html/
+

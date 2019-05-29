@@ -1,4 +1,3 @@
-
 /*
 	Program: VSafe
 	Module: vsafe.cpp (primary module)
@@ -246,7 +245,7 @@ using namespace std;
 #include "hdr/config.h"
 #include "usb_gateway.inc"
 #include "hdr/usb_gateway.h"
-
+#include "api.inc"
 
 
 //mysql  Ver 14.14 Distrib 5.7.20, for Linux (x86_64) using  EditLine wrapper
@@ -854,11 +853,13 @@ struct
 
 	// api
 	char api_port[10];
+	bool api_enabled=FALSE;
 } cfg;
 
 
 int GetAPIport(void);
 
+void API_Handler(void);
 
 
 
@@ -946,6 +947,7 @@ printf("user: %s\n",localDBF.user);
 	int result =  QueryDBF(&localDBF,query);
 	int numrows = GetRow(&localDBF);	// populate gen_buffer
 	printf("Data Returned: %s\n",localDBF.row[1]);
+
 
 
 Get_UTD_Data();
@@ -1171,8 +1173,9 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	ConnectCloud();
 
 	string tbl="users devices";
-	SendTableToServer(tbl);
+//	SendTableToServer(tbl);
 
+	SetupAPI();
 
 	#ifdef FULLSCREEN
 //		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_menu) );
@@ -4882,6 +4885,8 @@ gint time_slice(gpointer data)
 
 	counter++;
 
+	API_Handler();
+
 	// math predicated upon 100ms slices
 	// to create a one second timer
 	if ((counter % 10)== 0)
@@ -6490,9 +6495,20 @@ bool ConfigSetup(bool silent)
         {
             pelem = elem->FirstChildElement("port");
             if (pelem)
-                strcpy(cfg.logdbf, (char*) pelem->GetText());
+                strcpy(cfg.api_port, (char*) pelem->GetText());
             else
-                strcpy(cfg.logdbf, (char*) "1132");
+                strcpy(cfg.api_port, (char*) "1132");
+
+            pelem = elem->FirstChildElement("enabled");
+            if (pelem)
+			{
+				strcpy(gen_buffer,(char *)pelem->GetText());
+				lcase(gen_buffer);
+                if (strcmp( gen_buffer, "yes") == 0)
+					cfg.api_enabled=TRUE;
+			}
+            else
+				cfg.api_enabled=FALSE;
 		}
 
 
@@ -7000,10 +7016,31 @@ for (n=0; n<10; n++)
 }
 
 
+
 int GetAPIport(void)
 {
     return atoi(cfg.api_port);
 }
+
+
+// take input from the API port
+void API_Handler(void)
+{
+	static int callnumber=0;
+	static bool inprocess=FALSE;
+
+	// first, check our conditionals to see if we have anything to do
+	if (inprocess) return;				// we are not re-entrant
+	if (!cfg.api_enabled) return;		// skip if not enabled
+	if (++callnumber % 5 != 0) return;	// if not the 5th call (eg 500ms, then return
+
+    inprocess=TRUE;
+
+	ListenAPI();	// in api.cpp
+					// returns char* to received string or NULL
+
+}
+
 
 
 
