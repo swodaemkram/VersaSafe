@@ -1,4 +1,5 @@
 /*
+
 	Program: VSafe
 	Module: vsafe.cpp (primary module)
 	Author: Gary Conway <gary.conway@fireking.com>
@@ -7036,8 +7037,11 @@ void API_Handler(void)
 
     inprocess=TRUE;
 
+printf("API_HANDLER here\n");
 	ListenAPI();	// in api.cpp
 					// returns char* to received string or NULL
+
+	inprocess=FALSE;	// returning control to your normal broadcasting station
 
 }
 

@@ -1,3 +1,4 @@
+
 /*
     Program: VSAFE
     Module: api.cpp
@@ -136,6 +137,7 @@ char * ListenAPI(void)
     else
     {
 printf("%s\n",ptr);
+		CommandDispatcher(ptr);		// execute the command
 		ret=api->SendMessage(ptr);	// echo what we received
 		if (!ret)
 		{
@@ -367,6 +369,8 @@ void CommandDispatcher(char * cmd)
 	case 900:	//900-UTD-UNLOADALL
        api_900(cmd);
 		break;
+
+	// cols are zero based (0-7), 8 =unload all
 	case 901:	//901-UTD-UNLOAD-COL-X
        api_901(cmd);
 		break;
@@ -374,6 +378,15 @@ void CommandDispatcher(char * cmd)
        api_902(cmd);
 		break;
 
+	case 903:	//903-UTD-LOAD-STOP
+		api_903(cmd);
+		break;
+	case 904:	//904-UTD-RESET
+		api_904(cmd);
+		break;
+	case 905:	//905-UTD-INVENTORY
+		string inv=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
+		break;
 	}
 
 

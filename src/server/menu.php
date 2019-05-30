@@ -1,10 +1,30 @@
+
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
 <?php
 
-GLOBAL $conn;
+GLOBAL $conn,$xml,$cfg,$socket,$port;
+
+$cfg=array
+(
+    "server"=>1,
+    "user"=>2,
+    "pw"=>3,
+    "dbf"=>4,
+    "dbf_port"=>5,
+    "api_port"=>6,
+);
+
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+ReadXML();
+
 
 if (extension_loaded('simplexml'))
 	ConnectDBF();
@@ -13,7 +33,12 @@ else
 
 
 
+
+//var_dump($xml);
+
 //https://dabuttonfactory.com/
+
+$menu="none";
 
 if (isset($_GET['m']) )
 {
@@ -207,6 +232,11 @@ case "admin":
     print "<td><a href='?f=vend_define'><img src='img/button_vend-define.png' /> </a></td>";
     print "</tr>";
 
+/*
+    print "<tr>";
+    print "<td><a href='?f=vend_unload_all'><img src='img/button_unload-all.png' /> </a></td>";
+    print "</tr>";
+*/
 
 
     print "</table>";
@@ -283,8 +313,8 @@ case "user_trans_hist":
     break;
 case "vend_inventory":
     print "<div class='function'>";
-    print "</div>";
 	VendInventory();
+    print "</div>";
     break;
 
 
@@ -334,9 +364,77 @@ case "maint":
 
 case "vend_unload":
     print "<div class='function'>";
+
+	print "<form id='unloadformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+	print "<table class='columns'>";
+
+
+        print "<tr>";
+        print "<th colspan='2'>VEND UNLOAD</th>";
+        print "</tr>";
+
+        print "<tr>";
+		print "<th>COLUMN</th><th>COLUMN</th>";
+        print "</tr>";
+
+
+	for ($n=1; $n <5; $n++)
+	{
+		print "<tr>\n";
+		print "<td><input type='checkbox' name='col".$n ."' value='col". $n ."'>".$n."</td>\n";
+        print "<td><input type='checkbox' name='col". ($n+4) ."' value='col". ($n+4) ."'>". ($n+4)."</td>\n";
+	    print "</tr>";
+	}
+
+	print "<tr>";
+    print "<td><br><br><a href='?f=vend_unload_now'><img src='img/button_unload-now.png' onClick='submitUNLOAD()'/> </a></td>";
+//	print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD()'><img src='img/button_unload-now.png'/></button></td>";
+//    print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD()'></button></td>";
+
+    print "<td><br><br><a href='?f=vend_unload_all'><img src='img/button_unload-all.png' /> </a></td>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<td><br><br><a href='?m=admin'><img src='img/button_cancel.png' /> </a></td>";
+    print "</tr>";
+
+	print "</form>";
+
+	print "</table";
+
+
+
     print "</div>";
 	VendUnload();
 	break;
+
+case "vend_unload_all":
+    print "<div class='function'>";
+    print "</div>";
+    VendUnloadAll();
+    break;
+
+// unload selected columns
+case "vend_unload_now":
+    print "<div class='function'>";
+
+	if ($_SERVER["REQUEST_METHOD"] == "POST")
+	{
+
+	$col1=check_input($_POST["col1"]);
+
+	print_rx ($_POST);
+
+
+	} // end CHK POST
+	else
+	{
+		print "WASNT POST";
+	}
+
+    print "</div>";
+    break;
+
 
 case "vend_load":
     print "<div class='function'>";
@@ -361,7 +459,7 @@ function DayTotals()
 {
 }
 
-function UserTotals()
+function UsrTotals()
 {
 }
 
@@ -378,29 +476,49 @@ function UserTransHist()
 function VendInventory()
 {
 	GLOBAL $conn;
-//	$sql="SELECT col,tube_name,tube_count,id FROM utd_denom";
-	$sql="SELECT device_id,mfg,model FROM devices WHERE model='SCNL6627R'";
+
+	$sql="SELECT a.col,a.tube_name,a.tube_value,a.tube_count, b.currency_code,b.type,b.symbol, (a.tube_count*a.tube_value)/100 AS dollars ";
+	$sql .= "FROM utd_inventory AS a ";
+	$sql .= "INNER JOIN currency AS b ON b.denom_code=a.denom_code";
+
+
 	$result = mysqli_query($conn, $sql);
 
-	$row = mysqli_fetch_assoc($result);
-	$utd_device_id = $row["device_id"];
 
-	$sql="SELECT field_1,field_2,field_3,field_4,field_5,field_6 FROM inventory";
-	$result= mysqli_query($conn,$sql);
+if ($result)
+{
+$numrows = mysqli_num_rows($result);
+
+//print "NUM_ROWS: ". $numrows;
+
+    if ($numrows >0)
+    {
+		print "<table class='invtable'>";
+		print "<tr><thcolspan=3;>UTD INVENTORY</th></tr>";
+		print "<tr><th>COL NAME</th><th>QTY</th><th>VALUE</th><th>CURRENCY</th></tr>";
+        while ($row = mysqli_fetch_assoc($result))
+		{
+			print "<tr>";
+			print "<td>".$row["tube_name"] ."</td><td>". $row["tube_count"]. "</td><td>". number_format($row["dollars"],2) ."<td>". $row["currency_code"] . "</td></br>";
+			print "</tr>";
+		}
+		print "</table>";
+	}
+
+	mysqli_free_result($result);
+}
+else
+	print "BAD RESULT";
 
 }
-
-/*
-    $result = mysqli_query($conn,$sql);
-
-    if (mysqli_num_rows >0)
-    {
-        while ($row = mysqli_fetch_assoc($result))
-*/
 
 
 function DepositCash()
 {
+	SocketConnect();
+
+	SendMessage("LOCK-DOOR");
+	CloseConnection();
 }
 
 
@@ -471,6 +589,15 @@ function VendUnload()
 {
 }
 
+
+function VendUnloadAll()
+{
+    SocketConnect();
+    SendMessage("900-UTD-UNLOADALL");
+    CloseConnection();
+}
+
+
 function VendDefine()
 {
 }
@@ -479,6 +606,7 @@ function VendDefine()
 function queryDBF($sql)
 {
 	GLOBAL $conn;
+
 	$result = mysqli_query($conn,$sql);
 
 	if (mysqli_num_rows($result) >0)
@@ -491,29 +619,64 @@ function queryDBF($sql)
 }
 
 
+function ReadXML()
+{
+	GLOBAL $xml;
+
+    // our config file
+    $configpath="/home/garyc/Desktop/VersaSafe/git/VersaSafe/src/xml/config.xml";
+    // read it into $xml obj
+    $xml=simplexml_load_file($configpath);
+
+//var_dump($xml);
+}
+
+
+
+
+function check_input($data)
+{
+	$data = trim($data);
+	$data = stripslashes($data);
+	$data = htmlspecialchars($data);
+	return $data;
+}
+
+
+
+
 function ConnectDBF()
 {
-	GLOBAL $conn;
+	GLOBAL $conn,$xml, $cfg;
 
-	// our config file
-    $configpath="/home/garyc/Desktop/VersaSafe/git/VersaSafe/src/xml/config.xml";
-	// read it into $xml obj
-    $xml=simplexml_load_file($configpath);
+
+
 
 	//  print_rx($xml);
 
 //	echo $xml->localDBF->ip;
+	$cfg["server"]=$xml->localDBF->ip;
+	$cfg["user"]=$xml->localDBF->user;
+	$cfg["pw"]=$xml->localDBF->password;
+	$cfg["dbf"]=$xml->localDBF->database;
+	$cfg["dbf_port"]=$xml->localDBF->port;
+
+/*
 	$dbf_server = $xml->localDBF->ip;
 	$dbf_user= $xml->localDBF->user;
 	$dbf_pw= $xml->localDBF->password;
 	$dbf_dbf = $xml->localDBF->database;
 	$dbf_port = $xml->localDBF->port;
+*/
 
 	// connect to mySQL
-	$conn = new mysqli($dbf_server,$dbf_user,$dbf_pw,$dbf_dbf);
-	if ($conn->connect_error)
+	$conn = new mysqli($cfg["server"],$cfg["user"],$cfg["pw"],$cfg["dbf"]);
+	if (!$conn->connect_error)
 	{
+		print mysqli_connect_error();
 	}
+
+	$conn->set_charset('utf8');
 }
 
 
@@ -535,5 +698,68 @@ echo "</html>";
 
 // NOTE: no close tag... is the new NORM in PHP 7
 // zend has insisted on that for some time
+
+
+
+function SocketConnect()
+{
+	GLOBAL $xml,$cfg,$socket,$port;
+
+	$host="127.0.0.1";
+	$cfg["api_port"]=$xml->api->port;
+
+	set_time_limit(0);	// no time out
+
+	$message = "LOCK-DOOR";
+
+	$port = (int) $cfg["api_port"];
+
+	// creat a socket
+	$socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not create socket\n");
+
+	// connect to the server
+	$result = socket_connect($socket, $host, $port) or die("Could not connect toserver\n");
+}
+
+
+
+function SendMessage($message)
+{
+	GLOBAL $socket, $port;
+
+	// write to server socket
+	socket_write($socket, $message, strlen($message)) or die("Could not send data to server\n");
+
+	// get the reply
+	$result = socket_read ($socket, $port) or die("Could not read server response\n");
+
+
+//	echo "Reply From Server  :".$result ."</br>";
+
+    if ($message == $result)
+	{
+		print "<br>SENT:RCVD messages match:: ". $result ."</br>";
+	}
+}
+
+function CloseConnection()
+{
+	GLOBAL $socket;
+	// tidy up
+	socket_close($socket);
+
+}
+
+?>
+
+<script language="javascript" type="text/javascript">
+    function submitUNLOAD()
+	{
+		alert("testing");
+       $("#unloadformID").submit();
+    }
+</script>
+
+</html>
 
 

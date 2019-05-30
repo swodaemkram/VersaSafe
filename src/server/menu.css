@@ -1,3 +1,4 @@
+
 /* Add a black background color to the top navigation */
 .topnav 
 {
@@ -91,12 +92,13 @@
 .function
 {
     position:absolute;
+	padding:20px;
     left:150px;
     top:150px;
     border: 5px solid BLUE;
     background-color:gainsboro;
 //LightSteelBlue;
-    width:50%;
+    width:40%;
     height:400px;
 //  color:#454545;
     color:black;
@@ -104,5 +106,42 @@
 	font-weight:bold;
     font-family:arial,sans-serif;
 	text-align:center;
+}
+
+
+.invtable
+{
+	position:absolute;
+	top:30px;
+	left:20px;
+}
+
+.invtable td
+{
+	width:20%;
+	font-weight:normal;
+}
+
+.columns
+{
+	position:relative;
+	top:30px;
+	width:50%;
+}
+
+.columns td
+{
+	width:20%;
+}
+
+
+.columns input
+{
+}
+
+
+.unloadnow
+{
+	background-image: url( "img/button_unload-now.png" );
 }
 

@@ -1,0 +1,323 @@
+
+mysql> show tables;
++-----------------+
+| Tables_in_fking |
++-----------------+
+| config          |
+| currency        |
+| depts           |
+| device_class    |
+| devices         |
+| inv_map         |
+| inventory       |
+| langs           |
+| locks           |
+| perms           |
+| test            |
+| user_levels     |
+| users           |
+| utd_denom       |
++-----------------+
+14 rows in set (0.00 sec)
+
+CREATE TABLE `devices` (
+  `device_id` int(5),
+  `class_id` int(5),
+  `mfg` varchar(20),
+  `model` varchar(25),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+INSERT INTO `devices` VALUES (100,100,'MEI','SCNL6627R',1),(101,200,'fki','xUTD-model',2);
+
+device_id = used to uniquely identify a particular device, eg, may have more than one validator
+class_id = class as defined in device_class table
+mfg = MEI,FKI,JCM etc
+model = model number of the device
+id = not really used
+
+never a utd and ucd on same safe
+
+
+
+CREATE TABLE `device_class` (
+  `class` varchar(30),
+  `class_id` int(5),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+INSERT INTO `device_class` VALUES ('validator',100,1),('utd',200,2),('ucd',300,3),('lock',400,4),
+
+class = type of device, validator,utd,ucd etc
+class_id = as below
+100 = validator
+200 = utd
+300 = ucd
+400 = lock
+
+
+ select * from device_class WHERE class='validator';
+
+// SELECT ALL VALIDATORS
+SELECT b.class_id,a.device_id,a.model,b.class
+FROM devices AS a
+INNER JOIN device_class AS b ON b.class_id=a.class_id
+AND b.class='validator';
+
+// SELECT ALL UTD and UCD
+SELECT b.class_id,a.device_id,a.model,b.class
+FROM devices AS a
+INNER JOIN device_class AS b ON b.class_id=a.class_id
+AND b.class = 'utd'
+OR b.class = 'ucd';
+
+// SELECT ALL LOCKS
+SELECT b.class_id,a.device_id,a.model,b.class
+FROM devices AS a
+INNER JOIN device_class AS b ON b.class_id=a.class_id
+AND b.class='lock';
+
+
+pelicano - coin acceptor
+grs50 - reclyler bills only (stores some, sets some for recycling)
+
+
+CREATE TABLE `inventory` (
+  `device_id` int(5),
+  `field_1` float(12,2) DEFAULT 0,
+  `field_2` float(12,2) DEFAULT 0,
+  `field_3` float(12,2) DEFAULT 0,
+  `field_4` float(12,2) DEFAULT 0,
+  `field_5` float(12,2) DEFAULT 0,
+  `field_6` float(12,2) DEFAULT 0,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+
+CREATE TABLE `inv_map` (
+  `device_id` int(5),
+  `field` int(5),
+  `denom` int(5),
+  `units` varchar(10),
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+
+this map is filled in when the currency is selected
+inv_map is used to map the inventory fields to the proper currency depending upon current selections
+
+
+
+
+CREATE TABLE `currency` (
+  `country_code` varchar(5) COLLATE utf8_bin NOT NULL,
+  `type` varchar(5) COLLATE utf8_bin NOT NULL,
+  `value` int(4) NOT NULL,
+  `symbol` varchar(10) COLLATE utf8_bin NOT NULL,
+  `denom_code` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+
+
+
+INSERT INTO `currency` VALUES 
+('USD','NOTE',100,'$',1),
+('USD','NOTE',500,'$',2),
+('USD','NOTE',1000,'$',3),
+('USD','NOTE',2000,'$',4),
+('USD','NOTE',5000,'$',5),
+('USD','NOTE',10000,'$',6),
+('USD','COIN',1,'c',7),
+('USD','COIN',5,'c',8),
+('USD','COIN',10,'c',9),
+('USD','COIN',25,'c',10),
+
+('EURO','NOTE',500,'€',11),
+('EURO','NOTE',1000,'€',12),
+('EURO','NOTE',2000,'€',13),
+('EURO','NOTE',5000,'€',14),
+('EURO','NOTE',10000,'€',15),
+('EURO','NOTE',20000,'€',16),
+('EURO','NOTE',50000,'€',17),
+('EURO','COIN',1,'c',18),
+('EURO','COIN',2,'c',19),
+('EURO','COIN',5,'c',20),
+('EURO','COIN',10,'c',21),
+('EURO','COIN',20,'c',22),
+('EURO','COIN',50,'c',23),
+('EURO','COIN',100,'€',24),
+('EURO','COIN',200,'€',25),
+
+('PESO','NOTE',2000,'$',26),
+('PESO','NOTE',5000,'$',27),
+('PESO','NOTE',10000,'$',28),
+('PESO','NOTE',20000,'$',29),
+('PESO','NOTE',50000,'$',30),
+('PESO','COIN',100,'$',31),
+('PESO','COIN',200,'$',32),
+('PESO','COIN',500,'$',33),
+('PESO','COIN',1000,'$',34),
+('PESO','COIN',2000,'$',35),
+('PESO','COIN',20,'¢',36),
+('PESO','NOTE',50,'¢',37),
+
+('ILS','NOTE',2000,'₪ ',38),
+('ILS','NOTE',5000,'₪',39),
+('ILS','NOTE',10000,'₪',40),
+('ILS','NOTE',20000,'₪',41),
+('ILS','COIN',100,'₪',42),
+('ILS','COIN',200,'₪',43),
+('ILS','COIN',500,'₪',44),
+('ILS','COIN',1000,'₪',45),
+('ILS','COIN',10,'agorot',46),
+('ILS','COIN',50,'agorot',47);
+
+
+// get all supported currencies
+SELECT DISTINCT currency_code FROM currency;
++--------------+
+| country_code |
++--------------+
+| USD          |
+| EURO         |
+| PESO         |
+| ILS          |
++--------------+
+4 rows in set (0.00 sec)
+
+
+
+
+CREATE TABLE `langs` (
+  `code` varchar(5) COLLATE utf8_bin NOT NULL,
+  `name` varchar(40) COLLATE utf8_bin NOT NULL,
+  `active` tinyint(4) NOT NULL DEFAULT '0',
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+
+INSERT INTO `langs` VALUES ('en','English',1,1),('es','Español',1,2),('fr','Français',1,3),('he','עברית',0,4);
+
+
+SELECT a.col,a.tube_name,a.tube_value, b.currency_code,b.type,b.symbol
+FROM utd_denom AS a
+INNER JOIN currency AS b ON b.denom_code=a.denom_code;
+
++-----+-----------+------------+---------------+------+--------+
+| col | tube_name | tube_value | currency_code | type | symbol |
++-----+-----------+------------+---------------+------+--------+
+|   1 | PENNIES   |         50 | USD           | COIN | c      |
+|   2 | NICKELS   |        200 | USD           | COIN | c      |
+|   3 | DIMES     |        500 | USD           | COIN | c      |
+|   4 | QUARTERS  |       1000 | USD           | COIN | c      |
+|   5 | ONES      |       1000 | USD           | NOTE | $      |
+|   6 | FIVES     |       2000 | USD           | NOTE | $      |
+|   7 | TENS      |       2000 | USD           | NOTE | $      |
+|   8 | TWENTIES  |       4000 | USD           | NOTE | $      |
++-----+-----------+------------+---------------+------+--------+
+8 rows in set (0.00 sec)
+
+// get the dollar amounts held in each column
+SELECT a.col,a.tube_name,a.tube_value,a.tube_count, b.currency_code,b.type,b.symbol, (a.tube_count*a.tube_value)/100 AS dollars
+FROM utd_inventory AS a
+INNER JOIN currency AS b ON b.denom_code=a.denom_code;
+
++-----+-----------+------------+------------+---------------+------+--------+----------+
+| col | tube_name | tube_value | tube_count | currency_code | type | symbol | dollars  |
++-----+-----------+------------+------------+---------------+------+--------+----------+
+|   1 | PENNIES   |         50 |          2 | USD           | COIN | c      |   1.0000 |
+|   2 | NICKELS   |        200 |          3 | USD           | COIN | c      |   6.0000 |
+|   3 | DIMES     |        500 |          6 | USD           | COIN | c      |  30.0000 |
+|   4 | QUARTERS  |       1000 |          3 | USD           | COIN | c      |  30.0000 |
+|   5 | ONES      |       1000 |          3 | USD           | NOTE | $      |  30.0000 |
+|   6 | FIVES     |       2000 |          4 | USD           | NOTE | $      |  80.0000 |
+|   7 | TENS      |       2000 |          5 | USD           | NOTE | $      | 100.0000 |
+|   8 | TWENTIES  |       4000 |          5 | USD           | NOTE | $      | 200.0000 |
++-----+-----------+------------+------------+---------------+------+--------+----------+
+8 rows in set (0.00 sec)
+
+
+
+mysql> describe utd_inventory;
++-------------+-------------+------+-----+-------------------+-----------------------------+
+| Field       | Type        | Null | Key | Default           | Extra                       |
++-------------+-------------+------+-----+-------------------+-----------------------------+
+| col         | int(1)      | NO   |     | NULL              |                             |
+| tube_name   | varchar(20) | NO   |     | NULL              |                             |
+| tube_value  | int(5)      | NO   |     | NULL              |                             |
+| tube_count  | int(2)      | YES  |     | 0                 |                             |
+| modified_on | datetime    | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
+| denom_code  | int(2)      | YES  |     | NULL              |                             |
+| id          | int(5)      | NO   | PRI | NULL              | auto_increment              |
++-------------+-------------+------+-----+-------------------+-----------------------------+
+7 rows in set (0.01 sec)
+
+
+
+mysql> select * from utd_inventory;
++-----+-----------+------------+------------+---------------------+------------+----+
+| col | tube_name | tube_value | tube_count | modified_on         | denom_code | id |
++-----+-----------+------------+------------+---------------------+------------+----+
+|   1 | PENNIES   |         50 |          2 | 2019-04-23 14:53:43 |          7 |  1 |
+|   2 | NICKELS   |        200 |          3 | 2019-04-23 14:53:43 |          8 |  2 |
+|   3 | DIMES     |        500 |          6 | 2019-04-23 14:53:43 |          9 |  3 |
+|   4 | QUARTERS  |       1000 |          3 | 2019-04-23 14:53:43 |         10 |  4 |
+|   5 | ONES      |       1000 |          3 | 2019-04-23 14:53:43 |          1 |  5 |
+|   6 | FIVES     |       2000 |          4 | 2019-04-23 14:53:43 |          2 |  6 |
+|   7 | TENS      |       2000 |          5 | 2019-04-23 14:53:43 |          3 |  7 |
+|   8 | TWENTIES  |       4000 |          5 | 2019-04-23 14:53:43 |          4 |  8 |
++-----+-----------+------------+------------+---------------------+------------+----+
+8 rows in set (0.00 sec)
+
+
+// get the amount in field_1 from mei_inventory table
+SELECT a.field_1, b.field,b.denom_code,c.symbol,c.type,c.value, (c.value*a.field_1)/100 AS dollars
+FROM mei_inventory AS a
+INNER JOIN mei_field_map AS b ON a.device_id=b.device_id
+INNER JOIN currency AS c ON c.denom_code=b.denom_code
+WHERE b.field=1;
+
+
+mysql> describe mei_inventory;
++-----------+--------+------+-----+---------+----------------+
+| Field     | Type   | Null | Key | Default | Extra          |
++-----------+--------+------+-----+---------+----------------+
+| device_id | int(5) | YES  |     | NULL    |                |
+| field_1   | int(5) | YES  |     | 0       |                |
+| field_2   | int(5) | YES  |     | 0       |                |
+| field_3   | int(5) | YES  |     | 0       |                |
+| field_4   | int(5) | YES  |     | 0       |                |
+| field_5   | int(5) | YES  |     | 0       |                |
+| field_6   | int(5) | YES  |     | 0       |                |
+| id        | int(5) | NO   | PRI | NULL    | auto_increment |
++-----------+--------+------+-----+---------+----------------+
+8 rows in set (0.00 sec)
+
+
+mysql> select * from mei_inventory;
++-----------+---------+---------+---------+---------+---------+---------+----+
+| device_id | field_1 | field_2 | field_3 | field_4 | field_5 | field_6 | id |
++-----------+---------+---------+---------+---------+---------+---------+----+
+|       100 |      11 |      12 |      13 |      14 |      15 |      16 |  1 |
++-----------+---------+---------+---------+---------+---------+---------+----+
+1 row in set (0.00 sec)
+
+
+
+mysql> describe mei_field_map;
++------------+--------+------+-----+---------+----------------+
+| Field      | Type   | Null | Key | Default | Extra          |
++------------+--------+------+-----+---------+----------------+
+| device_id  | int(5) | YES  |     | NULL    |                |
+| field      | int(5) | YES  |     | NULL    |                |
+| denom_code | int(5) | YES  |     | NULL    |                |
+| id         | int(5) | NO   | PRI | NULL    | auto_increment |
++------------+--------+------+-----+---------+----------------+
+4 rows in set (0.00 sec)
+
+
+mysql> select * from mei_field_map;
++-----------+-------+------------+----+
+| device_id | field | denom_code | id |
++-----------+-------+------------+----+
+|       100 |     1 |          2 |  1 |
+|       100 |     2 |          3 |  2 |
+|       100 |     3 |          4 |  4 |
++-----------+-------+------------+----+
+3 rows in set (0.00 sec)
+
+
