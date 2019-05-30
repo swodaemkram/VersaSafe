@@ -53,6 +53,7 @@ extern string mei_getmodel_func(void);
 //extern int mei_connect(void);
 //extern string mei_getmodel(void);
 extern string mei_stack(void);
+extern string mei_inventory(void);
 //extern string mei_get_info(void);
 //extern void mei_enable(void);
 //extern void mei_dissable(void);
@@ -64,4 +65,61 @@ extern string mei_stack(void);
 //extern int * mei_get_inventory(void);
 //extern bool mei_detected(void);
 //extern string mei_status(void);
+extern void MEIpoll(void);
+
+
+
+// api commands
+extern bool api_100(char *cmd);
+extern bool api_101(char *cmd);
+extern bool api_102(char *cmd);
+extern bool api_103(char *cmd);
+//extern bool api_105(char *cmd);
+
+extern bool api_200(char *cmd);
+extern bool api_201(char *cmd);
+extern bool api_220(char *cmd);
+extern bool api_221(char *cmd);
+extern bool api_225(char *cmd);
+
+extern bool api_300(char *cmd);
+extern bool api_301(char *cmd);
+extern bool api_302(char *cmd);
+extern bool api_350(char *cmd);
+extern bool api_351(char *cmd);
+extern bool api_400(char *cmd);
+
+extern bool api_500(char *cmd);
+extern bool api_501(char *cmd);
+extern bool api_502(char *cmd);
+extern bool api_503(char *cmd);
+extern bool api_504(char *cmd);
+extern bool api_505(char *cmd);
+extern bool api_550(char *cmd);
+
+extern bool api_600(char *cmd);
+extern bool api_601(char *cmd);
+extern bool api_602(char *cmd);
+extern bool api_603(char *cmd);
+extern bool api_604(char *cmd);
+extern bool api_650(char *cmd);
+
+extern bool api_510(char *cmd);
+extern bool api_511(char *cmd);
+extern bool api_512(char *cmd);
+extern bool api_513(char *cmd);
+
+extern bool api_700(char *cmd);
+extern bool api_701(char *cmd);
+extern bool api_702(char *cmd);
+
+extern bool api_800(char *cmd);
+extern bool api_801(char *cmd);
+
+extern bool api_900(char *cmd);
+extern bool api_901(char *cmd);
+extern bool api_902(char *cmd);
+extern bool api_903(char *cmd);
+extern bool api_904(char *cmd);
+extern string api_905(char *cmd);
 

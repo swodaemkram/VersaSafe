@@ -1,4 +1,4 @@
 extern void SetupAPI(void);
-extern void CreateAPI(void);
+extern bool CreateAPI(void);
 extern char * ListenAPI(void);
 
