@@ -387,6 +387,10 @@ void CommandDispatcher(char * cmd)
 	case 905:	//905-UTD-INVENTORY
 		string inv=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
 		break;
+
+	case 906:	//906-UTI-UNLOAD-COLS-1,2,3,4,5
+		api_906(cmd);
+		break;
 	}
 
 
