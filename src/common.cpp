@@ -511,11 +511,11 @@ void exit_cleanup(int exit_code)
 //	printf("\r\n");
 	CloseHelp();			// close down the help system
 
-//TODO pritn lock driver version at exit
+//TODO print lock driver version at exit
 //	string ret=GetLockDriverVersion();
 //	printf("Lock Driver Version %s\n",ret.c_str() );
 //TODO fix USB_shutdown()
-//	USB_shutdown();	// in usb_gateway.cpp
+	USB_shutdown();	// in usb_gateway.cpp
 
 
 printf("Exit 15\n");
