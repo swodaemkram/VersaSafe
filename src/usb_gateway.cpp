@@ -655,12 +655,12 @@ void MEIpoll(void)
     	returnvalue = validator->mei_get_response();
 		if(returnvalue != "")//Start of checking for a blank response
 		{                    // Do this work if response from MEI is not blank
-			mei_timeout_timer_value = 0;
+			mei_timeout_timer_value = 0;//reset timer when we get activity
 			printf("Reply from MEI was = %s",returnvalue.c_str());
 		}                   // End of work from a NON-Blank response
 		else
 		{
-			if (mei_stacking == 1 || mei_verifying ==1)
+			if (mei_stacking == 1 || mei_verifying ==1)//Are we stacking or verifying ?
 					    {
 					    	mei_timeout_timer();
 					    }
