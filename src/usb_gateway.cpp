@@ -55,7 +55,7 @@ void mei_verify_bill_func(void);
 int q;
 int mei_stacking = 0; //Global Status Value for the MEI
 int mei_verifying = 0;//Global Status Value for the MEI
-
+int mei_timeout_timer_value = 0;//Global Timeout Timer Variable
 //======================================================================================================
 //End of MEI Declarations
 //======================================================================================================
@@ -655,12 +655,17 @@ void MEIpoll(void)
     	returnvalue = validator->mei_get_response();
 		if(returnvalue != "")//Start of checking for a blank response
 		{                    // Do this work if response from MEI is not blank
-		    if (mei_stacking == 1 || mei_verifying ==1)
-		    {
-		    	mei_timeout_timer();
-		    }
+			mei_timeout_timer_value = 0;
 			printf("Reply from MEI was = %s",returnvalue.c_str());
 		}                   // End of work from a NON-Blank response
+		else
+		{
+			if (mei_stacking == 1 || mei_verifying ==1)
+					    {
+					    	mei_timeout_timer();
+					    }
+		}
+
 		q=0;
 		return;
 	}//End of Polling
@@ -672,6 +677,18 @@ return;
 //----------------------------------------------------------------------------------------------------
 void mei_timeout_timer(void)
 {
+ time_t seconds;
+ seconds = time(0);
+ if (mei_timeout_timer_value == 0) mei_timeout_timer_value = seconds;
+ int timeout_value =  seconds - mei_timeout_timer_value;
+ printf("%d\n",timeout_value);//DEBUG!!!
+ if (timeout_value >= 30)
+ {
+	 validator->mei_send_command("idle");
+	 mei_timeout_timer_value = 0; //Reset the timer
+	 mei_stacking = 0;//reset stacking flag
+	 mei_verifying = 0;//reset verifying flag
+ }
  return;
 }
 //------------------------------------------------------------------------------------------------------
@@ -684,6 +701,10 @@ void mei_shutdown(void)
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
 //------------------------------------------------------------------------------------------------------
+
+
+
+
 
 
 #include "api_usb.inc"
