@@ -1,10 +1,19 @@
-
 <html>
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 
 <?php
+/*
+	File: menu.php
+	Author: Gary Conway <gary.conway@fireking.com>
+	Created: 5-25-2019
+	Updated:
+
+
+	This is a GUI designed to interact with the VSAFE API
+*/
+
 
 GLOBAL $conn,$xml,$cfg,$socket,$port;
 
@@ -19,6 +28,7 @@ $cfg=array
 );
 
 
+ini_set('html_errors',1);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -39,12 +49,16 @@ else
 //https://dabuttonfactory.com/
 
 $menu="none";
+$function="";
 
 if (isset($_GET['m']) )
 {
 	$menu=$_GET['m'];
 	$function="";
 }
+else
+	$menu="main";
+	$function="";
 
 if (isset($_GET['f']) )
 {
@@ -52,6 +66,14 @@ if (isset($_GET['f']) )
 	$menu="none";
 }
 
+
+if (isset($_POST['f']) )
+{
+	$function = $_POST['f'];
+}
+
+
+print "menu:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
 ?>
 
@@ -65,6 +87,7 @@ if (isset($_GET['f']) )
 <body>
 
  <div class="topnav">
+  <a href="?m=main">MAIN</a>
   <a href="?m=deposits">DEPOSITS</a>
   <a href="?m=withdrawl">WITHDRAWL</a>
   <a href="?m=reports">REPORTS</a>
@@ -79,6 +102,63 @@ if (isset($_GET['f']) )
 switch($menu)
 {
 case "none":
+	break;
+
+
+case "main":
+    print "<div class='menu'>";
+    print "<table class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "LOGIN";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<th/>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<td><a href='?m=login'><img src='img/button_login.png' /> </a> </td>";
+    print "<td><a href='?m=verify_bill'><img src='img/button_verify-bill.png' /></a> </td>";
+    print "</tr>";
+
+
+
+    print "</table>";
+    print "</div>";
+    break;
+
+
+
+case "login":
+	break;
+
+case "verify_bill":
+    print "<div class='menu'>";
+    print "<table class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "VERIFY BILLS";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<th/>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<td><a href='?m=main'><img src='img/button_done.png' /> </a> </td>";
+    print "<td><a href='?f=verify'><img src='img/button_verify.png' /> </a> </td>";
+    print "</tr>";
+
+
+
+    print "</table>";
+    print "</div>";
+    break;
 	break;
 
 case "deposits":
@@ -251,6 +331,15 @@ case "admin":
 switch($function)
 {
 
+case "verify":
+    print "<div class='function'>";
+    print "VERIFY BILLS";
+
+
+    print "</div>";
+    break;
+
+
 case "deposit_cash":
 	print "<div class='function'>";
 	print "DEPOSIT CASH";
@@ -366,46 +455,44 @@ case "vend_unload":
     print "<div class='function'>";
 
 	print "<form id='unloadformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
-	print "<table class='columns'>";
+
+	print "<input type='hidden' id='fn' name='f' value=''>";
+	print "<table class='columns'>\n";
 
 
-        print "<tr>";
+        print "<tr>\n";
         print "<th colspan='2'>VEND UNLOAD</th>";
-        print "</tr>";
+        print "</tr>\n";
 
         print "<tr>";
 		print "<th>COLUMN</th><th>COLUMN</th>";
-        print "</tr>";
+        print "</tr>\n";
 
 
 	for ($n=1; $n <5; $n++)
 	{
 		print "<tr>\n";
-		print "<td><input type='checkbox' name='col".$n ."' value='col". $n ."'>".$n."</td>\n";
-        print "<td><input type='checkbox' name='col". ($n+4) ."' value='col". ($n+4) ."'>". ($n+4)."</td>\n";
-	    print "</tr>";
+		print "<td><input type='checkbox' name='col".$n ."' value='". $n ."'>".$n."</td>\n";
+        print "<td><input type='checkbox' name='col". ($n+4) ."' value='". ($n+4) ."'>". ($n+4)."</td>\n";
+	    print "</tr>\n";
 	}
 
-	print "<tr>";
-    print "<td><br><br><a href='?f=vend_unload_now'><img src='img/button_unload-now.png' onClick='submitUNLOAD()'/> </a></td>";
-//	print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD()'><img src='img/button_unload-now.png'/></button></td>";
-//    print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD()'></button></td>";
-
-    print "<td><br><br><a href='?f=vend_unload_all'><img src='img/button_unload-all.png' /> </a></td>";
-    print "</tr>";
+	print "<tr>\n";
+	print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
+    print "<td><button class='unloadall' id='unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
+    print "</tr>\n";
 
     print "<tr>";
     print "<td><br><br><a href='?m=admin'><img src='img/button_cancel.png' /> </a></td>";
-    print "</tr>";
+    print "</tr>\n";
 
-	print "</form>";
+	print "</form>\n";
 
-	print "</table";
+	print "</table>\n";
 
 
 
     print "</div>";
-	VendUnload();
 	break;
 
 case "vend_unload_all":
@@ -420,10 +507,22 @@ case "vend_unload_now":
 
 	if ($_SERVER["REQUEST_METHOD"] == "POST")
 	{
+print "WAS POST";
 
-	$col1=check_input($_POST["col1"]);
+	$cols = Array(0,0,0,0,0,0,0,0,0);
 
-	print_rx ($_POST);
+	// active the selected columns in the array
+	for ($n=1; $n <=8; $n++)
+	{
+		$mycol = "col".$n;
+		if (isset($_POST[$mycol]))
+			$cols[$n]=check_input($_POST[$mycol]);
+
+	}
+
+//	print_rx($cols);
+
+//	print_rx ($_POST);
 
 
 	} // end CHK POST
@@ -431,6 +530,30 @@ case "vend_unload_now":
 	{
 		print "WASNT POST";
 	}
+
+
+	$cmd="906-UTD-UNLOAD-COLS-";
+
+	// append the selected colunns to the above command string
+	for ($n=1; $n<=8; $n++)
+	{
+		if ($cols[$n] == $n AND $n!=8)
+			$cmd = $cmd . $cols[$n] . ",";
+
+		// handle last one with adding ","
+		if ($cols[$n] == $n AND $n==8)
+			$cmd .= $cols[$n];
+
+	}
+
+
+
+	print "<br>API CMD:". $cmd;
+
+    SocketConnect();
+    SendMessage($cmd);
+    CloseConnection();
+
 
     print "</div>";
     break;
@@ -516,7 +639,6 @@ else
 function DepositCash()
 {
 	SocketConnect();
-
 	SendMessage("LOCK-DOOR");
 	CloseConnection();
 }
@@ -594,6 +716,14 @@ function VendUnloadAll()
 {
     SocketConnect();
     SendMessage("900-UTD-UNLOADALL");
+    CloseConnection();
+}
+
+
+function VerifyBills()
+{
+    SocketConnect();
+    SendMessage("920-VALIDATOR-VERIFY");
     CloseConnection();
 }
 
@@ -753,9 +883,11 @@ function CloseConnection()
 ?>
 
 <script language="javascript" type="text/javascript">
-    function submitUNLOAD()
+    function submitUNLOAD(fn)
 	{
-		alert("testing");
+        alert(fn);
+		$("#fn").val(fn);
+//		e.preventDefault();
        $("#unloadformID").submit();
     }
 </script>
