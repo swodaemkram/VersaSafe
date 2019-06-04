@@ -28,7 +28,7 @@ using namespace std;
 #include <string.h>
 
 #include "logs.inc"
-
+#include "apio_usb.inc;"
 
 // LOCK DRIVER
 #include "drivers/apuLock.class"        // include the LOCK driver class
@@ -292,13 +292,18 @@ void PrintLockStats(int index)
 
 void Kill_USBX(int index)
 {
-	if (locks[index].enabled)
-	{
-		locks[index].ptr->close();
-		locks[index].connected=0;
-		delete locks[index].ptr;
-	}
+    if (locks[index].enabled)
+    {
+        locks[index].connected=0;
+//-GRC
+        if (locks[index].ptr)
+        {
+            locks[index].ptr->close();
+            delete locks[index].ptr;
+        }
+    }
 }
+
 
 // returns 1 on success, 0 on failure
 
@@ -678,6 +683,7 @@ void mei_shutdown(void)
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
 //------------------------------------------------------------------------------------------------------
+
 
 
 vector<string> Split_API_Cmds(char * cmd)
