@@ -221,6 +221,7 @@ do
 
 void CommandDispatcher(char * cmd)
 {
+	string invt;
 	string cmd_string = string(cmd);
 	vector<string> cmds=split(cmd_string,"-");
 
@@ -385,10 +386,9 @@ void CommandDispatcher(char * cmd)
 		api_904(cmd);
 		break;
 	case 905:	//905-UTD-INVENTORY
-		string inv=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
+		invt=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
 		break;
-
-	case 906:	//906-UTI-UNLOAD-COLS-1,2,3,4,5
+	case 906:				//906-UTD-UNLOAD-COLS-1,2,3,4,5
 		api_906(cmd);
 		break;
 	}

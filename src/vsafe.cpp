@@ -874,7 +874,6 @@ void local_cleanup(void)
 {
 
 	delete[] users;
-
 	KillConnections();
 
 
@@ -886,7 +885,7 @@ void local_cleanup(void)
 extern "C" void on_login_window_destroy()
 {
 
-	local_cleanup();	// in common.cpp
+	local_cleanup();
 	gtk_main_quit();
 }
 
