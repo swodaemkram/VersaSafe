@@ -28,7 +28,7 @@ using namespace std;
 #include <string.h>
 
 #include "logs.inc"
-#include "apio_usb.inc;"
+#include "api_usb.inc"
 
 // LOCK DRIVER
 #include "drivers/apuLock.class"        // include the LOCK driver class
