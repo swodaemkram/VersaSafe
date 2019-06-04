@@ -45,27 +45,15 @@ using namespace std;
 //======================================================================================================
 //Beginning of MEI Declarations
 //======================================================================================================
-
 //MEI Validator public functions
-
 mei * validator = NULL;
 int init_mei(void);
-void mei_reset_func(void);
-string get_mei_driver(void);
-string mei_verify_bill_func(void);
-string mei_getmodel_func(void);
-//string mei_get_info(void);
-//void mei_enable(void);
-//void mei_dissable(void);
-//void mei_accept(void);
-//void mei_enable_bookmark(void);
-//void mei_enable_in(int meienableincount);
-//void mei_accept_in(string meibillstoaccept);
-//void mei_dissable_time(int meidissabletimeinsec);
-//int * mei_get_inventory(void);
-//void mei_connect(string pname);
-//string mei_status(void);
-//string mei_stack(void);
+string get_mei_serialNumber(void);
+void mei_shutdown(void);
+void mei_timeout_timer(void);
+int q;
+int mei_stacking = 0; //Global Status Value for the MEI
+int mei_verifying = 0;//Global Status Value for the MEI
 
 //======================================================================================================
 //End of MEI Declarations
@@ -178,15 +166,23 @@ void USB_init(void)
 
 void USB_shutdown(void)
 {
-    Kill_USBX(OUTTER_LOCK);
-    Kill_USBX(INNER_LOCK);
-    Kill_USBX(SHUTTER_LOCK);
-    Kill_USBX(SIDECAR_LOCK);
-    Kill_USBX(BASE_LOCK);
+//MARK    Kill_USBX(OUTTER_LOCK);
+//MARK    Kill_USBX(INNER_LOCK);
+//MARK    Kill_USBX(SHUTTER_LOCK);
+//MARK    Kill_USBX(SIDECAR_LOCK);
+//MARK    Kill_USBX(BASE_LOCK);
 
 //TODO - must make contigent upon xml config
-	if( utd )
+    	if( utd )
 		delete utd;
+//TODO - must make contigent upon xml config
+	validator->mei_shutdown();
+    if(validator)
+	{
+	printf("deleting validator\n");
+	delete validator;
+	}
+	return;
 }
 
 
@@ -577,27 +573,38 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-	printf("\nInitializing MEI Validator ....\n");
-		mei * validator = new mei("/dev/ttyUSB0");
+	    printf("\nInitializing MEI Validator ....\n");
+		mei * validator = new mei("/dev/ttyUSB0",1);
 		printf("\nMEI Validator Initialized!\n");
+		validator->mei_send_command("idle");
 		return(0);
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
-// Command to Get the MEI Driver Version
+// Command to Get the MEI Serial Number
 //---------------------------------------------------------------------------------------------------
 
-//string get_mei_driver(void)
-//{
-//	return get_mei_driver_version();
-//}
+string get_mei_serialNumber(void)
+{
+	printf("get_mei_serialNumber was called\n");
+	string returnvalue;
+	validator->mei_send_command("serial");
+	returnvalue = validator->mei_get_response();
+	printf("MEI RETURNED %s",returnvalue.c_str());
+	validator->mei_send_command("idle");
+	return(returnvalue);
+}
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
 //  Command to Reset MEI Validator can take up to 10 seconds
 //-----------------------------------------------------------------------------------------------------
 void mei_reset_func(void)
 {
-	validator->mei_reset();
+    	printf("mei_reset_func was called\n");
+		validator->mei_send_command("reset");
+		sleep(3);
+		validator->mei_send_command("idle");
+		return;
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
@@ -605,33 +612,72 @@ void mei_reset_func(void)
 //-----------------------------------------------------------------------------------------------------
 string mei_getmodel_func(void)
 {
-	string x = validator->mei_getmodel();
-	return(0);
+	printf("mei_getmodel_func was called\n");
+	string returnvalue;
+	validator->mei_send_command("model");
+	returnvalue = validator->mei_get_response();
+	printf("MEI RETURNED %s",returnvalue.c_str());
+	validator->mei_send_command("idle");
+	return(returnvalue);
 }
 //-----------------------------------------------------------------------------------------------------
-// Command to MEI to stack Bills
+// Command to MEI to verify Bills
 //-----------------------------------------------------------------------------------------------------
-string mei_verify_bill_func(void)
+void mei_verify_bill_func(void)
 {
-	string x= validator->mei_verify_bill();
-	return(0);
+	validator->mei_send_command("verify");
+	mei_verifying = 1;
+	return;
+}
+//-----------------------------------------------------------------------------------------------------
+// MEI stack Command
+//-----------------------------------------------------------------------------------------------------
+void mei_stack(void)
+{
+	validator->mei_send_command("stack");
+	mei_stacking = 1;
+	return;
 }
 //------------------------------------------------------------------------------------------------------
-
-
-string mei_stack(void)
-{
-}
-
-
-string mei_inventory(void)
-{
-}
-
-
+//MEI Polling Function
+//------------------------------------------------------------------------------------------------------
 void MEIpoll(void)
 {
+    string returnvalue;
+	if (q>=3)//This divides the 100ms time slice by 3 for a 300ms time slice for polling
+	{// Start of Polling
+    	returnvalue = validator->mei_get_response();
+		if(returnvalue != "")//Start of checking for a blank response
+		{                    // Do this work if response from MEI is not blank
+		    if (mei_stacking == 1 || mei_verifying ==1)
+		    {
+		    	mei_timeout_timer();
+		    }
+			printf("Reply from MEI was = %s",returnvalue.c_str());
+		}                   // End of work from a NON-Blank response
+		q=0;
+		return;
+	}//End of Polling
+q++;
+return;
 }
+//----------------------------------------------------------------------------------------------------
+//MEI Timeout Timer
+//----------------------------------------------------------------------------------------------------
+void mei_timeout_timer(void)
+{
+ return;
+}
+//------------------------------------------------------------------------------------------------------
+//MEI Shut down
+//------------------------------------------------------------------------------------------------------
+void mei_shutdown(void)
+{
+	return;
+}
+//------------------------------------------------------------------------------------------------------
+//End of MEI Commands
+//------------------------------------------------------------------------------------------------------
 
 
 vector<string> Split_API_Cmds(char * cmd)
@@ -814,6 +860,23 @@ bool api_902(char *cmd)
 	Enable_Load_D8C();	// returns
 }
 
+//906-UTD-UNLOAD-COLS-1,2,3,4,5
+bool api_906(char *cmd)
+{
+string columns;
+// parse out the commands to cmds[]
+vector<string> cmds=Split_API_Cmds(cmd);
+// parse out the columns to cls[]
+vector<string> cols=split( cmds[4],"," );
+
+
+// now build a space delimited string for the driver
+for (int n=0; n < cols.size(); n++)
+    columns +=cols[n] + " ";
+
+Unload_D8C(columns);
+}
+
 //903-UTD-LOAD-STOP
 bool api_903(char *cmd)
 {
@@ -841,7 +904,7 @@ string api_905(char *cmd)
 		inv += to_string(*ptr++);
 		inv +=",";
 	}
-
+	return inv;
 }
 
 

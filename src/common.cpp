@@ -509,13 +509,19 @@ void exit_cleanup(int exit_code)
 	printf("Copyright 2017-%d FireKing Security Group, All Rights Reserved\r\n", current_year);
 	printf("Author Gary Conway <gary.conway@fireking.com>\r\n");
 //	printf("\r\n");
+
 	CloseHelp();			// close down the help system
 
 //TODO pritn lock driver version at exit
 //	string ret=GetLockDriverVersion();
 //	printf("Lock Driver Version %s\n",ret.c_str() );
-//TODO fix USB_shutdown()
-//	USB_shutdown();	// in usb_gateway.cpp
+
+
+
+USB_shutdown();	// in usb_gateway.cpp
+
+
+
 
 
 printf("Exit 15\n");
@@ -524,6 +530,8 @@ printf("Exit 15\n");
 
 	if (countries != NULL)		delete[] countries;
 printf("Exit 18, end of exit_cleanup()\n");
+
+
 }
 
 

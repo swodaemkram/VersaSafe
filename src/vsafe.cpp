@@ -1067,7 +1067,7 @@ Initiate the MEI validator in the USB Gateway if Enabled
 */
 if ( strcmp(cfg.validator1,"enabled")==0)
 {
-//	init_mei();    //init MEI validator (in usb_gateway)
+	init_mei();    //init MEI validator (in usb_gateway)
 }
 /*
 =============================================================================================
@@ -4068,7 +4068,6 @@ extern "C" bool on_touch_here_btn_clicked( GtkButton *button, AppWidgets *app)
 extern "C" bool on_verify_note_btn_clicked( GtkButton *button, AppWidgets *app)
 {
 	mei_verify_bill_func() ;
-	printf("VERIFY NOTE\n");
 }
 
 //===================================================================
@@ -4157,7 +4156,7 @@ extern "C" bool on_mei_stack_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_mei_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    mei_inventory();
+    get_mei_serialNumber();
 }
 
 
@@ -7037,7 +7036,7 @@ void API_Handler(void)
 
     inprocess=TRUE;
 
-printf("API_HANDLER here\n");
+//MARKprintf("API_HANDLER here\n");
 	ListenAPI();	// in api.cpp
 					// returns char* to received string or NULL
 

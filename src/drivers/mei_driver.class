@@ -78,25 +78,30 @@ int mei_status;
 
 public:
 bool mei_detected;
-string mei_portname;
+string mei_portname;//Port name sent from usb_gateway to the mei driver
 bool detected=false;
-int mei_instance;
+int mei_instance; //Current Number of the current process
+
+
 
 public:
-		mei(string pname, int instance) //MARK YOUR WORKING HERE !!!
+		mei(string pname, int instance)
 		{
 			mei_detected=false;
 			mei_portname=pname;
 			mei_instance = instance;
+			int result;
+			result = system("/home/mark/git/mei_service/mei_service/Debug/mei_service /dev/ttyUSB0 1 &\n");//TODO This needs to come from config
 			mei_connect();
 		}
 
 		~mei(void)
 		{
-            printf("\nCloseing Comm port!\n");
-			if (mei_my_serial)
-            mei_my_serial.Close();
+
+			mei_send_command("stop");
+			printf("\nCloseing Comm port!\n");
 			mei_detected=false;
+			printf("MEI Service shut down cleanly...\n");
 		}
 
 		// returns detected status
@@ -113,64 +118,174 @@ public:
 
 	int mei_connect(void)
 		{
-
-		   int res;
+/*
+=====================================================================================================================================
+Connection Test to MEI Service
+=====================================================================================================================================
+ */
+		   int res; //Command Socket
+		   int timeout = 0;
 		   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-		   char out_buff[250] = {0};
 		   char domainsocket_Name[250] = {0};
 		   struct sockaddr_un address;
 		   memset(&address, 0x00, sizeof(address));
 		   address.sun_family = AF_UNIX;
            strncpy(domainsocket_Name,"/var/run/mei_command1.socket",28); //IM doing this so I can easily  put in the instance number
-		   strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));
-
-
+		   strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
+		do
+		{
 		   res = connect(sock,(struct sockaddr *)&address, sizeof(address));
 
-		return(1);
+		if (timeout > 50 )
+			{
+			printf("timeout on mei server socket connection\n");
+			return(0);
+			}
+
+		usleep(100000);//Important Delay.
+		timeout++;
+
+		}
+		while(res < 0);
+
+		res = write(sock, "model", 5); // request model of MEI
+		close(sock);
+		printf("connected to MEI Command Service...\n");
+/*
+=========================================================================================================================================
+End of connection test
+=========================================================================================================================================
+Connect to response Side of service
+=========================================================================================================================================
+*/
+		           int stx; //Response Socket
+				   sock = socket(AF_UNIX, SOCK_STREAM, 0);
+		           memset(&address, 0x00, sizeof(address));
+		           address.sun_family = AF_UNIX;
+		           timeout = 0; //Reset timeout
+		           bzero(domainsocket_Name,250); //Clear out domainsocket_Name so I can give it a new one
+		           strncpy(domainsocket_Name,"/var/run/mei_response1.socket",29); //IM doing this so I can easily  put in the instance number
+				   strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
+				do
+				{
+				   stx = connect(sock,(struct sockaddr *)&address, sizeof(address));
+
+				if (timeout > 50 )
+					{
+					printf("timeout on mei response server socket connection\n");
+					return(0);
+					}
+
+				usleep(100000);//Important Delay.
+				timeout++;
+
+				}
+				while(stx < 0);
+				int rval;
+				char buf[1024] = {0};
+				rval = read(sock, buf, 1024);
+
+				close(sock);
+				printf("connected to MEI Response Server... reply when asked for Model was %s\n",buf);
+/*
+=========================================================================================================================================
+Connection to MEI Service Complete
+=========================================================================================================================================
+ */
+return(1);
+}
+/*
+=========================================================================================================================================
+ Connection to MEI Validator Completed
+=========================================================================================================================================
+MEI Send Command
+=========================================================================================================================================
+*/
+public:
+
+	int	mei_send_command(string command)
+	{
+	//printf("MEI Driver RXed %s as the command\n",command.c_str());//DEBUG
+	int res; //Command Socket
+	int timeout = 0;
+	int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	char domainsocket_Name[250] = {0};
+	struct sockaddr_un address;
+	memset(&address, 0x00, sizeof(address));
+	address.sun_family = AF_UNIX;
+	strncpy(domainsocket_Name,"/var/run/mei_command1.socket",28); //IM doing this so I can easily  put in the instance number
+	strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
+			do
+			{
+			   res = connect(sock,(struct sockaddr *)&address, sizeof(address));
+
+			if (timeout > 50 )
+				{
+				printf("timeout mei server socket connection\n");
+				return(0);
+				}
+
+			usleep(100000);//Important Delay.
+			timeout++;
+
+			}
+			while(res < 0);
+
+	char the_command[250] = {0};
+	strcpy(the_command,command.c_str());
+	res = write(sock, the_command, strlen(the_command)); // send requested command
+	close(sock);
+	return(1);
+
+}
+/*
+=========================================================================================================================================
+  End of MEI Send Command
+===========================================================================================================================================
+MEI Return Response
+===========================================================================================================================================
+ */
+public:
+
+	string	mei_get_response(void) //Get waiting response from mei_service
+{
+
+	int stx; //Response Socket
+	int timeout = 0;
+	int sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	char domainsocket_Name[250] = {0};
+	struct sockaddr_un address;
+	sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	memset(&address, 0x00, sizeof(address));
+	address.sun_family = AF_UNIX;
+	timeout = 0; //Reset timeout
+	bzero(domainsocket_Name,250); //Clear out domainsocket_Name so I can give it a new one
+	strncpy(domainsocket_Name,"/var/run/mei_response1.socket",29); //IM doing this so I can easily  put in the instance number
+	strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
+
+    do
+	{
+	   stx = connect(sock,(struct sockaddr *)&address, sizeof(address));
+	   if (timeout > 50 )
+	   {
+	     printf("timeout on mei response server socket connection\n");
+		 return(0);
 		}
 
+	   usleep(100000);//Important Delay.
+	   timeout++;
 
-/*
-===============================================================================================================================
- Connection to MEI Validator Completed
-===============================================================================================================================
-Private function check the connection status if connection haas been lost try to reconnect
-===============================================================================================================================
-*/
-private:
-
-bool mei_check_connection(void)
-{
-
-	if (mei_detected)
-		return true;
-	else
-	{
-		mssleep(2000);
-		mei_connect();
 	}
-	return detected;
+	while(stx < 0);
+
+    int rval;
+	char buf[1024] = {0};
+	rval = read(sock, buf, 1024);
+	close(sock);
+	//printf("%s\n",buf);//DEBUG
+    return(buf);
 }
 /*
-===============================================================================================================================
-MEI Validator Setup processed after the Comm port connection is made
-===============================================================================================================================
- */
-private:
-
-void mei_setup(void)
-{
-	string mei_rply ="";
-	printf("MEI Validator model is a %s \n",mei_rply.c_str());
-	mei_detected = true;
-	return;
-}
-/*
-================================================================================================================================
-end of MEI Setup
-================================================================================================================================
-
 ===============================================================================================================================
 Add Inventory to the MYSQL database
 ===============================================================================================================================
@@ -208,9 +323,6 @@ void mei_add_to_inventory_database(float value, int therow )
 	  printf("\nthe total is %f\n",total);
 	  mysql_query(conn, "UPDATE `fking`.`inventory` SET `field_1`='2.00' WHERE `id`='1'");
 
-
-
-
 	  mysql_free_result(results);
 	  mysql_close(conn);
 
@@ -222,6 +334,13 @@ void mei_add_to_inventory_database(float value, int therow )
 End of Database Work c
 ==============================================================================================================================
 */
+public:
+
+void mei_shutdown(void)
+{
+	mei_send_command("stop"); //This will shutdown the mei service
+}
+
 };
 /*
 ===============================================================================================================================
