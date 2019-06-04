@@ -408,6 +408,9 @@ void CommandDispatcher(char * cmd)
 	case 924:		//924-VALIDATOR-INVENTORY
 		ret=api_924(cmd);
 		break;
+	case 925:		//925-VALIDATOR-GET-RESULT
+		ret=api_925(char *cmd)
+		break;
 
 	}
 

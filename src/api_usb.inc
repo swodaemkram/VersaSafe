@@ -35,12 +35,22 @@ bool api_101(char *cmd);
 bool api_102(char *cmd);
 bool api_103(char *cmd);
 
+// UTD
 bool api_900(char *cmd);
 bool api_901(char *cmd);
 bool api_902(char *cmd);
 bool api_903(char *cmd);
 bool api_904(char *cmd);
 string api_905(char *cmd);
+bool api_906(char *cmd);
+
+// validator
+string api_920(char *cmd);
+string api_921(char *cmd);
+string api_922(char *cmd);
+string api_923(char *cmd);
+string api_924(char *cmd);
+
 
 
 
@@ -176,7 +186,6 @@ bool api_902(char *cmd)
     Enable_Load_D8C();  // returns
 }
 
-//-GRC
 //906-UTD-UNLOAD-COLS-1,2,3,4,5
 bool api_906(char *cmd)
 {
@@ -224,8 +233,41 @@ string api_905(char *cmd)
         inv +=",";
     }
 
-//-GRC
     return inv;
+}
+
+
+
+//VALIDATOR (MEI/JCM)
+//920-VALIDATOR-VERIFY
+string api_920(char *cmd)
+{
+}
+
+
+//921-VALIDATOR-STACK
+string api_921(char *cmd)
+{
+}
+
+//922-VALIDATOR-MODEL
+string api_922(char *cmd)
+{
+}
+
+//923-VALIDATOR-SERIAL
+string api_923(char *cmd)
+{
+}
+
+//924-VALIDATOR-INVENTORY
+string api_924(char *cmd)
+{
+}
+
+//925-VALIDATOR-GET-RESULT
+string api_925(char *cmd)
+{
 }
 
 
