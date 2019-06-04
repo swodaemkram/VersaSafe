@@ -221,6 +221,7 @@ do
 
 void CommandDispatcher(char * cmd)
 {
+	string ret;
 	string invt;
 	string cmd_string = string(cmd);
 	vector<string> cmds=split(cmd_string,"-");
@@ -391,6 +392,23 @@ void CommandDispatcher(char * cmd)
 	case 906:				//906-UTD-UNLOAD-COLS-1,2,3,4,5
 		api_906(cmd);
 		break;
+
+	case 920:		//920-VALIDATOR-VERIFY
+		ret = api_920(cmd);
+		break;
+	case 921:		//921-VALIDATOR-STACK
+		ret=api_921(cmd);
+		break;
+	case 922:		//922-VALIDATOR-MODEL
+		ret=api_922(cmd);
+		break;
+	case 923:		//923-VALIDATOR-SERIAL
+		ret=api_923(cmd);
+		break;
+	case 924:		//924-VALIDATOR-INVENTORY
+		ret=api_924(cmd);
+		break;
+
 	}
 
 
