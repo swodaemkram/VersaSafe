@@ -101,6 +101,12 @@ enum
 };
 
 
+struct retstatus
+{
+    bool status;
+    string result;
+};
+
 
 
 // endif FIRE_INCLUDE

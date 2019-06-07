@@ -131,8 +131,28 @@ bool api_220(char *cmd) {}
 bool api_221(char *cmd) {}
 bool api_225(char *cmd) {}
 
-bool api_300(char *cmd) {}
+
+//300-USER-LOGIN-user-pw
+bool api_300(char *cmd)
+{
+    string cmd_string = string(cmd);
+    vector<string> cmds=split(cmd_string,"-");
+
+	// username = cmds[3]
+	// pw = cmds[4]
+
+	/*
+	    validate the user/pw in the DBF
+	    returns TRUE if valid, else FALSE
+	*/
+	bool uservalid=ValidateUser(cmds[3].c_str() ,cmds[4].c_str() );
+
+}
+
+//301-USER-LOGOUT
 bool api_301(char *cmd) {}
+
+
 bool api_302(char *cmd) {}
 bool api_350(char *cmd) {}
 bool api_351(char *cmd) {}
