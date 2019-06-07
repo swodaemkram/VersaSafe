@@ -1,3 +1,11 @@
+<?php
+session_start();    // start a user session
+//echo session_id();
+//print_rx($_SESSION);
+//print_rx($_POST);
+
+?>
+
 <html>
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -15,7 +23,12 @@
 */
 
 
-GLOBAL $conn,$xml,$cfg,$socket,$port;
+GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars;
+
+$input_vars = array();
+require_once 'utils.inc';
+
+$host="127.0.0.1";
 
 $cfg=array
 (
@@ -35,6 +48,8 @@ error_reporting(E_ALL);
 
 ReadXML();
 
+get_input_vars();	// place all GET|POST vars in $input_vars array
+var_dump($input_vars);
 
 if (extension_loaded('simplexml'))
 	ConnectDBF();
@@ -48,9 +63,25 @@ else
 
 //https://dabuttonfactory.com/
 
-$menu="none";
-$function="";
 
+//$menu="main";
+//$function="";
+
+if (isset($input_vars['m']))
+	if ($input_vars['m'] == "")
+		$menu="main";
+	else
+    	$menu = $input_vars['m'];
+else
+    $menu = "main";
+
+
+if (isset($input_vars['f']))
+	$function=$input_vars['f'];
+else
+	$function="";
+
+/*
 if (isset($_GET['m']) )
 {
 	$menu=$_GET['m'];
@@ -71,9 +102,10 @@ if (isset($_POST['f']) )
 {
 	$function = $_POST['f'];
 }
+*/
 
+print "MENU:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
-print "menu:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
 ?>
 
@@ -86,32 +118,50 @@ print "menu:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 </head>
 <body>
 
- <div class="topnav">
-  <a href="?m=main">MAIN</a>
-  <a href="?m=deposits">DEPOSITS</a>
-  <a href="?m=withdrawl">WITHDRAWL</a>
-  <a href="?m=reports">REPORTS</a>
-  <a href="?m=settings">SETTINGS</a>
-  <a href="?m=admin">ADMIN</a>
-	<span class='cpr'>Copyright 2019 FireKing Secutiry Group, All Rights Reserved</span>
-</div>
-
 <?php
+print "<div class='topnav'>";
+print "<a href='?m=main'>MAIN</a>";
+if (CheckLoggedIn())
+{
+	print "<a href='?m=deposits'>DEPOSITS</a>";
+	print "<a href='?m=withdrawl'>WITHDRAWL</a>";
+	print "<a href='?m=reports'>REPORTS</a>";
+	print "<a href='?m=settings'>SETTINGS</a>";
+	print "<a href='?m=admin'>ADMIN</a>";
+}
+print "<span class='cpr'>Copyright 2019 FireKing Secutiry Group, All Rights Reserved</span>";
+print "</div>";
 
+
+$waiting=false;
+
+
+function CheckLoggedIn()
+{
+    if (isset($_SESSION['logged_in']) AND  $_SESSION['logged_in']=='1')	
+			return TRUE;
+	else	return FALSE;
+
+}
+
+
+//=================================================
+//					MENUS
+//=================================================
 
 switch($menu)
 {
 case "none":
 	break;
 
-
+default:
 case "main":
     print "<div class='menu'>";
     print "<table class='mtable'>";
 
     print "<tr>";
     print "<th colspan='2' style='font-size:20pt;'>";
-    print "LOGIN";
+    print "MAIN MENU";
     print "</th>";
     print "</tr>";
 
@@ -120,20 +170,132 @@ case "main":
     print "</tr>";
 
     print "<tr>";
-    print "<td><a href='?m=login'><img src='img/button_login.png' /> </a> </td>";
+
+	if (CheckLoggedIn())
+        print "<td><a  href='?m=logout'><img id='loginimg' src='img/button_logout.png' /> </a> </td>";
+	else
+	    print "<td><a  href='?m=login'><img id='loginimg' src='img/button_login.png' /> </a> </td>";
+
     print "<td><a href='?m=verify_bill'><img src='img/button_verify-bill.png' /></a> </td>";
     print "</tr>";
-
-
 
     print "</table>";
     print "</div>";
     break;
 
 
+case "logout":
+	$cmd="301-USER-LOGOUT";
+//	$_SESSION['logged_in']='0';
+    $ret=SocketConnect();
+	$retstr=SendMessage($cmd);
+
+    CloseConnection();
+	session_destroy();
+	header("Refresh:0;url=menu.php?m=main");
+	break;
 
 case "login":
+    print "<div class='menu'>";
+
+    print "<form id='loginformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+    print "<input type='hidden' id='fnlogin' name='m' value=''>";
+
+    print "<table class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "USER LOGIN";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+	print "<td class='user'>User Name</td>";
+    print "<td><input class='user' id='uname' name='uname' type='text' maxlength='20' size0'20'></td>";
+	print "</tr>";
+
+	print "<tr>";
+    print "<td class='user'>Password</td>";
+    print "<td><input class='user' id='psw' name='psw' type='text' size='20' maxlength='20'></td>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<td>";
+	print "<br><br>";
+    print "</td>";
+    print "</tr>";
+
+
+    print "<tr>";
+    print "<td><a href='?m=main'><img src='img/button_cancel.png' /> </a> </td>";
+    print "<td><button class='unloadnow' id='dlogin' onclick='submitLOGIN(\"dologin\")'><img src='img/button_login.png'/></button></td>";
+    print "</tr>";
+
+
+    print "</table>";
+	print "</div>";
+
 	break;
+
+case "dologin":
+
+
+	// validate $input_vars['uname'] and $input_vars['psw']
+	//300-USER-LOGIN-user-pw
+	//301-USER-LOGOUT
+
+	$cmd = "300-USER-LOGIN-". $input_vars['uname'] ."-". $input_vars['psw'];
+	$ret=SocketConnect();
+	if ($ret)
+	{
+		$_SESSION['logged_in']='0';
+		$_SESSION['validated']='0';
+		$_SESSION['username'] = $input_vars['uname'];
+		$_SESSION['pw'] = $input_vars['psw'];
+
+ 		$retstr=SendMessage($cmd);
+		if (strpos($retstr,"OK"))
+		{
+			$errormsg="User Validated";
+			$_SESSION['logged_in']='1';
+	        $_SESSION['validated']='1';
+
+
+	}
+		else
+			$errormsg="Invalid User";
+	}
+	else
+	{
+		$errormsg=$ret;
+	}
+
+print $errormsg;
+    CloseConnection();
+    header("Refresh:0;url=menu.php?m=main");
+
+	break;
+
+case "verify":
+
+	$errormsg=false;
+    $ret=SocketConnect();
+	if ($ret)
+	{
+		$ret=SendMessage("920-VALIDATOR-VERIFY");
+		if ($ret !=true)
+		{
+			$errormsg=$ret;
+		}
+	}
+	else
+	{
+		$errormsg=$ret;
+	}
+
+	$waiting=true;
+
+// the above must fall thru to the next case
 
 case "verify_bill":
     print "<div class='menu'>";
@@ -146,19 +308,50 @@ case "verify_bill":
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<td>";
+	print "</td>";
     print "</tr>";
 
     print "<tr>";
     print "<td><a href='?m=main'><img src='img/button_done.png' /> </a> </td>";
-    print "<td><a href='?f=verify'><img src='img/button_verify.png' /> </a> </td>";
+    print "<td><a href='?m=verify'><img src='img/button_verify.png' /> </a> </td>";
     print "</tr>";
 
 
 
     print "</table>";
+	$start_time=time();
+
+    if ($waiting)
+    {
+        print "<div class='results'>";
+        print "results";
+		if (!$errormsg)
+		{
+			print $errrormsg;
+		}
+		else
+		{
+			SendMessage("925-VALIDATOR-GET-RESULT");
+			while ($waiting AND (time() - $start_time <30) )
+			{
+				// returns "" if no data ready, else string from API or error msg
+				$ret=ReadMessage();
+				if ($ret )
+				{
+					print $ret;
+				}
+			}
+		}
+
+        print "</div>";
+    }
+
+
     print "</div>";
-    break;
+
+    CloseConnection();
+
 	break;
 
 case "deposits":
@@ -328,16 +521,13 @@ case "admin":
 }
 
 
+
+//========================================================
+//					FUNCTIONS
+//========================================================
 switch($function)
 {
 
-case "verify":
-    print "<div class='function'>";
-    print "VERIFY BILLS";
-
-
-    print "</div>";
-    break;
 
 
 case "deposit_cash":
@@ -346,6 +536,7 @@ case "deposit_cash":
 	print "</div>";
 	DepositCash();
 	break;
+
 case "unlock_validator_gate":
     print "<div class='function'>";
     print "</div>";
@@ -720,12 +911,6 @@ function VendUnloadAll()
 }
 
 
-function VerifyBills()
-{
-    SocketConnect();
-    SendMessage("920-VALIDATOR-VERIFY");
-    CloseConnection();
-}
 
 
 function VendDefine()
@@ -830,55 +1015,143 @@ echo "</html>";
 // zend has insisted on that for some time
 
 
-
+// returns true on success, else error message
 function SocketConnect()
 {
-	GLOBAL $xml,$cfg,$socket,$port;
+	GLOBAL $xml,$cfg,$socket,$port, $host, $api_connected;
 
-	$host="127.0.0.1";
+	$api_connected=false;
+
+//	$host="127.0.0.1";
 	$cfg["api_port"]=$xml->api->port;
 
 	set_time_limit(0);	// no time out
 
-	$message = "LOCK-DOOR";
 
 	$port = (int) $cfg["api_port"];
 
-	// creat a socket
+	// create a socket
+    // returns a socket resource on success, else false on error
 	$socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not create socket\n");
 
+	if (! $socket)
+	{
+        $errorcode = socket_last_error();
+        $errormsg = socket_strerror($errorcode);
+        socket_clear_error();
+        return $errormsg;
+	}
+
 	// connect to the server
+	// returns true on success, else false
 	$result = socket_connect($socket, $host, $port) or die("Could not connect toserver\n");
+
+	if (! $result)
+	{
+		$errorcode = socket_last_error();
+		$errormsg = socket_strerror($errorcode);
+		socket_clear_error();
+		return $errormsg;
+	}
+
+	$api_connected=true;
+	return true;
 }
 
 
 
 function SendMessage($message)
 {
-	GLOBAL $socket, $port;
+	GLOBAL $socket, $port, $api_connected;
+
+	if (!$api_connected) return;
 
 	// write to server socket
+	// returns number of bytes written, or false on error
 	socket_write($socket, $message, strlen($message)) or die("Could not send data to server\n");
 
 	// get the reply
+	// returns a string on success, false on failure
 	$result = socket_read ($socket, $port) or die("Could not read server response\n");
 
+	if (! $result)
+	{
+        $errorcode = socket_last_error();
+        $errormsg = socket_strerror($errorcode);
+        socket_clear_error();
+        return $errormsg;
+	}
 
-//	echo "Reply From Server  :".$result ."</br>";
+	echo "Reply From Server  :".$result ."</br>";
 
     if ($message == $result)
 	{
 		print "<br>SENT:RCVD messages match:: ". $result ."</br>";
 	}
+
+	return $result;
 }
+
+
+/*
+	read a message from the API
+	RETURNS: a message from the API or an error message
+			returns "" is there is no data ready on the port
+*/
+
+function ReadMessage()
+{
+	GLOBAL $socket, $port;
+    // get the reply
+    // returns a string on success, false on failure
+	// returns "" when there is no data to read
+    $result = socket_read ($socket, $port) or die("Could not read server response\n");
+
+	if ($ret === "") return "";
+
+    if ( $result === false)
+    {
+        $errorcode = socket_last_error();
+        $errormsg = socket_strerror($errorcode);
+        socket_clear_error();
+        return $errormsg;
+    }
+
+	return $result;
+}
+
 
 function CloseConnection()
 {
-	GLOBAL $socket;
+	GLOBAL $socket, $api_connected;
+
+	if (! $api_connected) return;
 	// tidy up
 	socket_close($socket);
 
 }
+
+/*
+function getvars()
+{
+    $postvars = array('testkey' => 'testval');
+
+	foreach ($_POST as $k=>$v)
+	{
+		$postvars[$k] = $v;
+	}
+	$n=extract($postvars);
+//print "numvars:: ". $n ."<br>";
+	var_dump(get_defined_vars());
+
+//print "m::". $m ."<br>";
+//print "user::". $uname ."<br>";
+//print "psw::". $psw ."<br>";
+
+
+}
+*/
+
 
 ?>
 
@@ -890,6 +1163,17 @@ function CloseConnection()
 //		e.preventDefault();
        $("#unloadformID").submit();
     }
+
+
+	function submitLOGIN(fn)
+	{
+		$("#fnlogin").val(fn);
+		$("#loginformID").submit();
+	}
+
+
+
+
 </script>
 
 </html>

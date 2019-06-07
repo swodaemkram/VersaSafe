@@ -144,3 +144,20 @@
 	background-image: url( "img/button_unload-now.png" );
 }
 
+
+.results
+{
+	position:relative;
+	left:200px;
+	width:350px;
+	height:150px;
+	border:5px SOLID cyan;
+	color:blue;
+}
+
+
+.user
+{
+	font-size:15pt;
+}
+
