@@ -665,6 +665,7 @@ void GetPermissionFields(void);
 void BackSpace(void);
 void TabButton(void);
 
+bool logged_in=FALSE;
 bool ValidateUser(char *user,char *pw);
 
 void StoreInput(char x);	// store the input from the keyboard to input_text[]
@@ -3620,6 +3621,9 @@ void ShowLogin(void)
 	entered_focus=0;
 	bzero(entered_user,INLEN);
 	bzero(entered_pw,INLEN);
+	bzero(display_pw,INLEN);
+	pw_index=0;
+	user_index=0;
 
 	// document current window properties
 	kb.attached= app_ptr->login_pad_target;
@@ -3869,6 +3873,7 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 	if (ret)
 	{
 		// LOGIN SUCCESS
+		logged_in=TRUE;
 	    gtk_widget_hide(app_ptr->login_window);
 	    ReHomeKB();
 		ShowMainMenu();
@@ -3876,6 +3881,7 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 	else
 	{
 		// LOGIN FAILED
+		logged_in=FALSE;
 		entered_focus=0;
 		user_index=0;
 		pw_index=0;
@@ -3886,6 +3892,7 @@ extern "C" bool on_login_btn_clicked( GtkButton *button, AppWidgets *app)
 	    SetEntryText();
         entered_focus=1;
         SetEntryText();
+		entered_focus=0;
 		sprintf(gen_buffer,"LOGIN ERROR: username: %s   pw: %s",entered_user,entered_pw);
 		WriteSystemLog(gen_buffer);
 		msg=getMessage(121,FALSE);
@@ -5813,6 +5820,7 @@ extern "C" bool on_lock_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_logout_btn_clicked( GtkButton *button, AppWidgets *app)
 {
+	logged_in=FALSE;
     gtk_widget_hide(app_ptr->login_window);
 	ShowSplashWindow();
 }
@@ -7036,7 +7044,7 @@ void API_Handler(void)
 
     inprocess=TRUE;
 
-printf("API_HANDLER here\n");
+//printf("API_HANDLER here\n");
 	ListenAPI();	// in api.cpp
 					// returns char* to received string or NULL
 
