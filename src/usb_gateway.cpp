@@ -48,21 +48,28 @@ using namespace std;
 //MEI Validator public functions
 mei * validator = NULL;
 int init_mei(void);
-string get_mei_serialNumber(void);
-void mei_shutdown(void);
 void mei_timeout_timer(void);
-void mei_verify_bill_func(void);
+void get_mei_serialNumber(void);
+extern char rx_packet[40];
+extern char tx_packet[30];
+extern char comm_port[250];
+extern char MEI_CURRENT_COMMAND[30];
+extern char MEI_STATUS[30];
+//extern char clean_text[30];
+extern char MEI_LAST_COMMAND[30];
+extern char LAST_MEI_STATUS[30];
+//-------------------------------------------------------------------------------------------------------
 int q;
+int mei_single_run_command = 0;//Flag for a single run command
 int mei_stacking = 0; //Global Status Value for the MEI
 int mei_verifying = 0;//Global Status Value for the MEI
 int mei_timeout_timer_value = 0;//Global Timeout Timer Variable
+unsigned int tx_crc = 0;
+char Logbuff[50];
+char last_clean_text[30] = {0};
 //======================================================================================================
 //End of MEI Declarations
 //======================================================================================================
-
-
-
-
 
 d8c * utd = NULL;
 // public VEND functions
@@ -177,7 +184,7 @@ void USB_shutdown(void)
     	if( utd )
 		delete utd;
 //TODO - must make contigent upon xml config
-	validator->mei_shutdown();
+	//validator->mei_shutdown();
     if(validator)
 	{
 	printf("deleting validator\n");
@@ -579,26 +586,26 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 int init_mei(void)
 {
-	    printf("\nInitializing MEI Validator ....\n");
-		mei * validator = new mei("/dev/ttyUSB0",1);
+		printf("\nInitializing MEI Validator ....\n");
+	    sprintf(Logbuff,"MEI Validator Initialized");
+	    WriteSystemLog(Logbuff);//log that this was called
+	    mei * validator = new mei("/dev/ttyUSB0",1);//TODO This needs to come from the config file
 		printf("\nMEI Validator Initialized!\n");
-		validator->mei_send_command("idle");
 		return(0);
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
 // Command to Get the MEI Serial Number
 //---------------------------------------------------------------------------------------------------
-
-string get_mei_serialNumber(void)
+void get_mei_serialNumber(void)
 {
 	printf("get_mei_serialNumber was called\n");
-	string returnvalue;
-	validator->mei_send_command("serial");
-	returnvalue = validator->mei_get_response();
-	printf("MEI RETURNED %s",returnvalue.c_str());
-	validator->mei_send_command("idle");
-	return(returnvalue);
+	sprintf(Logbuff,"get_mei_serialNumber was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30); //Clear the Current Command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"serial",6);//insert the serial command into the polling stream
+	mei_single_run_command = 1;// insert it only 1 time
+	return;
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
@@ -607,10 +614,12 @@ string get_mei_serialNumber(void)
 void mei_reset_func(void)
 {
     	printf("mei_reset_func was called\n");
-		validator->mei_send_command("reset");
-		sleep(3);
-		validator->mei_send_command("idle");
-		return;
+    	sprintf(Logbuff,"mei_reset_func was called");
+    	WriteSystemLog(Logbuff);//log that this was called
+    	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+    	strncpy(MEI_CURRENT_COMMAND,"reset",5);//insert reset into the polling stream
+    	mei_single_run_command = 1;//insert only once
+    	return;
 }
 //-----------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------
@@ -620,19 +629,83 @@ string mei_getmodel_func(void)
 {
 	printf("mei_getmodel_func was called\n");
 	string returnvalue;
-	validator->mei_send_command("model");
-	returnvalue = validator->mei_get_response();
-	printf("MEI RETURNED %s",returnvalue.c_str());
-	validator->mei_send_command("idle");
+	sprintf(Logbuff,"mei_getmodel_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"model",5);//insert model into the polling stream
+	mei_single_run_command = 1;//insert only once
 	return(returnvalue);
 }
+//------------------------------------------------------------------------------------------------------
+//Command to get MEI varname
+//------------------------------------------------------------------------------------------------------
+void mei_get_varname_func(void)
+{
+	printf("mei_get_varname_func was called\n");
+	sprintf(Logbuff,"mei_get_varname_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"varname",5);//insert command into the polling stream
+	mei_single_run_command = 1;//insert only once
+	return;
+}
+//------------------------------------------------------------------------------------------------------
+//Command to get Boot Version
+//------------------------------------------------------------------------------------------------------
+void mei_get_bootver_func(void)
+{
+	printf("mei_get_bootver_func was called\n");
+	sprintf(Logbuff,"mei_get_bootver_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"bootver",5);//insert command into the polling stream
+	mei_single_run_command = 1;//insert only once
+	return;
+}
+//------------------------------------------------------------------------------------------------------
+//Command to get app Version
+//------------------------------------------------------------------------------------------------------
+void mei_get_appver_func(void)
+{
+	printf("mei_get_appver_func was called\n");
+	sprintf(Logbuff,"mei_get_appver_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"appver",5);//insert command into the polling stream
+	mei_single_run_command = 1;//insert only once
+	return;
+}
+//------------------------------------------------------------------------------------------------------
+//Command to idle the mei unit !!! This command should be given after a reply from any of
+// The above commands !!!! to keep the MEI in sync
+//************* I HAVE AUTOMATED THIS, SENDING AN IDLE COMMAND IS NO LONGER NECESSARY ******************
+//------------------------------------------------------------------------------------------------------
+void mei_idle_func(void)
+{
+	printf("mei_idle_func was called\n");
+	sprintf(Logbuff,"mei_idle_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
+	strncpy(MEI_CURRENT_COMMAND,"idle",5);//insert command into the polling stream
+	mei_single_run_command = 1;//insert only once
+	return;
+}
+//-----------------------------------------------------------------------------------------------------
+//The commands below are Polling commands they need to be injected
+//into the polling stream to get a reply that happens at the
+//users time frame. The user may put a bill in one at a time
+//or many all at once. To allow for this variable timing
+//We continually poll until we get a response
 //-----------------------------------------------------------------------------------------------------
 // Command to MEI to verify Bills
 //-----------------------------------------------------------------------------------------------------
 void mei_verify_bill_func(void)
 {
-	validator->mei_send_command("verify");
-	mei_verifying = 1;
+	memset(MEI_CURRENT_COMMAND,0,30);
+	sprintf(Logbuff,"mei_verify_bill_func was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	strncpy(MEI_CURRENT_COMMAND,"verify",6);
+	mei_verifying = 1;//Turns on the Timeout Timer
 	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -640,40 +713,125 @@ void mei_verify_bill_func(void)
 //-----------------------------------------------------------------------------------------------------
 void mei_stack(void)
 {
-	validator->mei_send_command("stack");
-	mei_stacking = 1;
+	memset(MEI_CURRENT_COMMAND,0,30);
+	sprintf(Logbuff,"mei_stack was called");
+	WriteSystemLog(Logbuff);//log that this was called
+	strncpy(MEI_CURRENT_COMMAND,"stack",5);
+	mei_stacking = 1;//Turns On The Timeout Timer
 	return;
 }
 //------------------------------------------------------------------------------------------------------
 //MEI Polling Function
 //------------------------------------------------------------------------------------------------------
+// !!!! The order of what happens below is VERY IMPORTANT for proper operation of the MEI Unit !!!
+//                      This is the heart of the MEI communications
+// This works like a  wheel every 300ms looping through and running each process to keep that data
+// streaming and in sync
+//------------------------------------------------------------------------------------------------------
 void MEIpoll(void)
 {
-    string returnvalue;
-	if (q>=3)//This divides the 100ms time slice by 3 for a 300ms time slice for polling
-	{// Start of Polling
-    	returnvalue = validator->mei_get_response();
-		if(returnvalue != "")//Start of checking for a blank response
-		{                    // Do this work if response from MEI is not blank
-			mei_timeout_timer_value = 0;//reset timer when we get activity
-			printf("Reply from MEI was = %s",returnvalue.c_str());
-		}                   // End of work from a NON-Blank response
-		else
-		{
-			if (mei_stacking == 1 || mei_verifying ==1)//Are we stacking or verifying ?
-					    {
-					    	mei_timeout_timer();
-					    }
-		}
 
-		q=0;
-		return;
-	}//End of Polling
+if (q>=3)//This divides the 100ms time slice by 3 for a 300ms time slice for polling
+
+{
+
+if (strcmp(rx_packet,"") == 0)//if the last RXed Packet is Blank Start a new polling session
+{
+	tx_packet[0] = '\x02';//stuff STX
+	tx_packet[1] = '\x08' ;//Number of Bytes in the packet
+	tx_packet[2] = '\x10' ;//Poll Command
+	tx_packet[3] = '\x10' ;// No Data
+	tx_packet[4] = '\x00' ;// No Data
+	tx_packet[5] = '\x00' ;// No Data
+	tx_packet[6] = '\x00' ;// Set a space for the ETX
+	tx_packet[7] = '\x00' ;// Set a space for the CRC
+	tx_crc = validator->do_crc(tx_packet,8);//run the crc function
+	tx_packet[6] = '\x03' ;// Insert ETX into packet
+	tx_packet[7] = tx_crc ;// Insert the returned CRC into packet
+}
+//printf("\n%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]); //DEBUG CODE
+//\x02\x08\x10\x1f\x14\x00 // Use this Packet template to get MEI to accept bills
+
+//==================Start of Polling========================
+
+if (rx_packet[2] == '\x20') //Standard Polling
+{
+	tx_packet[2] = '\x11';
+    tx_packet[6] = '\x00';
+    tx_packet[7] = '\x00';
+    tx_crc = 0;
+    tx_crc = validator->do_crc(tx_packet,8);
+    tx_packet[6] = '\x03';
+    tx_packet[7] = tx_crc;
+}
+
+if (rx_packet[2] == '\x21') //Standard Polling Ack
+{
+	tx_packet[2] = '\x10';
+	tx_packet[6] = '\x00';
+	tx_packet[7] = '\x00';
+	tx_crc = 0;
+	tx_crc = validator-> do_crc(tx_packet,8);
+	tx_packet[6] = '\x03';
+	tx_packet[7] = tx_crc;
+}
+
+if (rx_packet[2] == '\x70') //Enhanced Information Polling
+{
+	tx_packet[2] = '\x11';
+    tx_packet[6] = '\x00';
+    tx_packet[7] = '\x00';
+    tx_crc = 0;
+    tx_crc = validator->do_crc(tx_packet,8);
+    tx_packet[6] = '\x03';
+    tx_packet[7] = tx_crc;
+}
+
+if (rx_packet[2] == '\x71') //Enhanced Information Polling Ack
+{
+	tx_packet[2] = '\x10';
+	tx_packet[6] = '\x00';
+	tx_packet[7] = '\x00';
+	tx_crc = 0;
+	tx_crc = validator->do_crc(tx_packet,8);
+	tx_packet[6] = '\x03';
+	tx_packet[7] = tx_crc;
+}
+//==================End of Polling=============================
+//===============Business  Logic for MEI=======================
+
+validator->process_commands();           //Process In coming commands
+validator->mei_tx(tx_packet, comm_port); //Transmit Packet to MEI
+//printf("tx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]);
+validator->mei_rx(comm_port);            // Receive packet from MEI
+//printf("rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
+validator->process_response();           // What does the Response from the MEI mean
+
+q=0;//Reset Polling Divider
+if(mei_verifying == 1 || mei_stacking == 1) mei_timeout_timer();//Turn On Timeout Timer if this is a polling command
+if (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes
+if (strcmp(LAST_MEI_STATUS,MEI_STATUS) !=0)
+{
+	printf("current MEI_STATUS = %s\n",MEI_STATUS);//Print Only Changes
+	mei_timeout_timer_value = 0; //Reset the timer
+}
+if (mei_single_run_command == 1)
+{
+	memset(MEI_CURRENT_COMMAND,0,30);
+	strncpy(MEI_CURRENT_COMMAND,"idle",4); //If a single run command was sent automatically send an idle command
+	mei_single_run_command = 0;
+}
+
+strcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
+memset(LAST_MEI_STATUS,0,30);
+strcpy(LAST_MEI_STATUS,MEI_STATUS);
+
+}//End of polling
 q++;
 return;
 }
 //----------------------------------------------------------------------------------------------------
-//MEI Timeout Timer
+//MEI Timeout Timer only is enabled when a Polling command is running
 //----------------------------------------------------------------------------------------------------
 void mei_timeout_timer(void)
 {
@@ -681,31 +839,24 @@ void mei_timeout_timer(void)
  seconds = time(0);
  if (mei_timeout_timer_value == 0) mei_timeout_timer_value = seconds;
  int timeout_value =  seconds - mei_timeout_timer_value;
- printf("%d\n",timeout_value);//DEBUG!!!
- if (timeout_value >= 30)
+ //printf("%d\n",timeout_value);//DEBUG!!!
+
+ if (timeout_value >= 30)//TODO load the timeout value from the config file
  {
-	 validator->mei_send_command("idle");
+	 memset(MEI_CURRENT_COMMAND,0,30);
+	 sprintf(Logbuff,"MEI Time out timer just called mei_idle_func");
+	 WriteSystemLog(Logbuff);//log that this was called
+	 strncpy(MEI_CURRENT_COMMAND,"idle",4);
 	 mei_timeout_timer_value = 0; //Reset the timer
 	 mei_stacking = 0;//reset stacking flag
 	 mei_verifying = 0;//reset verifying flag
  }
  return;
 }
-//------------------------------------------------------------------------------------------------------
-//MEI Shut down
-//------------------------------------------------------------------------------------------------------
-void mei_shutdown(void)
-{
-	return;
-}
+
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
 //------------------------------------------------------------------------------------------------------
-
-
-
-
-
 
 #include "api_usb.inc"
 

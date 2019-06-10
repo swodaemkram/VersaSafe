@@ -44,29 +44,14 @@ extern bool D8C_detected(void);
 
 
 // MEI specific functions
-
 extern int init_mei(void);
-extern void mei_reset_func(void);
-extern void mei_verify_bill_func(void);
-extern string mei_getmodel_func(void);
-//extern string get_mei_driver(void);
-//extern int mei_connect(void);
-//extern string mei_getmodel(void);
-extern void mei_stack(void);
-extern void mei_inventory(void);
-//extern string mei_get_info(void);
-//extern void mei_enable(void);
-//extern void mei_dissable(void);
-//extern void mei_accept(void);
-//extern void mei_enable_bookmark(void);
-//extern void mei_enable_in(int meienableincount);
-//extern void mei_accept_in(string meibillstoaccept);
-//extern void mei_dissable_time(int meidissabletimeinsec);
-//extern int * mei_get_inventory(void);
-//extern bool mei_detected(void);
-//extern string mei_status(void);
+extern int do_crc(char, int);
 extern void MEIpoll(void);
-extern string get_mei_serialNumber(void);
+extern void process_commands(void);
+extern void mei_reset_func(void);
+extern void mei_stack(void);
+extern void get_mei_serialNumber(void);
+extern void mei_verify_bill_func(void);
 
 
 // api commands

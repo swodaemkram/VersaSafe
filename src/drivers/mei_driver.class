@@ -12,38 +12,7 @@
  No Flow Control
  =======================================================================================================================
  */
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <SerialStream.h>
-#include <sstream>
-#include <fstream>
-#include <cstdlib>
-#include <cstdint>
-#include <bits/stdc++.h>    // for strcpy
-#include <array>            // for array copy
-#include <iostream>
-#include <vector>
-#include <SerialPort.h>
 #include "mei_driver.h"
-#include "../hdr/global.h"
-#include "../trim.inc"
-#include "../logs.inc"
-#include <mysql.h>          //ONLY NEEDED TO PUT CASH IN DATABASE DIRECTLY WILL BE REMOVED IN THE FUTURE
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <sys/socket.h>
-
-
-
-using namespace std;
-using namespace LibSerial;
 
 SerialStream mei_my_serial; //THIS MUST BE ABOVE THE CLASS TO KEEP IT GLOBAL!
 
@@ -59,30 +28,39 @@ Global Variables
 	string mei_query_type = "status";
 	string old_mei_rply1;
 	float mei_invntry;
-/*
+	char comm_port[250] = "/dev/ttyUSB0";//TODO need to get this from usb_gateway
+	char tx_packet[30] = {0};
+	char rx_packet[40] = {0};
+	char MEI_CURRENT_COMMAND[30] = "idle";
+	int procnumber;
+	int GET_ONETIME = 0;
+	char the_clean_text[30] = {0};
+	bool mei_detected;
+	string mei_portname;//Port name sent from usb_gateway to the mei driver
+	int mei_instance; //Current Number of the current process
+	int  rx_packet_len = 0;
+	char MEI_STATUS[30] = "idling";
+	int is_comm_port_open = 0;
+	int DEBUG_LOG = 0;
+	char MEI_LAST_COMMAND[30] = {0};
+	int DEBUG_LOG_ONETIME = 0;
+	char LAST_MEI_STATUS[30];
+	char clean_text[30] = {0};
+	int fd;
+	/*
 ===============================================================================================================================
 Start of the MEI Class
 ===============================================================================================================================
 */
-
 	class mei {
-
 /*
 ===============================================================================================================================
 Connect to MEI Validator
 ===============================================================================================================================
 */
 private:
-char mei_buffer[200];
-int mei_status;
-
-public:
-bool mei_detected;
-string mei_portname;//Port name sent from usb_gateway to the mei driver
-bool detected=false;
-int mei_instance; //Current Number of the current process
-
-
+//char mei_buffer[200];
+//int mei_status;
 
 public:
 		mei(string pname, int instance)
@@ -91,14 +69,13 @@ public:
 			mei_portname=pname;
 			mei_instance = instance;
 			int result;
-			result = system("/home/mark/git/mei_service/mei_service/Debug/mei_service /dev/ttyUSB0 1 &\n");//TODO This needs to come from config
 			mei_connect();
 		}
 
 		~mei(void)
 		{
 
-			mei_send_command("stop");
+			//BECAUSE_OF_MOVEmei_send_command("stop");
 			printf("\nCloseing Comm port!\n");
 			mei_detected=false;
 			printf("MEI Service shut down cleanly...\n");
@@ -116,236 +93,602 @@ Connect to MEI Validator Returns 1 on success 0 on fail
  */
 public:
 
-	int mei_connect(void)
-		{
-/*
-=====================================================================================================================================
-Connection Test to MEI Service
-=====================================================================================================================================
- */
-		   int res; //Command Socket
-		   int timeout = 0;
-		   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-		   char domainsocket_Name[250] = {0};
-		   struct sockaddr_un address;
-		   memset(&address, 0x00, sizeof(address));
-		   address.sun_family = AF_UNIX;
-           strncpy(domainsocket_Name,"/var/run/mei_command1.socket",28); //IM doing this so I can easily  put in the instance number
-		   strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
-		do
-		{
-		   res = connect(sock,(struct sockaddr *)&address, sizeof(address));
-
-		if (timeout > 50 )
-			{
-			printf("timeout on mei server socket connection\n");
-			return(0);
-			}
-
-		usleep(100000);//Important Delay.
-		timeout++;
-
-		}
-		while(res < 0);
-
-		res = write(sock, "model", 5); // request model of MEI
-		close(sock);
-		printf("connected to MEI Command Service...\n");
-/*
-=========================================================================================================================================
-End of connection test
-=========================================================================================================================================
-Connect to response Side of service
-=========================================================================================================================================
-*/
-		           int stx; //Response Socket
-				   sock = socket(AF_UNIX, SOCK_STREAM, 0);
-		           memset(&address, 0x00, sizeof(address));
-		           address.sun_family = AF_UNIX;
-		           timeout = 0; //Reset timeout
-		           bzero(domainsocket_Name,250); //Clear out domainsocket_Name so I can give it a new one
-		           strncpy(domainsocket_Name,"/var/run/mei_response1.socket",29); //IM doing this so I can easily  put in the instance number
-				   strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
-				do
-				{
-				   stx = connect(sock,(struct sockaddr *)&address, sizeof(address));
-
-				if (timeout > 50 )
-					{
-					printf("timeout on mei response server socket connection\n");
-					return(0);
-					}
-
-				usleep(100000);//Important Delay.
-				timeout++;
-
-				}
-				while(stx < 0);
-				int rval;
-				char buf[1024] = {0};
-				rval = read(sock, buf, 1024);
-
-				close(sock);
-				printf("connected to MEI Response Server... reply when asked for Model was %s\n",buf);
-/*
-=========================================================================================================================================
-Connection to MEI Service Complete
-=========================================================================================================================================
- */
-return(1);
-}
-/*
-=========================================================================================================================================
- Connection to MEI Validator Completed
-=========================================================================================================================================
-MEI Send Command
-=========================================================================================================================================
-*/
-public:
-
-	int	mei_send_command(string command)
-	{
-	//printf("MEI Driver RXed %s as the command\n",command.c_str());//DEBUG
-	int res; //Command Socket
-	int timeout = 0;
-	int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	char domainsocket_Name[250] = {0};
-	struct sockaddr_un address;
-	memset(&address, 0x00, sizeof(address));
-	address.sun_family = AF_UNIX;
-	strncpy(domainsocket_Name,"/var/run/mei_command1.socket",28); //IM doing this so I can easily  put in the instance number
-	strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
-			do
-			{
-			   res = connect(sock,(struct sockaddr *)&address, sizeof(address));
-
-			if (timeout > 50 )
-				{
-				printf("timeout mei server socket connection\n");
-				return(0);
-				}
-
-			usleep(100000);//Important Delay.
-			timeout++;
-
-			}
-			while(res < 0);
-
-	char the_command[250] = {0};
-	strcpy(the_command,command.c_str());
-	res = write(sock, the_command, strlen(the_command)); // send requested command
-	close(sock);
+int mei_connect(void)
+{
 	return(1);
-
 }
 /*
-=========================================================================================================================================
-  End of MEI Send Command
-===========================================================================================================================================
-MEI Return Response
-===========================================================================================================================================
+==================================================================================================================================
+clean_text_method to provide printable characters and filter out non-printable
+==================================================================================================================================
  */
 public:
 
-	string	mei_get_response(void) //Get waiting response from mei_service
+char * clean_text(char *text, int len_text)
+
+	{
+	    char clean_text[30] = {0};
+		int i = 0;
+		int a = 0;
+
+		while (i<len_text)
+		{
+			if (text[i] >= 48 && text[i] <= 121 && text[i] != 60 && text[i] != 96)
+			{
+				clean_text[a]=text[i];
+				a++;
+			}
+
+			i++;
+		}
+
+		strcpy(the_clean_text,clean_text);
+		//printf("Clean Text =%s \n",clean_text);
+		return the_clean_text;
+	}
+/*
+=====================================================================================================================
+End of clean text method
+=====================================================================================================================
+do_crc method
+=====================================================================================================================
+*/
+public:
+
+	int do_crc(char buff[], int buffer_len){
+
+		 //printf("\n%02x%02x%02x%02x%02x%02x\n",buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);//DEBUG
+
+		 //printf("%d\n",buffer_len);//DEBUG
+
+		 int i=1;
+		 unsigned int sum = 0;
+
+		 buffer_len = buffer_len - 2;
+
+		        while ( i < buffer_len)
+		        {
+		           sum ^= buff[i];
+		           //printf("%02x,%02x\n",sum,buff[i]);//DEBUG
+		           i++;
+		        }
+		        //printf("%d\n",buffer_len); //DEBUG
+	            //printf("the check sum = %02x\n",sum);//DEBUG
+
+		 return(sum);
+	}
+/*
+=====================================================================================================================
+End of do_crc method
+=====================================================================================================================
+Get Method
+=====================================================================================================================
+*/
+public:
+
+	void get(void)
+
+	{
+	//===================These things are handled in other methods==============================
+		    if (GET_ONETIME == 1) return;
+	       	if (strncmp(MEI_CURRENT_COMMAND,"reset",5)== 0) return;
+			if (strncmp(MEI_CURRENT_COMMAND,"stack",5)== 0) return;
+			if (strncmp(MEI_CURRENT_COMMAND,"verify",5)== 0) return;
+			if (strncmp(MEI_CURRENT_COMMAND,"idle",4)== 0) return;
+	//===================These things are handled in other methods==============================
+
+			if (strncmp(MEI_CURRENT_COMMAND,"appver",6) == 0) tx_packet[5] = '\x07';
+	       	if (strncmp(MEI_CURRENT_COMMAND,"bootver",7) == 0) tx_packet[5] = '\x06';
+	       	if (strncmp(MEI_CURRENT_COMMAND,"model",5) == 0) tx_packet[5] = '\x04';
+	       	if (strncmp(MEI_CURRENT_COMMAND,"serial",6) == 0) tx_packet[5] = '\x05';
+	       	if (strncmp(MEI_CURRENT_COMMAND,"varname",7) == 0) tx_packet[5] = '\x08';
+
+		    tx_packet[0] = '\x02';//|
+			tx_packet[1] = '\x08';//|
+			tx_packet[2] = '\x60';//|
+			tx_packet[3] = '\x00';//|---------Get Command
+			tx_packet[4] = '\x00';//|
+			//tx_packet[5] = '\x08';//|
+			tx_packet[6] = '\x00';//|
+			tx_packet[7] = '\x00';//|
+
+			int newcrc = do_crc(tx_packet,8);
+			tx_packet[6] = '\x03';
+			tx_packet[7] = newcrc;
+
+			while(rx_packet[2] != '\x60')//We need the MEI to Send us back an INFO packet
+			{
+			mei_tx(tx_packet,comm_port);
+			usleep(100000);//Slow down we were going too fast
+			mei_rx(comm_port);
+		    clean_text(rx_packet,sizeof(rx_packet));//Clean up the Variant Name
+			}
+
+			//char log_message[100] = {0};
+			//sprintf(log_message,"MEI Response = %s",the_clean_text);
+			strcpy(MEI_STATUS,the_clean_text);
+			//BECAUSE_OF_MOVEdomain_response_server();
+			//BECAUSE_OF_MOVElog_Function(log_message);//For now we will print the response in the Log file but could put it any place
+			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
+			GET_ONETIME = 1;    //Keeps this from spinning out of control
+			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
+
+		return;
+	}
+/*
+=====================================================================================================================
+End of get method
+=====================================================================================================================
+mei_rx method
+=====================================================================================================================
+*/
+public:
+
+void mei_rx(char *comm_port)
+{
+//printf("MEI_RX CALLED\n");//DEBUG
+/*
+======================================================================================================================
+Setup Comm Port
+======================================================================================================================
+*/
+
+			    struct termios tty;
+
+			    cfsetospeed(&tty, (speed_t)B9600);
+			    cfsetispeed(&tty, (speed_t)B9600);
+
+			    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+			    tty.c_cflag &= ~CSIZE;
+			    tty.c_cflag |=  CS7;         /* 7-bit characters  pipes = yes ampersands and Tildes= no */
+			    tty.c_cflag |=  PARENB;     /* even parity bit */
+			    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+			    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
+
+			    /* setup for non-canonical mode */
+
+			    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+			    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+			    tty.c_oflag &= ~OPOST;
+
+			    /* fetch bytes as they become available */
+			    tty.c_cc[VMIN] = 1;
+			    tty.c_cc[VTIME] = 1;
+
+			    char *portname = comm_port;
+			    //int fd;
+
+			    if (is_comm_port_open == 0)
+			    {
+			    	fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
+			    	is_comm_port_open = 1;
+			    }
+
+			    if (fd < 0) {
+			        printf("Error opening %s: %s\n", portname, strerror(errno));
+			        is_comm_port_open = 0;
+			        exit(1);
+			    }
+			    /*baudrate 9600, 7 bits, even parity, 1 stop bit */
+/*
+================================================================================================================
+Finished Setting up Comm Port
+================================================================================================================
+*/
+			    fcntl(fd, F_SETFL, FNDELAY);//THIS IS HUGELY IMPORTANT !!! MAKES THE SERIALPORT NON-BLOCKING
+
+			    //printf("\033[1;32m"); //Set color to Green
+
+			    unsigned char buf[80];
+			    int rdlen = 0;
+			    int i = 0;
+
+			    rdlen = read(fd, buf, sizeof(buf) -1);//Get Data from Comm Port was -1
+
+			    if (rdlen > 0) {
+
+			    	bzero(rx_packet,40);
+
+			    	while(i < rdlen)
+			    	{
+			    		rx_packet[i] = buf[i];
+			    		//printf("%02x|",rx_packet[i]);//Print The RXed Hex Packet DEBUG !!!
+			    		i++;
+			    	}
+			    	//printf("\n");
+			    	//printf("in driver rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
+			    	//printf("\n");
+			    	//printf("\033[0m");  //Set Color back to white
+//====================================================== Enhanced Logging ==========================================================================
+if(DEBUG_LOG == 1)
+{
+char rxhex[120] = {0};
+sprintf(rxhex,"%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x"
+,rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7],rx_packet[8],rx_packet[9],rx_packet[10]
+,rx_packet[11],rx_packet[12],rx_packet[13],rx_packet[14],rx_packet[15],rx_packet[16],rx_packet[17],rx_packet[18],rx_packet[19],rx_packet[20],
+rx_packet[21],rx_packet[22],rx_packet[23],rx_packet[24],rx_packet[25],rx_packet[26],rx_packet[27],rx_packet[28],rx_packet[29]);
+//BECAUSE_OF_MOVElog_Function(rxhex); //DEBUG ENHANCED HEX LOGGING OF RXed Data From MEI
+clean_text(rx_packet,rdlen);
+//BECAUSE_OF_MOVElog_Function(the_clean_text);
+}
+//==================================================================================================================================================
+} /*
+    //printf("%d\n",rdlen);//DEBUG
+    rx_packet_len = rdlen;
+    if (rx_packet_len < 1)
+			    {
+			    	rx_packet[0] = '\x00';
+			    	rx_packet_len = 1;
+			    	//printf("\033[0m");  //Set Color back to white
+			    }
+/*
+=================================================================================================================
+Got RX Data Need to Check CRC
+=================================================================================================================
+*/
+char crc_check_packet[] = {0};
+ i = 0;
+int calculated_crc = 0;
+
+while (i < rx_packet_len)
+{
+	crc_check_packet[i] = rx_packet[i];
+	i++;
+}
+	crc_check_packet[rx_packet_len - 1] = '\x00';
+	crc_check_packet[rx_packet_len - 2] = '\x00';
+	calculated_crc = do_crc(crc_check_packet,rx_packet_len);
+	//printf("Calculated CRC = %02x\n",calculated_crc);
+	if (calculated_crc != rx_packet[rx_packet_len-1])
+	{
+		bzero(rx_packet,40);
+		//rx_packet[0] = '\x00';
+		//rx_packet_len = 1;
+		printf("BAD CRC RXed\n"); //DEBUG !!!
+		//BECAUSE_OF_MOVElog_Function("BAD CRC RXed !");
+		return;
+	}
+
+/*
+=================================================================================================================
+End of CRC Check
+=================================================================================================================
+Get RXed Status of MEI
+=================================================================================================================
+*/
+/*
+if (rx_packet_len <= 1)
+	{
+		strcpy(MEI_STATUS,"checking connection...");
+		//BECAUSE_OF_MOVElog_Function("checking connection...");
+		return;
+	}
+*/
+/*
+=================================================================================================================
+END of Getting Status from MEI
+=================================================================================================================
+*/
+//close(fd);
+return;
+}
+/*
+=====================================================================================================================
+End of mei_rx method
+=====================================================================================================================
+mei_tx method
+=====================================================================================================================
+*/
+public:
+
+void mei_tx(char* tx_packet, char* comm_port)
 {
 
-	int stx; //Response Socket
-	int timeout = 0;
-	int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	char domainsocket_Name[250] = {0};
-	struct sockaddr_un address;
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	memset(&address, 0x00, sizeof(address));
-	address.sun_family = AF_UNIX;
-	timeout = 0; //Reset timeout
-	bzero(domainsocket_Name,250); //Clear out domainsocket_Name so I can give it a new one
-	strncpy(domainsocket_Name,"/var/run/mei_response1.socket",29); //IM doing this so I can easily  put in the instance number
-	strncpy(address.sun_path, domainsocket_Name, strlen(domainsocket_Name));//TODO Need to domainsocket_name to integrate session number
+					struct termios tty;
 
-    do
+				    cfsetospeed(&tty, (speed_t)B9600);
+				    cfsetispeed(&tty, (speed_t)B9600);
+
+				    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+				    tty.c_cflag &= ~CSIZE;
+				    tty.c_cflag |=  CS7;         /* 7-bit characters  pipes = yes ampersands and Tildes= no */
+				    tty.c_cflag |=  PARENB;     /* even parity bit */
+				    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+				    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
+
+				    /* setup for non-canonical mode */
+
+				    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+				    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+				    tty.c_oflag &= ~OPOST;
+
+				    /* fetch bytes as they become available */
+				    tty.c_cc[VMIN] = 1;
+				    tty.c_cc[VTIME] = 1;
+
+					char *portname = comm_port;
+
+				    //int wlen;
+				    if (is_comm_port_open == 0) fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
+				    if (fd < 0) {
+				        printf("Error opening %s: %s\n", portname, strerror(errno));
+				        is_comm_port_open = 0;
+				        exit(1);
+				    }
+				    /*baudrate 9600, 7 bits, even parity, 1 stop bit */
+
+
+is_comm_port_open = 1;
+//printf("\033[1;31m\n%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x\n\033[0m",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]); //DEBUG CODE
+int whocares = write(fd,tx_packet,sizeof(tx_packet));
+tcdrain(fd);    /* delay for output */
+//is_comm_port_open = 0;
+//close(fd);
+return;
+}
+/*
+=====================================================================================================================
+End of mei_tx method
+=====================================================================================================================
+process_commands method
+=====================================================================================================================
+*/
+public:
+
+void process_commands(void)
+{
+
+	unsigned int tx_crc = 0;
+
+//===============================Start of Stack Command =========================================
+if(strncmp(MEI_CURRENT_COMMAND,"stack",5)==0) //Has the "stack" command been RXed
 	{
-	   stx = connect(sock,(struct sockaddr *)&address, sizeof(address));
-	   if (timeout > 50 )
-	   {
-	     printf("timeout on mei response server socket connection\n");
-		 return(0);
-		}
-
-	   usleep(100000);//Important Delay.
-	   timeout++;
+		tx_packet[3] = '\x1f';
+		tx_packet[4] = '\x14';
+		tx_packet[5] = '\x10'; //DEBUG FOR NEW ENHANCED BILL REPORTING '\x10' for enhanced '\x00' for non-enhanced
+		tx_packet[6] = '\x00';
+		tx_packet[7] = '\x00';
+		tx_crc = 0;
+		tx_crc = do_crc(tx_packet,8);
+		tx_packet[6] = '\x03';
+		tx_packet[7] = tx_crc;
 
 	}
-	while(stx < 0);
 
-    int rval;
-	char buf[1024] = {0};
-	rval = read(sock, buf, 1024);
-	close(sock);
-	//printf("%s\n",buf);//DEBUG
-    return(buf);
-}
-/*
-===============================================================================================================================
-Add Inventory to the MYSQL database
-===============================================================================================================================
-*/
-public: //For now this is public so I can test it
-
-void mei_add_to_inventory_database(float value, int therow )
+if((strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x55') ||(strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x45') || (strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x49')) //Detects the U in USD, THE E in ERO and the I in ILS
 {
-
-	MYSQL* conn;
-	MYSQL_RES *results;
-	MYSQL_ROW row;
-    float total;
-	float currenttotal;
-    printf("The Value = %f the Row is %d", value, therow);
-
-
-	conn = mysql_init(NULL);
-	conn = mysql_real_connect(conn,"localhost","fkinguser101","glimpbust345","fking",0,NULL,0);
-	 if(conn)
-	        cout<<"connection to fking databse successful "<<endl;
-	     else
-	        cout<<"connection problem: "<<mysql_error(conn)<<endl;
-
-	 if(mysql_query(conn, "SELECT * FROM inventory WHERE id = 1"))
-	 	{
-	 		printf("mysql: selection error: %s\n", mysql_error(conn));
-	 		mysql_close(conn);
-	 	}
-	  results = mysql_use_result(conn);
-      row = mysql_fetch_row(results);
-	  printf("%s %s %s %s %s %s %s %s\n", row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]);
-	  //currenttotal = row[therow];
-	  //total = currenttotal + value;
-	  printf("\nthe total is %f\n",total);
-	  mysql_query(conn, "UPDATE `fking`.`inventory` SET `field_1`='2.00' WHERE `id`='1'");
-
-	  mysql_free_result(results);
-	  mysql_close(conn);
-
-	  return;
+	        tx_packet[3] = '\x7f';//We are sending the Stack Command in this part
+			tx_packet[4] = '\x3c';
+			tx_packet[6] = '\x00';
+			tx_packet[7] = '\x00';
+			tx_crc = 0;
+			tx_crc = do_crc(tx_packet,8);
+			tx_packet[6] = '\x03';
+			tx_packet[7] = tx_crc;
 
 }
+
+//============================END OF Stacking Service============================================
+//============================Start of Idle Command==============================================
+
+	if(strncmp(MEI_CURRENT_COMMAND,"idle",4)==0 && strncmp(MEI_STATUS, "escrowed",8)!=0)//We dont want to idle with money escrowed
+	{
+	     		tx_packet[3] = '\x00'; //We are sending the idle Command in this part
+				tx_packet[4] = '\x00';
+				tx_packet[6] = '\x00';
+				tx_packet[7] = '\x00';
+				tx_crc = 0;
+				tx_crc = do_crc(tx_packet,8);
+				tx_packet[6] = '\x03';
+				tx_packet[7] = tx_crc;
+
+	}
+//===============================END OF Idle Command=============================================
+//=====================================Reset Command=============================================
+		if(strncmp(MEI_CURRENT_COMMAND,"reset",5)== 0 && strncmp(MEI_STATUS, "accepting",9) == 0 )
+		{
+							tx_packet[2] = '\x60';        //Expanded Command Mode
+                			tx_packet[3] = '\x7f';        //We are sending the reset Command
+							tx_packet[4] = '\x7f';        //"\x02\x08\x60\x7f\x7f\x7f\x03"
+							tx_packet[5] = '\x7f';
+							tx_packet[6] = '\x00';
+							tx_packet[7] = '\x00';
+							tx_crc = 0;
+							tx_crc = do_crc(tx_packet,8);
+							tx_packet[6] = '\x03';
+							tx_packet[7] = tx_crc;
+
+		}
+//==================================END of Reset Command=========================================
+//=================================Start of Verify Command=======================================
+         if(strncmp(MEI_CURRENT_COMMAND,"verify",6)== 0 && strncmp(MEI_STATUS,"escrowed",8) != 0)
+
+         {
+        	 tx_packet[3] = '\x1f';
+        	 tx_packet[4] = '\x14';
+        	 tx_packet[5] = '\x10';//WAS '\x00'
+        	 tx_packet[6] = '\x00';
+        	 tx_packet[7] = '\x00';
+        	 tx_crc = 0;
+        	 tx_crc = do_crc(tx_packet,8);
+        	 tx_packet[6] = '\x03';
+        	 tx_packet[7] = tx_crc;
+
+         }
+
+         if(strncmp(MEI_CURRENT_COMMAND,"verify",6) == 0 && strncmp(MEI_STATUS,"escrowed",8) == 0)
+
+         {
+
+        	 tx_packet[3] = '\x00';
+        	 tx_packet[4] = '\x5c';    //Return Document Command
+        	 tx_packet[5] = '\x00';
+        	 tx_packet[6] = '\x00';
+        	 tx_packet[7] = '\x00';
+        	 tx_crc = 0;
+        	 tx_crc = do_crc(tx_packet,8);
+        	 tx_packet[6] = '\x03';
+        	 tx_packet[7] = tx_crc;
+
+         }
+
+ if((strncmp(MEI_CURRENT_COMMAND,"verify",6)== 0 && rx_packet[11]=='\x55') ||(strncmp(MEI_CURRENT_COMMAND,"verify",6)== 0 && rx_packet[11]=='\x45' )||(strncmp(MEI_CURRENT_COMMAND,"verify",6)== 0 && rx_packet[11]=='\x49')) //Detects the U in USD, THE E in ERO and the I in ILS
+
+ {
+			 tx_packet[3] = '\x00';
+         	 tx_packet[4] = '\x5c';    //Return Document Command
+         	 tx_packet[5] = '\x00';
+         	 tx_packet[6] = '\x00';
+         	 tx_packet[7] = '\x00';
+         	 tx_crc = 0;
+         	 tx_crc = do_crc(tx_packet,8);
+         	 tx_packet[6] = '\x03';
+         	 tx_packet[7] = tx_crc;
+
+   }
+
+//==================================End of Verify  Command=======================================
+//===============================LOG ONLY CHANGES================================================
+	if(strcmp(MEI_CURRENT_COMMAND,MEI_LAST_COMMAND)!= 0)
+	{
+		//char log_message[250] ={0};
+		//sprintf(log_message,"Command Issued = %s",MEI_CURRENT_COMMAND);
+		//BECAUSE_OF_MOVElog_Function(log_message);
+		//printf("MEI_LAST_COMMAND = %s MEI_CURRENT_COMMAND = %s\n",MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
+		//MARKstrcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
+		GET_ONETIME = 0;//Reset Run Once Flag
+		DEBUG_LOG_ONETIME = 0;
+	}
+//==================================END OF LOGGING===============================================
+// ^^^^^^^^^^^^ ALL SINGLE RUN COMMANDS NEED TO BE BELOW THIS  ^^^^^^^^^^^^^^^^
+//==================================Singel Get Replacement=======================================
+
+ get(); //This will be the single run command function
+
+//==================================END of Get Replacement=======================================
+
+
+
+ return;
+}
 /*
-==============================================================================================================================
-End of Database Work c
-==============================================================================================================================
+=====================================================================================================================
+End of process_commands method
+=====================================================================================================================
+process_response
+=====================================================================================================================
 */
 public:
 
-void mei_shutdown(void)
+void process_response (void)
 {
-	mei_send_command("stop"); //This will shutdown the mei service
-}
 
+	switch(rx_packet[3])
+	{
+
+	case '\x00':
+		  strcpy(MEI_STATUS,"idling");
+		  break;
+	case '\x01':
+		  strcpy(MEI_STATUS,"accepting");
+		  break;
+	case '\x02':
+		  strcpy(MEI_STATUS,"drawing_in");
+		  break;
+	case '\x04':
+		  strcpy(MEI_STATUS,"escrowed");
+		  break;
+	case '\x08':
+		  strcpy(MEI_STATUS,"stacking");
+		  break;
+	case '\x11':
+		  strcpy(MEI_STATUS,"stacked");
+		  break;
+	case '\x20':
+		  strcpy(MEI_STATUS,"processing");
+		  break;
+	case '\x41':
+		  strcpy(MEI_STATUS,"returned");
+		  break;
+
+	}
+
+	switch(rx_packet[2]) //Detect enhanced escrow
+	{
+	case '\x70':
+		strcpy(MEI_STATUS,"escrowed");
+		break;
+	case '\x71':
+		strcpy(MEI_STATUS,"escrowed");
+		break;
+	}
+//===========================Detect Cassette Removal=========================================
+    if (strncmp(MEI_STATUS,"stacked",7)==0 && rx_packet[5] == '\x00')
+    {
+    	strcpy(MEI_STATUS,"cassette_removed");
+    }
+//======================End of Cassette Removal Detection====================================
+//============================Determine Dnom Stacked=========================================
+
+if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "stack",5) == 0)
+{
+	char denom_detail[9] = {0};
+	char temp_message[30] = {0};
+
+	int v = 0;
+	while(v <= 8)
+	{
+	  denom_detail[v] = rx_packet[v+11];
+	 v++;
+	}
+
+clean_text(denom_detail,9);
+sprintf(MEI_STATUS,"stacked a %s",the_clean_text);
+//strncpy(MEI_STATUS,the_clean_text,8);
+}
+//=============================END of Dnom Determination====================================
+
+if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "verify",5) == 0)
+{
+	char denom_detail[9] = {0};
+	char temp_message[30] = {0};
+
+	int v = 0;
+	while(v <= 8)
+	{
+	  denom_detail[v] = rx_packet[v+11];
+	 v++;
+	}
+
+clean_text(denom_detail,9);
+sprintf(MEI_STATUS,"Verified a %s",the_clean_text);
+//strncpy(MEI_STATUS,the_clean_text,8);
+}
+//=================================End of Dnom Returned=====================================
+//==========================LOG ONLY CHANGES IN STATUS======================================
+/*
+if (strcmp(MEI_STATUS,LAST_MEI_STATUS)!=0)
+{
+	char log_message[45] = {0};
+	sprintf(log_message,"MEI Response = %s",MEI_STATUS);
+	//BECAUSE_OF_THE_MOVElog_Function(log_message);
+	//BECAUSE_OF_THE_MOVEdomain_response_server();
+	strcpy(LAST_MEI_STATUS,MEI_STATUS);
+}
+//============================END OF STATUS LOGGING==========================================
+*/
+	return;
+}
+/*
+=============================================================================================
+End of process_response method
+=============================================================================================
+*/
 };
 /*
-===============================================================================================================================
+==============================================================================================
 End of MEI Class
-===============================================================================================================================
+==============================================================================================
  */
 
 
