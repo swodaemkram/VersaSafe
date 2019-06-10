@@ -123,7 +123,7 @@ printf("API PORT: %d\n",api_port);
 */
 char * ListenAPI(void)
 {
-	char my_buffer[100];
+	char my_buffer[2000];
 	bool ret;
 	bool status;
 	int bytecount;
@@ -155,10 +155,13 @@ printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
 				sprintf(my_buffer,"%s-ERROR",ptr);
 			ptr=my_buffer;
 			break;
+		case 999:		// return serialized config.xml file
+			sprintf(my_buffer,"%s",retstat.result.c_str());
+			ptr=my_buffer;
 		}
 
 		printf("API-REPLY: %s\n",ptr);
-		ret=api->SendMessage(ptr);	// echo what we received
+		ret=api->SendMessage(ptr);	// echo what we received (or a result)
 		if (!ret)
 		{
 	        sprintf(my_buffer,"ERROR writing to socket");
@@ -251,12 +254,18 @@ retstruc CommandDispatcher(char * cmd)
 
 	// first element of the cmd is the cmd number, use that for dispatching
 	int cmd_num = atoi(cmds[0].c_str() );
-    retstat.cmd=cmd_num;
+/*
+	NOTE: at first glance, it might seem wise to set retstat.cmd = cmd_num right here,
+		however, retstat is a pointer to a struct and is pointing to a specific struct by the given api_xxx() function
+		is called, therefore, retstat.cmd would be overwritten.
+*/
+
 
 	switch(cmd_num)
 	{
 	case 999:	//999-GET-CONFIG
-		api_999(cmd);
+		retstat=api_999(cmd);
+		retstat.cmd=999;
 		break;
 				// XXX = "LOCK", "UNLOCK", "STATUS", "DELAY-YY"
 	case 100:	//100-OUTTER-DOOR-XXX
@@ -295,11 +304,11 @@ retstruc CommandDispatcher(char * cmd)
 
 	case 300:	//	300-USER-LOGIN-user-pw
 		retstat=api_300(cmd);
-//		retstat.cmd=300;
-
+		retstat.cmd=300;
 		break;
 	case 301:	//301-USER-LOGOUT
         retstat=api_301(cmd);
+		retstat.cmd=301;
 		break;
 	case 302:	//302-USER-CHANGE-PW-oldpw-newpw
         api_302(cmd);
@@ -400,46 +409,59 @@ retstruc CommandDispatcher(char * cmd)
 
 	case 900:	//900-UTD-UNLOADALL
        api_900(cmd);
+		retstat.cmd=900;
 		break;
 
 	// cols are zero based (0-7), 8 =unload all
 	case 901:	//901-UTD-UNLOAD-COL-X
        api_901(cmd);
+        retstat.cmd=901;
 		break;
 	case 902:	//902-UTD-LOAD
        api_902(cmd);
+        retstat.cmd=902;
 		break;
 
 	case 903:	//903-UTD-LOAD-STOP
 		api_903(cmd);
+        retstat.cmd=903;
 		break;
 	case 904:	//904-UTD-RESET
 		api_904(cmd);
+        retstat.cmd=904;
 		break;
 	case 905:	//905-UTD-INVENTORY
 		retstat=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
+        retstat.cmd=905;
 		break;
 	case 906:				//906-UTD-UNLOAD-COLS-1,2,3,4,5
 		api_906(cmd);
+        retstat.cmd=906;
 		break;
 
 	case 920:		//920-VALIDATOR-VERIFY
 		retstat = api_920(cmd);
+        retstat.cmd=920;
 		break;
 	case 921:		//921-VALIDATOR-STACK
 		retstat=api_921(cmd);
+        retstat.cmd=921;
 		break;
 	case 922:		//922-VALIDATOR-MODEL
 		retstat=api_922(cmd);
+        retstat.cmd=922;
 		break;
 	case 923:		//923-VALIDATOR-SERIAL
 		retstat=api_923(cmd);
+        retstat.cmd=923;
 		break;
 	case 924:		//924-VALIDATOR-INVENTORY
 		retstat=api_924(cmd);
+        retstat.cmd=924;
 		break;
 	case 925:		//925-VALIDATOR-GET-RESULT
 		retstat=api_925(cmd);
+        retstat.cmd=925;
 		break;
 
 	}

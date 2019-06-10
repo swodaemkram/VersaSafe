@@ -825,12 +825,13 @@ struct
     char ucd1[10];
     char ucd2[10];
 	char utd[10];
+	bool pelicano=FALSE;
+	bool gsr50=FALSE;
     char outterlock[10];
     char innerlock[10];
     char shutterlock[10];
     char sidecarlock[10];
     char baselock[10];
-    char recycler[10];
     char printer[10];
     char tampersw[10];
 
@@ -6230,9 +6231,12 @@ void GetAllUsers(void)
 
 */
 
+string configfile(2000,0);
+
 string SerializeConfig(void)
 {
-	string configfile = ReadFile(config_file);
+	configfile = ReadFile(config_file);
+	return configfile;
 }
 
 
@@ -6411,11 +6415,42 @@ bool ConfigSetup(bool silent)
             else
                 strcpy(cfg.api, (char*) "disabled");
 */
+
+
+            pelem = elem->FirstChildElement("pelicano");
+            if (pelem)
+			{
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+				if (strcmp(gen_buffer,"enabled") == 0)
+					cfg.pelicano=TRUE;
+				else
+					cfg.pelicano=FALSE;
+			}
+			else
+				cfg.pelicano=FALSE;
+
+            pelem = elem->FirstChildElement("gsr50");
+            if (pelem)
+            {
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"enabled") == 0)
+                    cfg.gsr50=TRUE;
+                else
+                    cfg.gsr50=FALSE;
+            }
+            else
+                cfg.gsr50=FALSE;
+
+
+/*
             pelem = elem->FirstChildElement("recycler");
             if (pelem)
                 strcpy(cfg.recycler, (char*) pelem->GetText());
             else
                 strcpy(cfg.recycler, (char*) "disabled");
+*/
 
             pelem = elem->FirstChildElement("printer");
             if (pelem)
@@ -6630,7 +6665,7 @@ void PrintConfig(void)
 	printf("base: %s\n",cfg.baselock);
 
 //    printf("api: %s\n",cfg.api);
-    printf("recycler: %s\n", cfg.recycler);
+//    printf("recycler: %s\n", cfg.recycler);
     printf("printer: %s\n", cfg.printer);
     printf("tampersw: %s\n", cfg.tampersw);
 

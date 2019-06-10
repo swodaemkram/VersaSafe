@@ -111,10 +111,12 @@ bool api_lock(char *cmd,int lock_index)
 retstruc api_999(char *cmd)
 {
     retstruc retstat;
+//	retstat.result(2000,0);
 	retstat.result = SerializeConfig();	// in vsafe.cpp
 
 	printf("%s",retstat.result.c_str());
 
+	return retstat;
 }
 
 

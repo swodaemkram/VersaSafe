@@ -30,7 +30,6 @@
 		<shutterlock>disabled</shutterlock>
 		<sidecarlock>disabled</sidecarlock>
 		<baselock>disabled</baselock>
-		<recycler>disabled</recycler>
 		<printer>enabled</printer>
 		<tampersw>enabled</tampersw>
 	</devices>
