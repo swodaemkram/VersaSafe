@@ -23,12 +23,13 @@
 		<ucd1>enabled</ucd1>
 		<ucd2>disabled</ucd2>
 		<utd>enabled</utd>
+		<pelicano>disabled</pelicano>
+		<gsr50>disabled</gsr50>
 		<outterlock>enabled</outterlock>
 		<innerlock>disabled</innerlock>
 		<shutterlock>disabled</shutterlock>
 		<sidecarlock>disabled</sidecarlock>
 		<baselock>disabled</baselock>
-		<api>enabled</api>
 		<recycler>disabled</recycler>
 		<printer>enabled</printer>
 		<tampersw>enabled</tampersw>

@@ -258,6 +258,7 @@ using namespace std;
 
 char XML_FILE[50];
 
+string SerializeConfig(void);
 bool ConfigSetup(bool silent);
 void PrintConfig(void);
 
@@ -829,7 +830,6 @@ struct
     char shutterlock[10];
     char sidecarlock[10];
     char baselock[10];
-    char api[10];
     char recycler[10];
     char printer[10];
     char tampersw[10];
@@ -1176,7 +1176,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	string tbl="users devices";
 //	SendTableToServer(tbl);
 
-	SetupAPI();
+    if (cfg.api_enabled)		SetupAPI();
 
 	#ifdef FULLSCREEN
 //		gtk_window_fullscreen( GTK_WINDOW(app_ptr->main_menu) );
@@ -6225,6 +6225,17 @@ void GetAllUsers(void)
 }
 
 
+/*
+	read the entire xml/config.xml file into a string and return it
+
+*/
+
+string SerializeConfig(void)
+{
+	string configfile = ReadFile(config_file);
+}
+
+
 
 
 
@@ -6393,13 +6404,13 @@ bool ConfigSetup(bool silent)
                 strcpy(cfg.baselock, (char*) "disabled");
 
 
-
+/*
             pelem = elem->FirstChildElement("api");
             if (pelem)
                 strcpy(cfg.api, (char*) pelem->GetText());
             else
                 strcpy(cfg.api, (char*) "disabled");
-
+*/
             pelem = elem->FirstChildElement("recycler");
             if (pelem)
                 strcpy(cfg.recycler, (char*) pelem->GetText());
@@ -6618,7 +6629,7 @@ void PrintConfig(void)
 	printf("sidecar: %s\n",cfg.sidecarlock);
 	printf("base: %s\n",cfg.baselock);
 
-    printf("api: %s\n",cfg.api);
+//    printf("api: %s\n",cfg.api);
     printf("recycler: %s\n", cfg.recycler);
     printf("printer: %s\n", cfg.printer);
     printf("tampersw: %s\n", cfg.tampersw);

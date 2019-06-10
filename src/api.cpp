@@ -32,13 +32,15 @@
 // logs.cpp
 #include "logs.inc"
 #include "trim.inc"
+#include "hdr/fire.h"
+
+#include "api_struc.inc"
 
 void SetupAPI(void);
 bool CreateAPI(void);
 char * ListenAPI(void);
-void CommandDispatcher(char * cmd);
+retstruc CommandDispatcher(char * cmd);
 int Read_API_File(void);
-
 
 extern int GetAPIport(void);	// in vsafe.cpp
 
@@ -46,6 +48,7 @@ extern int GetAPIport(void);	// in vsafe.cpp
 SOCKET * api = new SOCKET(TCP_CONNECTION); // instantiate our API socket
 
 int api_port;
+
 
 #define MAX_API 200
 struct myapi
@@ -122,8 +125,10 @@ char * ListenAPI(void)
 {
 	char my_buffer[100];
 	bool ret;
+	bool status;
 	int bytecount;
     char *ptr;
+	retstruc retstat;
 
     if (!api_avail) return NULL;  // API disabled if no CMD file
 
@@ -137,7 +142,22 @@ char * ListenAPI(void)
     else
     {
 printf("%s\n",ptr);
-		CommandDispatcher(ptr);		// execute the command
+		retstat=CommandDispatcher(ptr);		// execute the command
+
+printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
+
+		switch(retstat.cmd)
+		{
+		case 300:		// user login
+			if (retstat.status)
+				sprintf(my_buffer,"%s-OK",ptr);
+			else
+				sprintf(my_buffer,"%s-ERROR",ptr);
+			ptr=my_buffer;
+			break;
+		}
+
+		printf("API-REPLY: %s\n",ptr);
 		ret=api->SendMessage(ptr);	// echo what we received
 		if (!ret)
 		{
@@ -219,18 +239,25 @@ do
 
 */
 
-void CommandDispatcher(char * cmd)
+retstruc CommandDispatcher(char * cmd)
 {
 	string ret;
+//	bool status;
 	string invt;
 	string cmd_string = string(cmd);
 	vector<string> cmds=split(cmd_string,"-");
+	retstruc retstat;
+
 
 	// first element of the cmd is the cmd number, use that for dispatching
 	int cmd_num = atoi(cmds[0].c_str() );
+    retstat.cmd=cmd_num;
 
 	switch(cmd_num)
 	{
+	case 999:	//999-GET-CONFIG
+		api_999(cmd);
+		break;
 				// XXX = "LOCK", "UNLOCK", "STATUS", "DELAY-YY"
 	case 100:	//100-OUTTER-DOOR-XXX
 		api_100(cmd);
@@ -267,14 +294,17 @@ void CommandDispatcher(char * cmd)
 		break;
 
 	case 300:	//	300-USER-LOGIN-user-pw
-        api_300(cmd);
+		retstat=api_300(cmd);
+//		retstat.cmd=300;
+
 		break;
 	case 301:	//301-USER-LOGOUT
-        api_301(cmd);
+        retstat=api_301(cmd);
 		break;
 	case 302:	//302-USER-CHANGE-PW-oldpw-newpw
         api_302(cmd);
 		break;
+
 
 	case 350:	//350-SHIFT-START
         api_350(cmd);
@@ -387,35 +417,35 @@ void CommandDispatcher(char * cmd)
 		api_904(cmd);
 		break;
 	case 905:	//905-UTD-INVENTORY
-		invt=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
+		retstat=api_905(cmd);	// returns inventory as a string , eg "1,4,5,2,3,6,0,0"
 		break;
 	case 906:				//906-UTD-UNLOAD-COLS-1,2,3,4,5
 		api_906(cmd);
 		break;
 
 	case 920:		//920-VALIDATOR-VERIFY
-		ret = api_920(cmd);
+		retstat = api_920(cmd);
 		break;
 	case 921:		//921-VALIDATOR-STACK
-		ret=api_921(cmd);
+		retstat=api_921(cmd);
 		break;
 	case 922:		//922-VALIDATOR-MODEL
-		ret=api_922(cmd);
+		retstat=api_922(cmd);
 		break;
 	case 923:		//923-VALIDATOR-SERIAL
-		ret=api_923(cmd);
+		retstat=api_923(cmd);
 		break;
 	case 924:		//924-VALIDATOR-INVENTORY
-		ret=api_924(cmd);
+		retstat=api_924(cmd);
 		break;
 	case 925:		//925-VALIDATOR-GET-RESULT
-		ret=api_925(char *cmd)
+		retstat=api_925(cmd);
 		break;
 
 	}
 
 
-
+	return retstat;
 
 }
 

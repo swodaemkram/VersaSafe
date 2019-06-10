@@ -45,6 +45,7 @@
 
 .menu
 {
+	border-radius: 10%;	//25px;
 	position:absolute;
 	left:150px;
 	top:150px;
@@ -90,21 +91,28 @@
 
 .function
 {
+    border-radius: 10%; //25px;
     position:absolute;
-	padding:20px;
+	padding-left:140px;
     left:150px;
     top:150px;
     border: 5px solid BLUE;
     background-color:gainsboro;
 //LightSteelBlue;
     width:40%;
-    height:400px;
+    height:450px;
 //  color:#454545;
     color:black;
 	font-size: 17pt;
 	font-weight:bold;
     font-family:arial,sans-serif;
 	text-align:center;
+}
+
+
+.function td, input
+{
+	font-size:15pt;
 }
 
 
@@ -139,9 +147,11 @@
 }
 
 
-.unloadnow
+.buttons
 {
-	background-image: url( "img/button_unload-now.png" );
+	border-radius: 13px;
+//	background-image: url( "img/button_unload-now.png" );
+ background: steelblue;
 }
 
 
@@ -159,5 +169,13 @@
 .user
 {
 	font-size:15pt;
+}
+
+
+.hrr
+{
+	height:5px;
+	background-color:slategray;
+//steelblue;
 }
 

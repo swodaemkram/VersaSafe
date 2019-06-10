@@ -1,5 +1,26 @@
 <?php
+/*
+    File: menu.php
+    Author: Gary Conway <gary.conway@fireking.com>
+    Created: 5-25-2019
+    Updated:
+
+
+    This is a GUI designed to interact with the VSAFE API
+*/
+
+
 session_start();    // start a user session
+
+ini_set('html_errors',1);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
+
+// for debugging only
+$_SESSION['logged_in']='1'
 //echo session_id();
 //print_rx($_SESSION);
 //print_rx($_POST);
@@ -12,15 +33,6 @@ session_start();    // start a user session
 </head>
 
 <?php
-/*
-	File: menu.php
-	Author: Gary Conway <gary.conway@fireking.com>
-	Created: 5-25-2019
-	Updated:
-
-
-	This is a GUI designed to interact with the VSAFE API
-*/
 
 
 GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars;
@@ -37,24 +49,26 @@ $cfg=array
     "pw"=>3,
     "dbf"=>4,
     "dbf_port"=>5,
-    "api_port"=>6,
+    "api_port"=>1132,			// set default
+	"validator_timeout"=>30,	// default
 );
 
 
-ini_set('html_errors',1);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+// try to get the config info from the API, if that fails
+// fall back to trying to read the local file
+if (!GetConfig())
 ReadXML();
+//print_rx($xml);
+//exit();
 
 get_input_vars();	// place all GET|POST vars in $input_vars array
-var_dump($input_vars);
+//var_dump($input_vars);
 
 if (extension_loaded('simplexml'))
 	ConnectDBF();
 else
 	print "simplexml extension not loaded";
+
 
 
 
@@ -81,28 +95,6 @@ if (isset($input_vars['f']))
 else
 	$function="";
 
-/*
-if (isset($_GET['m']) )
-{
-	$menu=$_GET['m'];
-	$function="";
-}
-else
-	$menu="main";
-	$function="";
-
-if (isset($_GET['f']) )
-{
-	$function=$_GET['f'];
-	$menu="none";
-}
-
-
-if (isset($_POST['f']) )
-{
-	$function = $_POST['f'];
-}
-*/
 
 print "MENU:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
@@ -138,11 +130,39 @@ $waiting=false;
 
 function CheckLoggedIn()
 {
-    if (isset($_SESSION['logged_in']) AND  $_SESSION['logged_in']=='1')	
+    if (isset($_SESSION['logged_in']) AND  $_SESSION['logged_in']=='1')
 			return TRUE;
 	else	return FALSE;
 
 }
+
+
+function GetConfig()
+{
+	GLOBAL $xml, $cfg;
+
+    $cmd="999-GET-CONFIG";
+    $ret=SocketConnect();
+
+if ($ret !== TRUE)
+    {
+		return FALSE;
+ 	}
+
+    $result=SendMessage($cmd);
+//    print $result;
+    CloseConnection();
+
+	$xml=simplexml_load_string($result);
+	$cfg["validator_timeout"] = $xml->timeouts->validator;
+	// access vars as
+	// $xml->localDBF->ip;
+
+	return TRUE;
+}
+
+
+
 
 
 //=================================================
@@ -166,7 +186,7 @@ case "main":
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
     print "</tr>";
 
     print "<tr>";
@@ -208,6 +228,12 @@ case "login":
     print "USER LOGIN";
     print "</th>";
     print "</tr>";
+
+
+	print "<tr>";
+    print "<th colspan='2'><hr class='hrr'></th>";
+	print "</tr";
+
 
     print "<tr>";
 	print "<td class='user'>User Name</td>";
@@ -279,8 +305,8 @@ print $errormsg;
 case "verify":
 
 	$errormsg=false;
-    $ret=SocketConnect();
-	if ($ret)
+    $ret=SocketConnect();	//returns TRUE on connection
+	if ($ret ===TRUE)
 	{
 		$ret=SendMessage("920-VALIDATOR-VERIFY");
 		if ($ret !=true)
@@ -306,6 +332,10 @@ case "verify_bill":
     print "VERIFY BILLS";
     print "</th>";
     print "</tr>";
+
+	print "<tr>";
+    print "<th colspan='2'><hr class='hrr'></th>";
+	print "</tr>";
 
     print "<tr>";
     print "<td>";
@@ -333,7 +363,7 @@ case "verify_bill":
 		else
 		{
 			SendMessage("925-VALIDATOR-GET-RESULT");
-			while ($waiting AND (time() - $start_time <30) )
+			while ($waiting AND (time() - $start_time < (int) cfg['validator_timeout'] ) )
 			{
 				// returns "" if no data ready, else string from API or error msg
 				$ret=ReadMessage();
@@ -365,7 +395,7 @@ case "deposits":
 	print "</tr>";
 
 	print "<tr>";
-	print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
 	print "</tr>";
 
 	print "<tr>";
@@ -397,7 +427,7 @@ case "withdrawl":
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
     print "</tr>";
 
     print "<tr>";
@@ -408,6 +438,7 @@ case "withdrawl":
 
     print "</div>";
 	break;
+
 case "reports":
     print "<div class='menu'>";
 
@@ -415,12 +446,12 @@ case "reports":
 
     print "<tr>";
     print "<th colspan='2' style='font-size:20pt;'>";
-    print "SETTINGS";
+    print "REPORTS";
     print "</th>";
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
     print "</tr>";
 
     print "<tr>";
@@ -435,7 +466,7 @@ case "reports":
 
     print "<tr>";
     print "<td><a href='?f=user_trans_hist'><img src='img/button_user-trans-hist.png' /> </a></td>";
-    print "<td><a href='?f=vend_inventory'><img src='img/button_vend-inventory.png' /> </a></td>";
+    print "<td><a href='?f=vend_inventory&m=none'><img src='img/button_vend-inventory.png' /> </a></td>";
     print "</tr>";
 
 
@@ -458,7 +489,7 @@ case "settings":
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
     print "</tr>";
 
     print "<tr>";
@@ -482,7 +513,7 @@ case "admin":
     print "</tr>";
 
     print "<tr>";
-    print "<th/>";
+    print "<th colspan='2'><hr class='hrr'></th>";
     print "</tr>";
 
     print "<tr>";
@@ -491,7 +522,7 @@ case "admin":
     print "</tr>";
 
     print "<tr>";
-    print "<td><a href='?f=maint'><img src='img/button_maint.png' /> </a></td>";
+    print "<td><a href='?m=maint'><img src='img/button_maint.png' /> </a></td>";
     print "<td><a href='?f=manage_users'><img src='img/button_manage-users.png' /> </a></td>";
     print "</tr>";
 
@@ -501,21 +532,68 @@ case "admin":
     print "</tr>";
 
     print "<tr>";
-    print "<td><a href='?f=vend_unload'><img src='img/button_vend-unload.png' /> </a></td>";
+    print "<td><a href='?f=vend_unload&m=none'><img src='img/button_vend-unload.png' /> </a></td>";
     print "<td><a href='?f=vend_define'><img src='img/button_vend-define.png' /> </a></td>";
     print "</tr>";
 
-/*
-    print "<tr>";
-    print "<td><a href='?f=vend_unload_all'><img src='img/button_unload-all.png' /> </a></td>";
-    print "</tr>";
-*/
 
 
     print "</table>";
 
 
     print "</div>";
+
+	break;
+
+
+case "maint":
+    print "<div class='menu'>";
+    print "<table  class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "MAINT";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<th colspan='2'><hr class='hrr'></th>";
+    print "</tr>";
+
+
+    print "<tr>";
+	if ($xml->devices->validator1 == "enabled" OR $xml->devices->validator2 == "enabled")
+    	print "<td><a href='?m=mei'><img src='img/button_mei.png' /> </a></td>";
+
+	if ($xml->devices->utd == "enabled")
+    	print "<td><a href='?m=utd'><img src='img/button_utd.png' /> </a></td>";
+    print "</tr>";
+
+    print "<tr>";
+	if ($xml->devices->pelicano =="enabled")
+    	print "<td><a href='?m=pelicano'><img src='img/button_pelicano.png' /> </a></td>";
+
+	if ($xml->devices->gsr50 == "enabled")
+    	print "<td><a href='?m=gsr50'><img src='img/button_gsr.png' /> </a></td>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<td><a href='?m=lock'><img src='img/button_lock.png' /> </a></td>";
+
+	if ($xml->devices->ucd1 == "enabled" OR $xml->devices->ucd2 == "enabled")
+    	print "<td><a href='?m=ucd'><img src='img/button_ucd.png' /> </a></td>";
+    print "</tr>";
+
+    print "<tr>";
+
+    print "<td><a href='?m=jcm'><img src='img/button_jcm.png' /> </a></td>";
+    print "</tr>";
+
+
+
+	print "</table>";
+    print "</div>";
+
 
 	break;
 }
@@ -636,11 +714,6 @@ case "content_removal":
 	ContentRemoval();
 	break;
 
-case "maint":
-    print "<div class='function'>";
-    print "</div>";
-	Maint();
-	break;
 
 case "vend_unload":
     print "<div class='function'>";
@@ -648,6 +721,7 @@ case "vend_unload":
 	print "<form id='unloadformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
 	print "<input type='hidden' id='fn' name='f' value=''>";
+	print "<input type='hidden' id='m' name='m' value=''>";
 	print "<table class='columns'>\n";
 
 
@@ -659,6 +733,14 @@ case "vend_unload":
 		print "<th>COLUMN</th><th>COLUMN</th>";
         print "</tr>\n";
 
+        print "<tr>";
+		print "<th class='hrr' colspan='2'><hr></th>";
+        print "</tr>\n";
+
+        print "<tr>";
+		print "<td></br></td>";
+        print "</tr>\n";
+
 
 	for ($n=1; $n <5; $n++)
 	{
@@ -668,13 +750,18 @@ case "vend_unload":
 	    print "</tr>\n";
 	}
 
+        print "<tr>";
+        print "<td></br></td>";
+        print "</tr>\n";
+
+
 	print "<tr>\n";
-	print "<td><button class='unloadnow' id='unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
-    print "<td><button class='unloadall' id='unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
+	print "<td><button class='buttons' id='unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
+    print "<td><button class='buttons' id='unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
     print "</tr>\n";
 
     print "<tr>";
-    print "<td><br><br><a href='?m=admin'><img src='img/button_cancel.png' /> </a></td>";
+    print "<td><br><br><button class='buttons' onclick='submitUNLOADCANCEL(\"admin\");'><img src='img/button_cancel.png' /> </button></td>";
     print "</tr>\n";
 
 	print "</form>\n";
@@ -1023,7 +1110,9 @@ function SocketConnect()
 	$api_connected=false;
 
 //	$host="127.0.0.1";
-	$cfg["api_port"]=$xml->api->port;
+//	$cfg["api_port"]=$xml->api->port;
+
+//print "API_PORT:: ". $cfg['api_port'];
 
 	set_time_limit(0);	// no time out
 
@@ -1032,7 +1121,7 @@ function SocketConnect()
 
 	// create a socket
     // returns a socket resource on success, else false on error
-	$socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not create socket\n");
+	$socket = socket_create(AF_INET, SOCK_STREAM, 0);
 
 	if (! $socket)
 	{
@@ -1044,7 +1133,7 @@ function SocketConnect()
 
 	// connect to the server
 	// returns true on success, else false
-	$result = socket_connect($socket, $host, $port) or die("Could not connect toserver\n");
+	$result = socket_connect($socket, $host, $port);
 
 	if (! $result)
 	{
@@ -1163,6 +1252,13 @@ function getvars()
 //		e.preventDefault();
        $("#unloadformID").submit();
     }
+
+    function submitUNLOADCANCEL(fn)
+    {
+        $("#m").val(fn);
+       $("#unloadformID").submit();
+    }
+
 
 
 	function submitLOGIN(fn)
