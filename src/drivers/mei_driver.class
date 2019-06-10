@@ -835,8 +835,23 @@ void mei_timeout_timer(void)
  }
  return;
 }
-
-
+/*
+==============================================================================================
+Command and flag Transport
+this sets the command in the command stream
+it also sets Flags for processing
+void command(command,SingleRunFlag,StackFlag,VerifyFlag,TimeoutTimerFlag)
+==============================================================================================
+ */
+void Rx_Command(char* command, int SRF, int StackF, int VerifyF, int TOTF)
+{
+	memset(MEI_CURRENT_COMMAND,0,30);
+	strcpy(MEI_CURRENT_COMMAND,command);
+	mei_single_run_command = SRF;//Flag for a single run command
+	mei_stacking = StackF; //Global Status Value for the MEI
+	mei_verifying = VerifyF;//Global Status Value for the MEI
+	mei_timeout_timer_value = TOTF;//Global Timeout Timer Variable
+}
 
 
 };

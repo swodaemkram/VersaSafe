@@ -49,16 +49,7 @@ using namespace std;
 mei * validator = NULL;
 int init_mei(void);
 void get_mei_serialNumber(void);
-extern char MEI_CURRENT_COMMAND[30];
-//-------------------------------------------------------------------------------------------------------
-int q;
-int mei_single_run_command = 0;//Flag for a single run command
-int mei_stacking = 0; //Global Status Value for the MEI
-int mei_verifying = 0;//Global Status Value for the MEI
-int mei_timeout_timer_value = 0;//Global Timeout Timer Variable
-unsigned int tx_crc = 0;
 char Logbuff[50];
-char last_clean_text[30] = {0};
 //======================================================================================================
 //End of MEI Declarations
 //======================================================================================================
@@ -594,9 +585,7 @@ void get_mei_serialNumber(void)
 	printf("get_mei_serialNumber was called\n");
 	sprintf(Logbuff,"get_mei_serialNumber was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30); //Clear the Current Command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"serial",6);//insert the serial command into the polling stream
-	mei_single_run_command = 1;// insert it only 1 time
+	validator->Rx_Command("serial",1,0,0,0);
 	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -608,9 +597,7 @@ void mei_reset_func(void)
     	printf("mei_reset_func was called\n");
     	sprintf(Logbuff,"mei_reset_func was called");
     	WriteSystemLog(Logbuff);//log that this was called
-    	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-    	strncpy(MEI_CURRENT_COMMAND,"reset",5);//insert reset into the polling stream
-    	mei_single_run_command = 1;//insert only once
+       	validator->Rx_Command("serial",1,0,0,0);
     	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -623,9 +610,7 @@ string mei_getmodel_func(void)
 	string returnvalue;
 	sprintf(Logbuff,"mei_getmodel_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"model",5);//insert model into the polling stream
-	mei_single_run_command = 1;//insert only once
+	validator->Rx_Command("model",1,0,0,0);
 	return(returnvalue);
 }
 //------------------------------------------------------------------------------------------------------
@@ -636,9 +621,7 @@ void mei_get_varname_func(void)
 	printf("mei_get_varname_func was called\n");
 	sprintf(Logbuff,"mei_get_varname_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"varname",5);//insert command into the polling stream
-	mei_single_run_command = 1;//insert only once
+	validator->Rx_Command("varname",1,0,0,0);
 	return;
 }
 //------------------------------------------------------------------------------------------------------
@@ -649,9 +632,7 @@ void mei_get_bootver_func(void)
 	printf("mei_get_bootver_func was called\n");
 	sprintf(Logbuff,"mei_get_bootver_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"bootver",5);//insert command into the polling stream
-	mei_single_run_command = 1;//insert only once
+	validator->Rx_Command("bootver",1,0,0,0);
 	return;
 }
 //------------------------------------------------------------------------------------------------------
@@ -662,9 +643,7 @@ void mei_get_appver_func(void)
 	printf("mei_get_appver_func was called\n");
 	sprintf(Logbuff,"mei_get_appver_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"appver",5);//insert command into the polling stream
-	mei_single_run_command = 1;//insert only once
+	validator->Rx_Command("appver",1,0,0,0);
 	return;
 }
 //------------------------------------------------------------------------------------------------------
@@ -677,9 +656,7 @@ void mei_idle_func(void)
 	printf("mei_idle_func was called\n");
 	sprintf(Logbuff,"mei_idle_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	memset(MEI_CURRENT_COMMAND,0,30);//clear current command from the polling stream
-	strncpy(MEI_CURRENT_COMMAND,"idle",5);//insert command into the polling stream
-	mei_single_run_command = 1;//insert only once
+	validator->Rx_Command("idle",1,0,0,0);
 	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -696,8 +673,7 @@ void mei_verify_bill_func(void)
 	memset(MEI_CURRENT_COMMAND,0,30);
 	sprintf(Logbuff,"mei_verify_bill_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	strncpy(MEI_CURRENT_COMMAND,"verify",6);
-	mei_verifying = 1;//Turns on the Timeout Timer
+	validator->Rx_Command("verify",0,0,1,0);
 	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -708,8 +684,7 @@ void mei_stack(void)
 	memset(MEI_CURRENT_COMMAND,0,30);
 	sprintf(Logbuff,"mei_stack was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	strncpy(MEI_CURRENT_COMMAND,"stack",5);
-	mei_stacking = 1;//Turns On The Timeout Timer
+	validator->Rx_Command("stack",0,1,0,0);
 	return;
 }
 //-------------------------------------------------------------------------------------------------------
