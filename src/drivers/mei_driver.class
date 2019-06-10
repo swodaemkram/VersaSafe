@@ -47,6 +47,18 @@ Global Variables
 	char LAST_MEI_STATUS[30];
 	char clean_text[30] = {0};
 	int fd;
+//-----------------------------------------------------------------------------------------------
+//Added New
+//-----------------------------------------------------------------------------------------------
+	int q;
+	int mei_single_run_command = 0;//Flag for a single run command
+	int mei_stacking = 0; //Global Status Value for the MEI
+	int mei_verifying = 0;//Global Status Value for the MEI
+	int mei_timeout_timer_value = 0;//Global Timeout Timer Variable
+	unsigned int tx_crc = 0;
+	char Logbuff[50];
+	char last_clean_text[30] = {0};
+
 	/*
 ===============================================================================================================================
 Start of the MEI Class
@@ -684,6 +696,149 @@ if (strcmp(MEI_STATUS,LAST_MEI_STATUS)!=0)
 End of process_response method
 =============================================================================================
 */
+//------------------------------------------------------------------------------------------------------
+//MEI Polling Function
+//------------------------------------------------------------------------------------------------------
+// !!!! The order of what happens below is VERY IMPORTANT for proper operation of the MEI Unit !!!
+//                      This is the heart of the MEI communications
+// This works like a  wheel every 300ms looping through and running each process to keep that data
+// streaming and in sync
+//------------------------------------------------------------------------------------------------------
+public:
+
+void mei_poll(void)
+	{
+		if (q>=3)//This divides the 100ms time slice by 3 for a 300ms time slice for polling
+
+		{
+
+		if (strcmp(rx_packet,"") == 0)//if the last RXed Packet is Blank Start a new polling session
+		{
+			tx_packet[0] = '\x02';//stuff STX
+			tx_packet[1] = '\x08' ;//Number of Bytes in the packet
+			tx_packet[2] = '\x10' ;//Poll Command
+			tx_packet[3] = '\x10' ;// No Data
+			tx_packet[4] = '\x00' ;// No Data
+			tx_packet[5] = '\x00' ;// No Data
+			tx_packet[6] = '\x00' ;// Set a space for the ETX
+			tx_packet[7] = '\x00' ;// Set a space for the CRC
+			tx_crc = validator->do_crc(tx_packet,8);//run the crc function
+			tx_packet[6] = '\x03' ;// Insert ETX into packet
+			tx_packet[7] = tx_crc ;// Insert the returned CRC into packet
+		}
+		//printf("\n%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]); //DEBUG CODE
+		//\x02\x08\x10\x1f\x14\x00 // Use this Packet template to get MEI to accept bills
+
+		//==================Start of Polling========================
+
+		if (rx_packet[2] == '\x20') //Standard Polling
+		{
+			tx_packet[2] = '\x11';
+		    tx_packet[6] = '\x00';
+		    tx_packet[7] = '\x00';
+		    tx_crc = 0;
+		    tx_crc = validator->do_crc(tx_packet,8);
+		    tx_packet[6] = '\x03';
+		    tx_packet[7] = tx_crc;
+		}
+
+		if (rx_packet[2] == '\x21') //Standard Polling Ack
+		{
+			tx_packet[2] = '\x10';
+			tx_packet[6] = '\x00';
+			tx_packet[7] = '\x00';
+			tx_crc = 0;
+			tx_crc = validator-> do_crc(tx_packet,8);
+			tx_packet[6] = '\x03';
+			tx_packet[7] = tx_crc;
+		}
+
+		if (rx_packet[2] == '\x70') //Enhanced Information Polling
+		{
+			tx_packet[2] = '\x11';
+		    tx_packet[6] = '\x00';
+		    tx_packet[7] = '\x00';
+		    tx_crc = 0;
+		    tx_crc = validator->do_crc(tx_packet,8);
+		    tx_packet[6] = '\x03';
+		    tx_packet[7] = tx_crc;
+		}
+
+		if (rx_packet[2] == '\x71') //Enhanced Information Polling Ack
+		{
+			tx_packet[2] = '\x10';
+			tx_packet[6] = '\x00';
+			tx_packet[7] = '\x00';
+			tx_crc = 0;
+			tx_crc = validator->do_crc(tx_packet,8);
+			tx_packet[6] = '\x03';
+			tx_packet[7] = tx_crc;
+		}
+		//==================End of Polling=============================
+		//===============Business  Logic for MEI=======================
+
+		validator->process_commands();           //Process In coming commands
+		validator->mei_tx(tx_packet, comm_port); //Transmit Packet to MEI
+		//printf("tx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]);
+		validator->mei_rx(comm_port);            // Receive packet from MEI
+		//printf("rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
+		validator->process_response();           // What does the Response from the MEI mean
+
+		q=0;//Reset Polling Divider
+		if(mei_verifying == 1 || mei_stacking == 1) mei_timeout_timer();//Turn On Timeout Timer if this is a polling command
+		if (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes
+		if (strcmp(LAST_MEI_STATUS,MEI_STATUS) !=0)
+		{
+			printf("current MEI_STATUS = %s\n",MEI_STATUS);//Print Only Changes
+			mei_timeout_timer_value = 0; //Reset the timer
+		}
+		if (mei_single_run_command == 1)
+		{
+			memset(MEI_CURRENT_COMMAND,0,30);
+			strncpy(MEI_CURRENT_COMMAND,"idle",4); //If a single run command was sent automatically send an idle command
+			mei_single_run_command = 0;
+		}
+
+		strcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
+		memset(LAST_MEI_STATUS,0,30);
+		strcpy(LAST_MEI_STATUS,MEI_STATUS);
+
+		}//End of polling
+		q++;
+		return;
+}
+/*
+============================================================================================================================
+Time Out Timer Function
+============================================================================================================================
+ */
+
+public:
+
+void mei_timeout_timer(void)
+{
+ time_t seconds;
+ seconds = time(0);
+ if (mei_timeout_timer_value == 0) mei_timeout_timer_value = seconds;
+ int timeout_value =  seconds - mei_timeout_timer_value;
+ //printf("%d\n",timeout_value);//DEBUG!!!
+
+ if (timeout_value >= 30)//TODO load the timeout value from the config file
+ {
+	 memset(MEI_CURRENT_COMMAND,0,30);
+	 sprintf(Logbuff,"MEI Time out timer just called mei_idle_func");
+	 WriteSystemLog(Logbuff);//log that this was called
+	 strncpy(MEI_CURRENT_COMMAND,"idle",4);
+	 mei_timeout_timer_value = 0; //Reset the timer
+	 mei_stacking = 0;//reset stacking flag
+	 mei_verifying = 0;//reset verifying flag
+ }
+ return;
+}
+
+
+
+
 };
 /*
 ==============================================================================================
