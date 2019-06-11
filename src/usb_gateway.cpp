@@ -28,7 +28,7 @@ using namespace std;
 #include <string.h>
 
 #include "logs.inc"
-
+#include "config.inc"
 
 // LOCK DRIVER
 #include "drivers/apuLock.class"        // include the LOCK driver class
@@ -48,6 +48,7 @@ using namespace std;
 //MEI Validator public functions
 mei * validator = NULL;
 int init_mei(void);
+int init_validators(void);
 void get_mei_serialNumber(void);
 char Logbuff[50];
 //======================================================================================================
@@ -561,12 +562,13 @@ string Get_d8_driver(void)
 }
 
 //=================================================================================================
-// 					MEI Validator Section
+// 					 Validator Section
 //=================================================================================================
 
 //-------------------------------------------------------------------------------------------------
-//Command to Initialize the MEI Validator
+//Command to Initialize the MEI Validator !!! NO LONGER USED !!!!
 //-------------------------------------------------------------------------------------------------
+/*
 int init_mei(void)
 {
 		printf("\nInitializing MEI Validator ....\n");
@@ -575,6 +577,12 @@ int init_mei(void)
 	    mei * validator = new mei("/dev/ttyUSB0",1);//TODO This needs to come from the config file
 		printf("\nMEI Validator Initialized!\n");
 		return(0);
+}
+*/
+int init_validators(void)
+{
+
+	return 0;
 }
 //---------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------
@@ -597,7 +605,7 @@ void mei_reset_func(void)
     	printf("mei_reset_func was called\n");
     	sprintf(Logbuff,"mei_reset_func was called");
     	WriteSystemLog(Logbuff);//log that this was called
-       	validator->Rx_Command("serial",1,0,0,0);
+       	validator->Rx_Command("reset",1,0,0,0);
     	return;
 }
 //-----------------------------------------------------------------------------------------------------
@@ -694,6 +702,35 @@ void MEIpoll(void)
 {
 	validator->mei_poll();
 }
+//-------------------------------------------------------------------------------------------------------
+//NEW Functions
+//-------------------------------------------------------------------------------------------------------
+
+string Validator_verify(void)
+{
+	return "test";
+}
+
+string Validator_stack(int which)
+{
+	return "test";
+}
+
+string Validator_model(int which)
+{
+	return "test";
+}
+
+string Validator_info(int which)
+{
+	return "test";
+}
+
+void Validator_reset(void)
+{
+	return;
+}
+
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
 //------------------------------------------------------------------------------------------------------
