@@ -222,6 +222,7 @@ using namespace std;
 //#include <libusb-1.0/libusb.h>
 #include "tinyxml/tinyxml.h"
 #include "mysql.h"
+#include "config.inc"
 
 // allowable for GTK+3
 /*
@@ -807,6 +808,8 @@ lock_menu_items lock_menu;
 // config vars
 char screenOrientation[50]="landscape";
 
+/*
+	MOVED TO VSAFE.INC, typedef struct {} config;
 struct
 {
     char screentxt[20];
@@ -820,8 +823,9 @@ struct
 
 
     // devices
-    char validator1[10];
-    char validator2[10];
+    bool validator_left;
+    bool validator_right;
+	bool validator_ucd;
     char ucd1[10];
     char ucd2[10];
 	char utd[10];
@@ -858,6 +862,10 @@ struct
 	char api_port[10];
 	bool api_enabled=FALSE;
 } cfg;
+*/
+
+config cfg;
+
 
 
 int GetAPIport(void);
@@ -1052,7 +1060,7 @@ GetLangs();
 
 // driver tests go here
 
-if ( strcmp(cfg.utd,"enabled")==0)
+if ( cfg.utd)
 {
 
 #ifdef UTD
@@ -1066,13 +1074,12 @@ if ( strcmp(cfg.utd,"enabled")==0)
 Initiate the MEI validator in the USB Gateway if Enabled
 =============================================================================================
 */
-if ( strcmp(cfg.validator1,"enabled")==0)
-{
-//	init_mei();    //init MEI validator (in usb_gateway)
-}
+
+	init_validators();    //init validators (in usb_gateway)
+
 /*
 =============================================================================================
-end of Initiating the MEI validator in the USB Gateway if Enabled
+end of Initiating the validators in the USB Gateway if Enabled
 =============================================================================================
 */
 
@@ -4074,7 +4081,7 @@ extern "C" bool on_touch_here_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_verify_note_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	mei_verify_bill_func() ;
+//	mei_verify_bill_func() ;
 	printf("VERIFY NOTE\n");
 }
 
@@ -4152,19 +4159,19 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	mei_reset_func();
+//	mei_reset_func();
 }
 
 
 extern "C" bool on_mei_stack_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-	mei_stack();
+//	mei_stack();
 }
 
 
 extern "C" bool on_mei_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-    mei_inventory();
+//    mei_inventory();
 }
 
 
@@ -6344,17 +6351,39 @@ bool ConfigSetup(bool silent)
 
 		if(elemName == "devices")
 		{
-            pelem = elem->FirstChildElement("validator1");
+            pelem = elem->FirstChildElement("validator_left");
+			cfg.validator_left=FALSE;
             if (pelem)
-                strcpy(cfg.validator1, (char*) pelem->GetText());
-            else
-                strcpy(cfg.validator1, (char*) "disabled");
+			{
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"enabled") == 0)
+                    cfg.validator_left=TRUE;
+			}
 
-            pelem = elem->FirstChildElement("validator2");
+
+            pelem = elem->FirstChildElement("validator_right");
+            cfg.validator_right=FALSE;
             if (pelem)
-                strcpy(cfg.validator2, (char*) pelem->GetText());
-            else
-                strcpy(cfg.validator2, (char*) "disabled");
+            {
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"enabled") == 0)
+                    cfg.validator_right=TRUE;
+            }
+
+            pelem = elem->FirstChildElement("validator_ucd");
+            cfg.validator_ucd=FALSE;
+            if (pelem)
+            {
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"enabled") == 0)
+                    cfg.validator_ucd=TRUE;
+            }
+
+
+
 
             pelem = elem->FirstChildElement("ucd1");
             if (pelem)
@@ -6370,11 +6399,14 @@ bool ConfigSetup(bool silent)
 
 
             pelem = elem->FirstChildElement("utd");
+            cfg.utd=FALSE;
             if (pelem)
-                strcpy(cfg.utd, (char*) pelem->GetText());
-            else
-                strcpy(cfg.utd, (char*) "disabled");
-
+            {
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"enabled") == 0)
+                    cfg.utd=TRUE;
+            }
 
 
             pelem = elem->FirstChildElement("outterlock");
@@ -6650,12 +6682,13 @@ void PrintConfig(void)
 
 	// devices
 	printf("DEVICES\n");
-    printf("validator1: %s\n",cfg.validator1);
-    printf("validator2: %s\n",cfg.validator2);
+    printf("validator_left: %d\n",cfg.validator_left);
+    printf("validator_right: %d\n",cfg.validator_right);
+    printf("validator_ucd: %d\n",cfg.validator_ucd);
     printf("ucd1: %s\n", cfg.ucd1);
     printf("ucd2: %s\n", cfg.ucd2);
 
-    printf("utd: %s\n", cfg.utd);
+    printf("utd: %d\n", cfg.utd);
 
 
 	printf("outter: %s\n",cfg.outterlock);

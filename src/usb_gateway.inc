@@ -1,7 +1,7 @@
 // external declarations for usb_gateway.cpp
 
 #include <string>
-
+//#include "config.inc"
 #include "api_struc.inc"
 
 extern void USB_init(void);
@@ -44,33 +44,16 @@ extern int * GetUTDInventory(void);
 extern bool D8C_detected(void);
 
 
-// MEI specific functions
-
-extern int init_mei(void);
-extern void mei_reset_func(void);
-extern string mei_verify_bill_func(void);
-extern string mei_getmodel_func(void);
-//extern string get_mei_driver(void);
-//extern int mei_connect(void);
-//extern string mei_getmodel(void);
-extern string mei_stack(void);
-extern string mei_inventory(void);
-//extern string mei_get_info(void);
-//extern void mei_enable(void);
-//extern void mei_dissable(void);
-//extern void mei_accept(void);
-//extern void mei_enable_bookmark(void);
-//extern void mei_enable_in(int meienableincount);
-//extern void mei_accept_in(string meibillstoaccept);
-//extern void mei_dissable_time(int meidissabletimeinsec);
-//extern int * mei_get_inventory(void);
-//extern bool mei_detected(void);
-//extern string mei_status(void);
+// Validator specific functions
+//extern int init_mei(void);
+extern int init_validators(void);
+extern string Validator_verify(void);
+extern string Validator_stack(int which);
+extern string Validator_model(int which);
+extern string Validator_info(int which);
+extern string Validator_serial(int which);
+extern void Validator_reset(int which);
 extern void MEIpoll(void);
-
-
-extern retstruc api_999(char *cmd);
-
 
 // api commands
 extern retstruc api_100(char *cmd);
@@ -134,5 +117,7 @@ extern retstruc api_921(char *cmd);
 extern retstruc api_922(char *cmd);
 extern retstruc api_923(char *cmd);
 extern retstruc api_924(char *cmd);
-extern retstruc api_925(char *cmd);
+
+extern retstruc api_999(char *cmd);    //999-GET-CONFIG
+
 

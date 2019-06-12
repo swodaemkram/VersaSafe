@@ -43,6 +43,7 @@
 
 #ifndef FIRE_INCLUDE
 
+
 	#define FIRE_INCLUDE
 	#define product_name "VSafe"
 	#define OK 0
@@ -72,7 +73,12 @@
 	#define ON 1
 
 
-
+enum
+{
+	VALIDATOR_LEFT=0,
+	VALIDATOR_RIGHT,
+	VALIDATOR_UCD
+};
 
 typedef enum
 {
@@ -101,11 +107,9 @@ enum
 };
 
 
-struct retstatus
-{
-    bool status;
-    string result;
-};
+
+
+
 
 
 

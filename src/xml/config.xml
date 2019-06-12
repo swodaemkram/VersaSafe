@@ -18,8 +18,9 @@
 		<port>4300</port>
 	</localDBF>
 	<devices>
-		<validator1>enabled</validator1>
-		<validator2>disabled</validator2>
+		<validator_left>enabled</validator_left>
+		<validator_right>disabled</validator_right>
+		<validator_ucd>disabled</validator_ucd>
 		<ucd1>enabled</ucd1>
 		<ucd2>disabled</ucd2>
 		<utd>enabled</utd>

@@ -57,9 +57,29 @@ retstruc api_921(char *cmd);
 retstruc api_922(char *cmd);
 retstruc api_923(char *cmd);
 retstruc api_924(char *cmd);
-retstruc api_925(char *cmd);
+//retstruc api_925(char *cmd);
+
+/*
+string Validator_verify(void) {};
+string Validator_stack(int which) {};
+string Validator_model(int which) {};
+string Validator_serial(int which) {};
+string Validator_info(int which) {};
+void Validator_reset(void) {};
+*/
 
 
+#define ENABLECALLS
+
+
+int FindWhich(char *cmd)
+{
+	int which;
+    if (strstr(cmd,"LEFT") != NULL) which=VALIDATOR_LEFT;
+    if (strstr(cmd,"RIGHT") != NULL) which=VALIDATOR_RIGHT;
+    if (strstr(cmd,"UTD") != NULL) which=VALIDATOR_UCD;
+	return which;
+}
 
 
 /*
@@ -167,7 +187,14 @@ retstruc api_220(char *cmd) {}
 retstruc api_221(char *cmd) {}
 
 //225-RESET-CASSETTES
-retstruc api_225(char *cmd) {}
+retstruc api_225(char *cmd)
+{
+    retstruc retstat;
+#ifdef ENABLECALLS
+	Validator_reset();
+#endif
+	return retstat;
+}
 
 
 
@@ -360,37 +387,80 @@ retstruc api_905(char *cmd)
 
 
 
+
 //VALIDATOR (MEI/JCM)
 //920-VALIDATOR-VERIFY
 retstruc api_920(char *cmd)
 {
+    retstruc retstat;
+#ifdef ENABLECALLS
+    retstat.result=Validator_verify();
+#endif
+    return retstat;
 }
 
 
-//921-VALIDATOR-STACK
+//921-VALIDATOR-STACK-(LEFT|RIGHT|UCD)
 retstruc api_921(char *cmd)
 {
+    retstruc retstat;
+
+	int which = FindWhich(cmd);
+
+#ifdef ENABLECALLS
+    retstat.result=Validator_stack(which);
+#endif
+    return retstat;
 }
 
-//922-VALIDATOR-MODEL
+//922-VALIDATOR-MODEL-(LEFT|RIGHT|UCD)
 retstruc api_922(char *cmd)
 {
+    retstruc retstat;
+
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+    retstat.result=Validator_model(which);
+#endif
+    return retstat;
 }
 
-//923-VALIDATOR-SERIAL
+//923-VALIDATOR-SERIAL-(LEFT|RIGHT|UCD)
 retstruc api_923(char *cmd)
 {
+    retstruc retstat;
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+    retstat.result=Validator_serial(which);
+#endif
+    return retstat;
 }
 
-//924-VALIDATOR-INVENTORY
+//924-VALIDATOR-INFO-(LEFT|RIGHT|UCD)
 retstruc api_924(char *cmd)
 {
+    retstruc retstat;
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+    retstat.result=Validator_info(which);
+#endif
+    return retstat;
 }
 
-//925-VALIDATOR-GET-RESULT
+/*
+//925-VALIDATOR-RESET
 retstruc api_925(char *cmd)
 {
+    retstruc retstat;
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+    retstat.result=Validator_reset();
+#endif
+    return retstat;
 }
+*/
+
+
 
 
 
