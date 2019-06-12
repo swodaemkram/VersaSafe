@@ -46,11 +46,13 @@ using namespace std;
 //Beginning of MEI Declarations
 //======================================================================================================
 //MEI Validator public functions
-mei * validator = NULL;
-int init_mei(void);
+mei * validator_left = NULL;
+mei * validator_right = NULL;
+//ucd_val * validator_ucd = NULL;
+//int init_mei(void);
 int init_validators(void);
-void get_mei_serialNumber(void);
-char Logbuff[50];
+//void get_mei_serialNumber(void);
+//char Logbuff[50];
 //======================================================================================================
 //End of MEI Declarations
 //======================================================================================================
@@ -169,12 +171,21 @@ void USB_shutdown(void)
 		delete utd;
 //TODO - must make contigent upon xml config
 	//validator->mei_shutdown();
-    if(validator)
+    if(cfg.validator_left)
 	{
 	printf("deleting validator\n");
-	delete validator;
+	delete validator_left;
 	}
-	return;
+
+    if(cfg.validator_right)
+    {
+    printf("deleting validator\n");
+    delete validator_right;
+    }
+
+
+
+    return;
 }
 
 
@@ -568,167 +579,201 @@ string Get_d8_driver(void)
 //-------------------------------------------------------------------------------------------------
 //Command to Initialize the MEI Validator !!! NO LONGER USED !!!!
 //-------------------------------------------------------------------------------------------------
-/*
-int init_mei(void)
-{
-		printf("\nInitializing MEI Validator ....\n");
-	    sprintf(Logbuff,"MEI Validator Initialized");
-	    WriteSystemLog(Logbuff);//log that this was called
-	    mei * validator = new mei("/dev/ttyUSB0",1);//TODO This needs to come from the config file
-		printf("\nMEI Validator Initialized!\n");
-		return(0);
-}
-*/
+
 int init_validators(void)
 {
+
+	if(cfg.validator_left)
+	{
+		printf("\nInitializing Validator_Left ....\n");
+		sprintf(Logbuff,"Validator_Left Initialized");
+		WriteSystemLog(Logbuff);//log that this was called
+		mei * validator_left = new mei("/dev/ttyUSB0",1);
+		printf("\nValidator_Left  Initialized!\n");
+	}
+
+	if(cfg.validator_right)
+		{
+			printf("\nInitializing Validator_Right ....\n");
+			sprintf(Logbuff,"Validator_Right Initialized");
+			WriteSystemLog(Logbuff);//log that this was called
+			mei * validator_left = new mei("/dev/ttyUSB1",1);
+			printf("\nValidator_Right Initialized!\n");
+		}
+
+	if(cfg.validator_ucd)
+		{
+			printf("\nInitializing Validator_ucd ....\n");
+			sprintf(Logbuff,"Validator_ucd Initialized");
+			WriteSystemLog(Logbuff);//log that this was called
+			mei * validator_ucd = new mei("/dev/ttyUSB2",1);
+			printf("\nValidator_ucd Initialized!\n");
+		}
 
 	return 0;
 }
 //---------------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------
-// Command to Get the MEI Serial Number
-//---------------------------------------------------------------------------------------------------
-void get_mei_serialNumber(void)
-{
-	printf("get_mei_serialNumber was called\n");
-	sprintf(Logbuff,"get_mei_serialNumber was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("serial",1,0,0,0);
-	return;
-}
+
 //-----------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------
-//  Command to Reset MEI Validator can take up to 10 seconds
-//-----------------------------------------------------------------------------------------------------
-void mei_reset_func(void)
-{
-    	printf("mei_reset_func was called\n");
-    	sprintf(Logbuff,"mei_reset_func was called");
-    	WriteSystemLog(Logbuff);//log that this was called
-       	validator->Rx_Command("reset",1,0,0,0);
-    	return;
-}
-//-----------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------
-// Command to get MEI Model Number (This is just a test and will become MEI Get INFO)
-//-----------------------------------------------------------------------------------------------------
-string mei_getmodel_func(void)
-{
-	printf("mei_getmodel_func was called\n");
-	string returnvalue;
-	sprintf(Logbuff,"mei_getmodel_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("model",1,0,0,0);
-	return(returnvalue);
-}
-//------------------------------------------------------------------------------------------------------
-//Command to get MEI varname
-//------------------------------------------------------------------------------------------------------
-void mei_get_varname_func(void)
-{
-	printf("mei_get_varname_func was called\n");
-	sprintf(Logbuff,"mei_get_varname_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("varname",1,0,0,0);
-	return;
-}
-//------------------------------------------------------------------------------------------------------
-//Command to get Boot Version
-//------------------------------------------------------------------------------------------------------
-void mei_get_bootver_func(void)
-{
-	printf("mei_get_bootver_func was called\n");
-	sprintf(Logbuff,"mei_get_bootver_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("bootver",1,0,0,0);
-	return;
-}
-//------------------------------------------------------------------------------------------------------
-//Command to get app Version
-//------------------------------------------------------------------------------------------------------
-void mei_get_appver_func(void)
-{
-	printf("mei_get_appver_func was called\n");
-	sprintf(Logbuff,"mei_get_appver_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("appver",1,0,0,0);
-	return;
-}
-//------------------------------------------------------------------------------------------------------
-//Command to idle the mei unit !!! This command should be given after a reply from any of
-// The above commands !!!! to keep the MEI in sync
-//************* I HAVE AUTOMATED THIS, SENDING AN IDLE COMMAND IS NO LONGER NECESSARY ******************
-//------------------------------------------------------------------------------------------------------
+
 void mei_idle_func(void)
 {
 	printf("mei_idle_func was called\n");
 	sprintf(Logbuff,"mei_idle_func was called");
 	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("idle",1,0,0,0);
+	//validator->Rx_Command("idle",1,0,0,0);
 	return;
 }
-//-----------------------------------------------------------------------------------------------------
-//The commands below are Polling commands they need to be injected
-//into the polling stream to get a reply that happens at the
-//users time frame. The user may put a bill in one at a time
-//or many all at once. To allow for this variable timing
-//We continually poll until we get a response
-//-----------------------------------------------------------------------------------------------------
-// Command to MEI to verify Bills
-//-----------------------------------------------------------------------------------------------------
-void mei_verify_bill_func(void)
-{
-	memset(MEI_CURRENT_COMMAND,0,30);
-	sprintf(Logbuff,"mei_verify_bill_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("verify",0,0,1,0);
-	return;
-}
-//-----------------------------------------------------------------------------------------------------
-// MEI stack Command
-//-----------------------------------------------------------------------------------------------------
-void mei_stack(void)
-{
-	memset(MEI_CURRENT_COMMAND,0,30);
-	sprintf(Logbuff,"mei_stack was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	validator->Rx_Command("stack",0,1,0,0);
-	return;
-}
+
 //-------------------------------------------------------------------------------------------------------
 //MEI Poll Command
 //-------------------------------------------------------------------------------------------------------
 void MEIpoll(void)
 {
-	validator->mei_poll();
+	if(cfg.validator_left)validator_left->mei_poll();
+	if(cfg.validator_right)validator_right->mei_poll();
 }
 //-------------------------------------------------------------------------------------------------------
-//NEW Functions
+// NEW Functions
 //-------------------------------------------------------------------------------------------------------
-
+// Validator verify command (we turn on all validators here)
+//-------------------------------------------------------------------------------------------------------
 string Validator_verify(void)
 {
+
+
+	if(cfg.validator_left)
+	{
+		validator_left->Rx_Command("verify", 0, 0, 1, 0);
+	}
+
+	if(cfg.validator_right)
+	{
+		validator_right->Rx_Command("verify", 0, 0, 1, 0);
+	}
+
+	if(cfg.validator_ucd)
+	{
+		//validator_ucd->Rx_Command("verify", 0, 0, 1, 0);
+
+	}
+
 	return "test";
 }
-
+//-------------------------------------------------------------------------------------------------------
+// End of Validators Verify
+//-------------------------------------------------------------------------------------------------------
+// Validator Stack Method
+//-------------------------------------------------------------------------------------------------------
 string Validator_stack(int which)
 {
+
+	if(cfg.validator_left)
+	{
+		validator_left->Rx_Command("stack", 0, 1, 0, 0);
+	}
+
+	if(cfg.validator_right)
+	{
+		validator_right->Rx_Command("stack", 0, 1, 0, 0);
+	}
+
+	if(cfg.validator_ucd)
+	{
+		//validator_ucd->Rx_Command("stack", 0, 1, 0, 0);
+
+	}
+
+
 	return "test";
 }
-
+//-------------------------------------------------------------------------------------------------------
+// End of Validator Stack Method
+//-------------------------------------------------------------------------------------------------------
+// Validator Model Method
+//-------------------------------------------------------------------------------------------------------
 string Validator_model(int which)
 {
+	if (which == 0  && cfg.validator_left == true)
+	{
+		validator_left->Rx_Command("model", 1, 0, 0, 0);
+	}
+
+	if (which == 1  && cfg.validator_right == true)
+	{
+		validator_right->Rx_Command("model", 1, 0, 0, 0);
+	}
+
 	return "test";
 }
-
+//-------------------------------------------------------------------------------------------------------
+// End of Validator Model Method
+//-------------------------------------------------------------------------------------------------------
+// Validator Info Method
+//-------------------------------------------------------------------------------------------------------
 string Validator_info(int which)
 {
+	//TODO Need to think about how I will implement this
+
 	return "test";
 }
-
-void Validator_reset(void)
+//------------------------------------------------------------------------------------------------------
+// End of Validator Info Method
+//------------------------------------------------------------------------------------------------------
+// Validator Reset Method
+//------------------------------------------------------------------------------------------------------
+void Validator_reset(int which)
 {
+
+	if (which == 0  && cfg.validator_left == true)
+	{
+		validator_left->Rx_Command("reset", 1, 0, 0, 0);
+	}
+
+	if (which == 1  && cfg.validator_right == true)
+	{
+		validator_right->Rx_Command("reset", 1, 0, 0, 0);
+	}
+
 	return;
+}
+//-----------------------------------------------------------------------------------------------------
+// Validator Reset Method
+//-----------------------------------------------------------------------------------------------------
+// Validator Serial Method
+//-----------------------------------------------------------------------------------------------------
+string Validator_serial(int which)
+{
+	if (which == 0  && cfg.validator_left == true)
+	{
+		validator_left->Rx_Command("serial", 1, 0, 0, 0);
+	}
+
+	if (which == 1  && cfg.validator_right == true)
+	{
+		validator_right->Rx_Command("serial", 1, 0, 0, 0);
+	}
+
+	return "test";
+}
+//-----------------------------------------------------------------------------------------------------
+// End of Validator Serial Method
+//-----------------------------------------------------------------------------------------------------
+// Validator Idle Method
+//-----------------------------------------------------------------------------------------------------
+string Validator_idle(int which)
+{
+	if (which == 0  && cfg.validator_left == true)
+	{
+		validator_left->Rx_Command("idle", 1, 0, 0, 0);
+	}
+
+	if (which == 1  && cfg.validator_right == true)
+	{
+		validator_right->Rx_Command("idle", 1, 0, 0, 0);
+	}
+
+	return "test";
 }
 
 //------------------------------------------------------------------------------------------------------
