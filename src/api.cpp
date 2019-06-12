@@ -455,6 +455,11 @@ retstruc CommandDispatcher(char * cmd)
 		retstat=api_923(cmd);
         retstat.cmd=923;
 		break;
+	case 924:		//924-VALIDATOR-INFO
+		retstat=api_924(cmd);
+		retstat.cmd=924;
+		break;
+/*
 	case 924:		//924-VALIDATOR-INVENTORY
 		retstat=api_924(cmd);
         retstat.cmd=924;
@@ -463,7 +468,7 @@ retstruc CommandDispatcher(char * cmd)
 		retstat=api_925(cmd);
         retstat.cmd=925;
 		break;
-
+*/
 	}
 
 
