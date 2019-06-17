@@ -1,5 +1,17 @@
+/*
+	this structure is used for reading the xml/config.xml file INTO
+	and access from various modules
+	to use, simply
 
-#include "hdr/fire.h"
+
+	#include "config.inc"
+
+    the instantiation of cfg is in vsafe.cpp
+
+*/
+
+
+#include "hdr/fire.h"	// for TRUE,FALSE
 
 typedef struct
 {
@@ -19,7 +31,7 @@ typedef struct
     bool validator_ucd;
     char ucd1[10];
     char ucd2[10];
-    char utd[10];
+    bool utd;
     bool pelicano=FALSE;
     bool gsr50=FALSE;
     char outterlock[10];

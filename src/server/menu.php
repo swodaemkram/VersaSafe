@@ -1,5 +1,4 @@
 <?php
-
 /*
     File: menu.php
     Author: Gary Conway <gary.conway@fireking.com>
@@ -563,7 +562,7 @@ case "maint":
 
 
     print "<tr>";
-	if ($xml->devices->validator1 == "enabled" OR $xml->devices->validator2 == "enabled")
+	if ($xml->devices->validator_left == "enabled" OR $xml->devices->validator_right == "enabled")
     	print "<td><a href='?m=mei'><img src='img/button_mei.png' /> </a></td>";
 
 	if ($xml->devices->utd == "enabled")
@@ -587,7 +586,8 @@ case "maint":
 
     print "<tr>";
 
-    print "<td><a href='?m=jcm'><img src='img/button_jcm.png' /> </a></td>";
+	if ($xml->devices->validator_ucd == "enabled")
+	    print "<td><a href='?m=jcm'><img src='img/button_jcm.png' /> </a></td>";
     print "</tr>";
 
 
@@ -597,8 +597,69 @@ case "maint":
 
 
 	break;
+
+case "mei":
+    print "<div class='menu'>";
+
+    print "<form id='meimaintformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+
+    print "<input type='hidden' id='fnmei' name='f' value=''>";
+    print "<input type='hidden' id='mMEI' name='m' value=''>";
+
+
+    print "<table  class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "MEI MAINT";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<th colspan='2'><hr class='hrr'></th>";
+    print "</tr>";
+
+
+    print "<tr>";
+    if ($xml->devices->validator_left =="enabled")
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\");'><img src='img/button_reset-left.png' /> </button></td>";
+    if ($xml->devices->validator_right == "enabled" )
+        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\");'><img src='img/button_reset-right.png' /> </button></td>";
+    print "</tr>\n";
+
+
+    print "<tr>";
+    if ($xml->devices->validator_left =="enabled")
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\");'><img src='img/button_info-left.png' /></button></td>";
+    if ($xml->devices->validator_right == "enabled" )
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\");'><img src='img/button_info-right.png' /></button></td>";
+    print "</tr>\n";
+
+    print "<tr>";
+    if ($xml->devices->validator_left =="enabled")
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\");'><img src='img/button_stack-left.png' /></button></td>";
+    if ($xml->devices->validator_right == "enabled" )
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\");'><img src='img/button_stack-right.png' /></button></td>";
+    print "</tr>\n";
+
+
+    print "<tr>";
+	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\");'><img src='img/button_verify.png' /> </button></td>";
+    print "</tr>\n";
+
+
+	print "</table>";
+	print "</form>";
+    print "</div>";
+
+
+    break;
+
 }
 
+$VALIDATOR_LEFT=0;
+$VALIDATOR_RIGHT=1;
+$VALIDATOR_UCD=2;
 
 
 //========================================================
@@ -607,6 +668,42 @@ case "maint":
 switch($function)
 {
 
+
+case "mei_reset_left":
+    print "<div class='function'>";
+    print "RESETTING LEFT VALIDATOR";
+	MEI_reset($VALIDATOR_LEFT);
+    print "</div>";
+	break;
+
+case "mei_reset_right":
+    print "<div class='function'>";
+    print "RESETTING RIGHT VALIDATOR";
+    MEI_reset($VALIDATOR_RIGHT);
+    print "</div>";
+	break;
+
+//920-VALIDATOR-VERIFY
+case "mei_verify":
+
+//921-VALIDATOR-STACK-(LEFT|RIGHT|UCD)
+case "mei_stack_left":
+case "mei_stack_right":
+
+//924-VALIDATOR-INFO-(LEFT|RIGHT|UCD)
+case "mei_info_left":
+    print "<div class='function'>";
+    print "LEFT VALIDATOR INFO";
+    MEI_info($VALIDATOR_LEFT);
+    print "</div>";
+    break;
+
+case "mei_info_right":
+    print "<div class='function'>";
+    print "RIGHT VALIDATOR INFO";
+    MEI_info($VALIDATOR_RIGHT);
+    print "</div>";
+    break;
 
 
 case "deposit_cash":
@@ -717,7 +814,7 @@ case "content_removal":
 
 
 case "vend_unload":
-    print "<div class='function'>";
+    print "<div class='unload'>";
 
 	print "<form id='unloadformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
@@ -762,7 +859,7 @@ case "vend_unload":
     print "</tr>\n";
 
     print "<tr>";
-    print "<td><br><br><button class='buttons' onclick='submitUNLOADCANCEL(\"admin\");'><img src='img/button_cancel.png' /> </button></td>";
+    print "<td><br><button class='buttons' onclick='submitUNLOADCANCEL(\"admin\");'><img src='img/button_cancel.png' /> </button></td>";
     print "</tr>\n";
 
 	print "</form>\n";
@@ -849,6 +946,55 @@ case "vend_define":
     print "</div>";
 	VendDefine();
 	break;
+}
+
+
+
+function MEI_reset($which)
+{
+    $cmd="925-VALIDATOR-RESET-";
+
+	switch($which)
+	{
+	case $VALIDATOR_LEFT:
+		$cmd .="LEFT";
+		break;
+	case $VALIDATOR_RIGHT:
+		$cmd .="RIGHT";
+		break;
+	case $VALIDATOR_UCD:
+		$cmd .="UCD";
+		break;
+	}
+
+    SocketConnect();
+    SendMessage($cmd);
+    CloseConnection();
+}
+
+
+//924-VALIDATOR-INFO-(LEFT|RIGHT|UCD)
+function MEI_info($which)
+{
+	$cmd="924-VALIDATOR-INFO-";
+    switch($which)
+    {
+    case $VALIDATOR_LEFT:
+        $cmd .="LEFT";
+        break;
+    case $VALIDATOR_RIGHT:
+        $cmd .="RIGHT";
+        break;
+    case $VALIDATOR_UCD:
+        $cmd .="UCD";
+        break;
+    }
+
+    SocketConnect();
+    $result=SendMessage($cmd);
+	print $result;
+    CloseConnection();
+
 }
 
 
@@ -1269,6 +1415,12 @@ function getvars()
 	}
 
 
+    function submitMEIMAINT(fn)
+    {
+        $("#mMEI").val("none");
+        $("#fnmei").val(fn);
+        $("#meimaintformID").submit();
+    }
 
 
 </script>

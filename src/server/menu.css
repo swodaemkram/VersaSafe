@@ -1,5 +1,4 @@
 /* Add a black background color to the top navigation */
-
 .topnav 
 {
 	background-color: gainsboro;
@@ -115,6 +114,41 @@
 {
 	font-size:15pt;
 }
+
+
+.unload
+{
+    border-radius: 10%; //25px;
+    position:absolute;
+    padding-left:140px;
+    left:150px;
+    top:150px;
+    border: 5px solid BLUE;
+    background-color:gainsboro;
+//LightSteelBlue;
+    width:40%;
+    height:450px;
+//  color:#454545;
+    color:black;
+    font-size: 17pt;
+    font-weight:bold;
+    font-family:arial,sans-serif;
+    text-align:center;
+}
+
+
+.unload td, input
+{
+    font-size:15pt;
+}
+
+
+.unload table
+{
+	width:80%;
+}
+
+
 
 
 .invtable

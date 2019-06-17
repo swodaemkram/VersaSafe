@@ -398,14 +398,14 @@ retstruc CommandDispatcher(char * cmd)
 	case 702:	//702-FLASH-UTD
        api_702(cmd);
 		break;
-
+/*
 	case 800:	//800-VALIDATOR-VALIDATE
        api_800(cmd);
 		break;
 	case 801:	//801-VALIDATOR-ACCEPT
        api_801(cmd);
 		break;
-
+*/
 
 	case 900:	//900-UTD-UNLOADALL
        api_900(cmd);
@@ -459,16 +459,15 @@ retstruc CommandDispatcher(char * cmd)
 		retstat=api_924(cmd);
 		retstat.cmd=924;
 		break;
-/*
-	case 924:		//924-VALIDATOR-INVENTORY
-		retstat=api_924(cmd);
-        retstat.cmd=924;
-		break;
-	case 925:		//925-VALIDATOR-GET-RESULT
+	case 925:		//925-VALIDATOR-RESET-(LEFT|RIGHT)
 		retstat=api_925(cmd);
         retstat.cmd=925;
 		break;
-*/
+    case 926:       //926-VALIDATOR-IDLE-(LEFT|RIGHT)
+        retstat=api_926(cmd);
+        retstat.cmd=926;
+        break;
+
 	}
 
 
