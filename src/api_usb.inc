@@ -447,8 +447,8 @@ retstruc api_924(char *cmd)
     return retstat;
 }
 
-/*
-//925-VALIDATOR-RESET
+
+//925-VALIDATOR-RESET-(LEFT|RIGHT)
 retstruc api_925(char *cmd)
 {
     retstruc retstat;
@@ -458,7 +458,7 @@ retstruc api_925(char *cmd)
 #endif
     return retstat;
 }
-*/
+
 
 
 
