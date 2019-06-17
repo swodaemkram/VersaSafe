@@ -577,7 +577,7 @@ string Get_d8_driver(void)
 //=================================================================================================
 
 //-------------------------------------------------------------------------------------------------
-//Command to Initialize the MEI Validator !!! NO LONGER USED !!!!
+//Method to Initialize the  Validator
 //-------------------------------------------------------------------------------------------------
 
 int init_validators(void)
@@ -593,40 +593,27 @@ int init_validators(void)
 	}
 
 	if(cfg.validator_right)
-		{
-			printf("\nInitializing Validator_Right ....\n");
-			sprintf(Logbuff,"Validator_Right Initialized");
-			WriteSystemLog(Logbuff);//log that this was called
-			mei * validator_left = new mei("/dev/ttyUSB1",1);
-			printf("\nValidator_Right Initialized!\n");
-		}
+	{
+		printf("\nInitializing Validator_Right ....\n");
+		sprintf(Logbuff,"Validator_Right Initialized");
+		WriteSystemLog(Logbuff);//log that this was called
+		mei * validator_left = new mei("/dev/ttyUSB1",1);
+		printf("\nValidator_Right Initialized!\n");
+	}
 
 	if(cfg.validator_ucd)
-		{
-			printf("\nInitializing Validator_ucd ....\n");
-			sprintf(Logbuff,"Validator_ucd Initialized");
-			WriteSystemLog(Logbuff);//log that this was called
-			mei * validator_ucd = new mei("/dev/ttyUSB2",1);
-			printf("\nValidator_ucd Initialized!\n");
-		}
+	{
+		printf("\nInitializing Validator_ucd ....\n");
+		sprintf(Logbuff,"Validator_ucd Initialized");
+		WriteSystemLog(Logbuff);//log that this was called
+		mei * validator_ucd = new mei("/dev/ttyUSB2",1);
+		printf("\nValidator_ucd Initialized!\n");
+	}
 
 	return 0;
 }
-//---------------------------------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------------------------------
-
-void mei_idle_func(void)
-{
-	printf("mei_idle_func was called\n");
-	sprintf(Logbuff,"mei_idle_func was called");
-	WriteSystemLog(Logbuff);//log that this was called
-	//validator->Rx_Command("idle",1,0,0,0);
-	return;
-}
-
 //-------------------------------------------------------------------------------------------------------
-//MEI Poll Command
+//MEI Poll Method
 //-------------------------------------------------------------------------------------------------------
 void MEIpoll(void)
 {
@@ -636,11 +623,10 @@ void MEIpoll(void)
 //-------------------------------------------------------------------------------------------------------
 // NEW Functions
 //-------------------------------------------------------------------------------------------------------
-// Validator verify command (we turn on all validators here)
+// Validator verify method (we turn on all validators here)
 //-------------------------------------------------------------------------------------------------------
 string Validator_verify(void)
 {
-
 
 	if(cfg.validator_left)
 	{
@@ -654,7 +640,7 @@ string Validator_verify(void)
 
 	if(cfg.validator_ucd)
 	{
-		//validator_ucd->Rx_Command("verify", 0, 0, 1, 0);
+		//validator_ucd->Rx_Command("verify", 0, 0, 1, 0);// TODO Need to enable this when ucd driver is completed
 
 	}
 
@@ -680,10 +666,9 @@ string Validator_stack(int which)
 
 	if(cfg.validator_ucd)
 	{
-		//validator_ucd->Rx_Command("stack", 0, 1, 0, 0);
+		//validator_ucd->Rx_Command("stack", 0, 1, 0, 0); //TODO Need to add this when ucd driver is completed
 
 	}
-
 
 	return "test";
 }
@@ -775,6 +760,30 @@ string Validator_idle(int which)
 
 	return "test";
 }
+//---------------------------------------------------------------------------------------------------
+// Validator get result command
+//------------------------------------------------------------------------------------------------------
+
+  string Validator_get_results(int which)
+  {
+	  string the_result;
+	  if (which == 0  && cfg.validator_left == true)
+	  	{
+	  		the_result = validator_left->get_result();
+	  		validator_left->clr_get_result();
+	  	}
+
+	  	if (which == 1  && cfg.validator_right == true)
+	  	{
+	  		the_result = validator_left->get_result();
+	  		validator_right->clr_get_result();
+	  	}
+
+	  	return the_result;
+  }
+
+
+
 
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
