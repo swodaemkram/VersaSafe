@@ -46,6 +46,7 @@ Global Variables
 	int DEBUG_LOG_ONETIME = 0;
 	char LAST_MEI_STATUS[30];
 	char clean_text[30] = {0};
+	string return_to_usb_gateway = {0};
 	int fd;
 //-----------------------------------------------------------------------------------------------
 //Added New
@@ -567,7 +568,7 @@ if((strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x55') ||(strnc
 		//sprintf(log_message,"Command Issued = %s",MEI_CURRENT_COMMAND);
 		//BECAUSE_OF_MOVElog_Function(log_message);
 		//printf("MEI_LAST_COMMAND = %s MEI_CURRENT_COMMAND = %s\n",MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
-		//MARKstrcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
+		//strcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);//DEBUG
 		GET_ONETIME = 0;//Reset Run Once Flag
 		DEBUG_LOG_ONETIME = 0;
 	}
@@ -602,7 +603,7 @@ void process_response (void)
 		  strcpy(MEI_STATUS,"idling");
 		  break;
 	case '\x01':
-		  strcpy(MEI_STATUS,"accepting");
+		  strcpy(MEI_STATUS,"accepting");//We dont want to display this message
 		  break;
 	case '\x02':
 		  strcpy(MEI_STATUS,"drawing_in");
@@ -655,11 +656,26 @@ if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "stack",
 	}
 
 clean_text(denom_detail,9);
-sprintf(MEI_STATUS,"stacked a %s",the_clean_text);
+sprintf(MEI_STATUS,"%s",the_clean_text);
+char denom[4] = {0};
+strncpy(denom,the_clean_text,3);//Parse Denomination from string
+int denom_value1, denom_value2, denom_value3, denom_value4, denom_value5 = {0};
+int long denom_total_pennys = 0;
+denom_value1 = the_clean_text[3] - 48;
+denom_value2 = the_clean_text[4] - 48;
+denom_value3 = the_clean_text[5] - 48;
+denom_value4 = the_clean_text[6] - 48;
+denom_value5 = the_clean_text[7] - 48;
+if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000;//Convert to the penny
+if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
+// DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
+sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
+
+//sprintf(MEI_STATUS,"stacked a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
 //=============================END of Dnom Determination====================================
-
+//=============================Verify Bill Method================================================
 if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "verify",5) == 0)
 {
 	char denom_detail[9] = {0};
@@ -673,7 +689,21 @@ if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "verify"
 	}
 
 clean_text(denom_detail,9);
-sprintf(MEI_STATUS,"Verified a %s",the_clean_text);
+//MARKsprintf(MEI_STATUS,"%s",the_clean_text);
+char denom[4] = {0};
+strncpy(denom,the_clean_text,3);//Parse Denomination from string
+int denom_value1, denom_value2, denom_value3, denom_value4, denom_value5 = {0};
+int long denom_total_pennys = 0;
+denom_value1 = the_clean_text[3] - 48;
+denom_value2 = the_clean_text[4] - 48;
+denom_value3 = the_clean_text[5] - 48;
+denom_value4 = the_clean_text[6] - 48;
+denom_value5 = the_clean_text[7] - 48;
+if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000; //Convert to the penny
+if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
+//DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
+sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
+//sprintf(MEI_STATUS,"Verified a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
 //=================================End of Dnom Returned=====================================
@@ -722,7 +752,7 @@ void mei_poll(void)
 			tx_packet[5] = '\x00' ;// No Data
 			tx_packet[6] = '\x00' ;// Set a space for the ETX
 			tx_packet[7] = '\x00' ;// Set a space for the CRC
-			tx_crc = validator->do_crc(tx_packet,8);//run the crc function
+			tx_crc = do_crc(tx_packet,8);//run the crc function
 			tx_packet[6] = '\x03' ;// Insert ETX into packet
 			tx_packet[7] = tx_crc ;// Insert the returned CRC into packet
 		}
@@ -737,7 +767,7 @@ void mei_poll(void)
 		    tx_packet[6] = '\x00';
 		    tx_packet[7] = '\x00';
 		    tx_crc = 0;
-		    tx_crc = validator->do_crc(tx_packet,8);
+		    tx_crc = do_crc(tx_packet,8);
 		    tx_packet[6] = '\x03';
 		    tx_packet[7] = tx_crc;
 		}
@@ -748,7 +778,7 @@ void mei_poll(void)
 			tx_packet[6] = '\x00';
 			tx_packet[7] = '\x00';
 			tx_crc = 0;
-			tx_crc = validator-> do_crc(tx_packet,8);
+			tx_crc = do_crc(tx_packet,8);
 			tx_packet[6] = '\x03';
 			tx_packet[7] = tx_crc;
 		}
@@ -759,7 +789,7 @@ void mei_poll(void)
 		    tx_packet[6] = '\x00';
 		    tx_packet[7] = '\x00';
 		    tx_crc = 0;
-		    tx_crc = validator->do_crc(tx_packet,8);
+		    tx_crc = do_crc(tx_packet,8);
 		    tx_packet[6] = '\x03';
 		    tx_packet[7] = tx_crc;
 		}
@@ -770,27 +800,29 @@ void mei_poll(void)
 			tx_packet[6] = '\x00';
 			tx_packet[7] = '\x00';
 			tx_crc = 0;
-			tx_crc = validator->do_crc(tx_packet,8);
+			tx_crc = do_crc(tx_packet,8);
 			tx_packet[6] = '\x03';
 			tx_packet[7] = tx_crc;
 		}
 		//==================End of Polling=============================
 		//===============Business  Logic for MEI=======================
 
-		validator->process_commands();           //Process In coming commands
-		validator->mei_tx(tx_packet, comm_port); //Transmit Packet to MEI
+		process_commands();           //Process In coming commands
+		mei_tx(tx_packet, comm_port); //Transmit Packet to MEI
 		//printf("tx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]);
-		validator->mei_rx(comm_port);            // Receive packet from MEI
+		mei_rx(comm_port);            // Receive packet from MEI
 		//printf("rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
-		validator->process_response();           // What does the Response from the MEI mean
+		process_response();           // What does the Response from the MEI mean
 
 		q=0;//Reset Polling Divider
 		if(mei_verifying == 1 || mei_stacking == 1) mei_timeout_timer();//Turn On Timeout Timer if this is a polling command
-		if (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes
+		//DEBUGif (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes DEBUG !!!
 		if (strcmp(LAST_MEI_STATUS,MEI_STATUS) !=0)
 		{
-			printf("current MEI_STATUS = %s\n",MEI_STATUS);//Print Only Changes
+			if (strcmp(MEI_STATUS,"accepting") != 0)printf("%s\n",MEI_STATUS);//Print Only Changes THIS IS THE MEI RESPONSE dont print accepting
+
 			mei_timeout_timer_value = 0; //Reset the timer
+
 		}
 		if (mei_single_run_command == 1)
 		{
@@ -799,10 +831,10 @@ void mei_poll(void)
 			mei_single_run_command = 0;
 		}
 
+		if (strncmp(LAST_MEI_STATUS,"drawing_in",10) == 0) return_to_usb_gateway = MEI_STATUS;
 		strcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
 		memset(LAST_MEI_STATUS,0,30);
 		strcpy(LAST_MEI_STATUS,MEI_STATUS);
-
 		}//End of polling
 		q++;
 		return;
@@ -843,14 +875,28 @@ it also sets Flags for processing
 void command(command,SingleRunFlag,StackFlag,VerifyFlag,TimeoutTimerFlag)
 ==============================================================================================
  */
-void Rx_Command(char* command, int SRF, int StackF, int VerifyF, int TOTF)
+//void Rx_Command(char* command, int SRF, int StackF, int VerifyF, int TOTF)
+void Rx_Command(string command, int SRF, int StackF, int VerifyF, int TOTF)
 {
 	memset(MEI_CURRENT_COMMAND,0,30);
-	strcpy(MEI_CURRENT_COMMAND,command);
+	strcpy(MEI_CURRENT_COMMAND,command.c_str());
+	//printf("Validator has been told to %s\n",MEI_CURRENT_COMMAND); //DEBUG !!!
 	mei_single_run_command = SRF;//Flag for a single run command
 	mei_stacking = StackF; //Global Status Value for the MEI
 	mei_verifying = VerifyF;//Global Status Value for the MEI
 	mei_timeout_timer_value = TOTF;//Global Timeout Timer Variable
+}
+
+
+string get_result(void)
+{
+	return return_to_usb_gateway;
+}
+
+void clr_get_result(void)
+{
+	return_to_usb_gateway = "";
+	return;
 }
 
 
