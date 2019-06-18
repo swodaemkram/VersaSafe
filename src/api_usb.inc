@@ -57,7 +57,8 @@ retstruc api_921(char *cmd);
 retstruc api_922(char *cmd);
 retstruc api_923(char *cmd);
 retstruc api_924(char *cmd);
-//retstruc api_925(char *cmd);
+retstruc api_925(char *cmd);
+retstruc api_926(char *cmd);
 
 /*
 string Validator_verify(void) {};
@@ -65,7 +66,8 @@ string Validator_stack(int which) {};
 string Validator_model(int which) {};
 string Validator_serial(int which) {};
 string Validator_info(int which) {};
-void Validator_reset(void) {};
+void Validator_reset(int which) {};
+void Validator_idle(int which) {};
 */
 
 
@@ -190,9 +192,6 @@ retstruc api_221(char *cmd) {}
 retstruc api_225(char *cmd)
 {
     retstruc retstat;
-#ifdef ENABLECALLS
-	Validator_reset();
-#endif
 	return retstat;
 }
 
@@ -306,12 +305,13 @@ retstruc api_701(char *cmd) {}
 //702-FLASH-UTD
 retstruc api_702(char *cmd) {}
 
+/*
 //800-VALIDATOR-VALIDATE
 retstruc api_800(char *cmd) {}
 
 //801-VALIDATOR-ACCEPT
 retstruc api_801(char *cmd) {}
-
+*/
 
 
 //900-UTD-UNLOADALL
@@ -454,13 +454,33 @@ retstruc api_925(char *cmd)
     retstruc retstat;
     int which = FindWhich(cmd);
 #ifdef ENABLECALLS
-    retstat.result=Validator_reset();
+    Validator_reset(which);
 #endif
     return retstat;
 }
 
 
+//926-VALIDATOR-IDLE-(LEFT|RIGHT)
+retstruc api_926(char *cmd)
+{
+    retstruc retstat;
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+    Validator_idle(which);
+#endif
+    return retstat;
+}
 
 
+//927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
+retstruc api_927(char *cmd)
+{
+    retstruc retstat;
+    int which = FindWhich(cmd);
+#ifdef ENABLECALLS
+	retstat.result=Validator_get_results(which);
 
+#endif
+    return retstat;
+}
 
