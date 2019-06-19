@@ -1,3 +1,4 @@
+
 /*
 	this structure is used for reading the xml/config.xml file INTO
 	and access from various modules

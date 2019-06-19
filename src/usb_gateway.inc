@@ -1,3 +1,4 @@
+
 // external declarations for usb_gateway.cpp
 
 #include <string>

@@ -1,4 +1,3 @@
-
 /*
     Program: VSAFE
     Module: api.cpp
