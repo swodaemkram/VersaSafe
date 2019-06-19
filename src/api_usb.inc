@@ -1,8 +1,11 @@
 
+#ifndef _APIUSB
+#define _APIUSB
+
+
 #include "vsafe.inc"
-
 #include "api_struc.inc"
-
+#include "usb_gateway.inc"
 
 vector<string> Split_API_Cmds(char * cmd)
 {
@@ -42,6 +45,7 @@ retstruc api_101(char *cmd);
 retstruc api_102(char *cmd);
 retstruc api_103(char *cmd);
 
+
 // UTD
 retstruc api_900(char *cmd);
 retstruc api_901(char *cmd);
@@ -71,7 +75,6 @@ void Validator_idle(int which) {};
 */
 
 
-#define ENABLECALLS
 
 
 int FindWhich(char *cmd)
@@ -393,9 +396,7 @@ retstruc api_905(char *cmd)
 retstruc api_920(char *cmd)
 {
     retstruc retstat;
-#ifdef ENABLECALLS
     retstat.result=Validator_verify();
-#endif
     return retstat;
 }
 
@@ -407,9 +408,7 @@ retstruc api_921(char *cmd)
 
 	int which = FindWhich(cmd);
 
-#ifdef ENABLECALLS
     retstat.result=Validator_stack(which);
-#endif
     return retstat;
 }
 
@@ -419,9 +418,7 @@ retstruc api_922(char *cmd)
     retstruc retstat;
 
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
     retstat.result=Validator_model(which);
-#endif
     return retstat;
 }
 
@@ -430,9 +427,7 @@ retstruc api_923(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
     retstat.result=Validator_serial(which);
-#endif
     return retstat;
 }
 
@@ -441,9 +436,7 @@ retstruc api_924(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
     retstat.result=Validator_info(which);
-#endif
     return retstat;
 }
 
@@ -453,9 +446,7 @@ retstruc api_925(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
     Validator_reset(which);
-#endif
     return retstat;
 }
 
@@ -465,9 +456,7 @@ retstruc api_926(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
     Validator_idle(which);
-#endif
     return retstat;
 }
 
@@ -477,10 +466,11 @@ retstruc api_927(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
-#ifdef ENABLECALLS
 	retstat.result=Validator_get_results(which);
 
-#endif
     return retstat;
 }
+
+
+#endif
 
