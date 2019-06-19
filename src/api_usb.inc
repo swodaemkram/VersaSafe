@@ -1,4 +1,3 @@
-
 #include "vsafe.inc"
 
 #include "api_struc.inc"
