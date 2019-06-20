@@ -1,5 +1,8 @@
-
 // external declarations for usb_gateway.cpp
+
+#ifndef _USBGATEWAYINC
+
+#define _USBGATEWAYINC
 
 #include <string>
 
@@ -18,7 +21,7 @@ extern string GetLockSerial(int index);
 extern void SetLockDelay(int index, int delay);
 extern string GetLockFirmware(int index);
 extern string GetLockVolts(int index);
-extern string GetLockStatus(int index);
+extern void GetLockStatus(int index);
 extern string GetLockDriverVersion(void);
 extern void PrintLockStats(int index);
 extern string GetLockType(int index);
@@ -46,7 +49,7 @@ extern bool D8C_detected(void);
 
 // MEI specific functions
 
-extern int init_mei(void);
+//extern int init_mei(void);
 extern void mei_reset_func(void);
 extern string mei_verify_bill_func(void);
 extern string mei_getmodel_func(void);
@@ -65,4 +68,19 @@ extern string mei_stack(void);
 //extern int * mei_get_inventory(void);
 //extern bool mei_detected(void);
 //extern string mei_status(void);
+extern void MEIpoll(void);
+extern int init_validators(void);
+
+extern string Validator_verify(void);
+extern string Validator_stack(int which);
+extern string Validator_model(int which);
+extern string Validator_serial(int which);
+extern string Validator_info(int which);
+extern void Validator_reset(int which);
+extern string Validator_idle(int which);
+extern string Validator_get_results(int which);
+
+
+
+#endif
 

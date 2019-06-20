@@ -33,7 +33,8 @@
 #include "trim.inc"
 #include "hdr/fire.h"
 
-#include "api_struc.inc"
+//#include "api_struc.inc"
+#include "api_usb_ext.inc"
 
 void SetupAPI(void);
 bool CreateAPI(void);
