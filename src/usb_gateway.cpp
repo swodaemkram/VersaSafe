@@ -589,7 +589,6 @@ int init_validators(void)
 		sprintf(Logbuff,"Validator_Left Initialized");
 		WriteSystemLog(Logbuff);//log that this was called
 		mei * validator_left = new mei("/dev/ttyUSB0",1);
-		printf("\nValidator_Left  Initialized!\n");
 	}
 
 	if(cfg.validator_right)
@@ -598,7 +597,6 @@ int init_validators(void)
 		sprintf(Logbuff,"Validator_Right Initialized");
 		WriteSystemLog(Logbuff);//log that this was called
 		mei * validator_left = new mei("/dev/ttyUSB1",1);
-		printf("\nValidator_Right Initialized!\n");
 	}
 
 	if(cfg.validator_ucd)
@@ -607,7 +605,6 @@ int init_validators(void)
 		sprintf(Logbuff,"Validator_ucd Initialized");
 		WriteSystemLog(Logbuff);//log that this was called
 		mei * validator_ucd = new mei("/dev/ttyUSB2",1);
-		printf("\nValidator_ucd Initialized!\n");
 	}
 
 	return 0;
@@ -761,7 +758,7 @@ string Validator_idle(int which)
 	return "test";
 }
 //---------------------------------------------------------------------------------------------------
-// Validator get result command
+// Validator get result method
 //------------------------------------------------------------------------------------------------------
 
   string Validator_get_results(int which)

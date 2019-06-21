@@ -78,11 +78,14 @@ private:
 public:
 		mei(string pname, int instance)
 		{
+			int mei_connected = 0;
 			mei_detected=false;
 			mei_portname=pname;
 			mei_instance = instance;
 			int result;
-			mei_connect();
+			mei_connected = mei_connect();
+			printf("mei connected = %d\n", mei_connected);
+			return;
 		}
 
 		~mei(void)
@@ -108,7 +111,78 @@ public:
 
 int mei_connect(void)
 {
-	return(1);
+
+	struct termios tty;
+
+					    cfsetospeed(&tty, (speed_t)B9600);
+					    cfsetispeed(&tty, (speed_t)B9600);
+
+					    tty.c_cflag |= (CLOCAL | CREAD);    /* ignore modem controls */
+					    tty.c_cflag &= ~CSIZE;
+					    tty.c_cflag |=  CS7;         /* 7-bit characters  pipes = yes ampersands and Tildes= no */
+					    tty.c_cflag |=  PARENB;     /* even parity bit */
+					    tty.c_cflag &= ~CSTOPB;     /* only need 1 stop bit */
+					    tty.c_cflag &= ~CRTSCTS;    /* no hardware flowcontrol */
+
+					    /* setup for non-canonical mode */
+
+					    tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+					    tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+					    tty.c_oflag &= ~OPOST;
+
+					    /* fetch bytes as they become available */
+					    tty.c_cc[VMIN] = 1;
+					    tty.c_cc[VTIME] = 1;
+
+						char *portname = comm_port;
+
+					    //int wlen;
+					    if (is_comm_port_open == 0) fd = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
+					    if (fd < 0) {
+					        printf("Error opening %s: %s\n", portname, strerror(errno));
+					        is_comm_port_open = 0;
+					        exit(1);
+					    }
+					    /*baudrate 9600, 7 bits, even parity, 1 stop bit */
+
+					    tx_packet[0] = '\x02';//|
+					    			tx_packet[1] = '\x08';//|
+					    			tx_packet[2] = '\x60';//|
+					    			tx_packet[3] = '\x00';//|---------Get model
+					    			tx_packet[4] = '\x00';//|
+					    			tx_packet[5] = '\x04';//|
+					    			tx_packet[6] = '\x00';//|
+					    			tx_packet[7] = '\x00';//|
+					    			int newcrc = do_crc(tx_packet,8);
+					    			tx_packet[6] = '\x03';
+					    			tx_packet[7] = newcrc;
+
+	int whocares = write(fd,tx_packet,sizeof(tx_packet)); //Send Request for Model
+	tcdrain(fd);    /* delay for output */
+//--------------------------------------------Lets Get Response-------------------------------------------------------------
+	usleep(50000);
+	unsigned char buf[80];
+	int rdlen = 0;
+	int i = 0;
+    rdlen = read(fd, buf, sizeof(buf) -1);//Get Data from Comm Port was -1
+    if (rdlen > 0) {
+			    	bzero(rx_packet,40);
+
+			    	while(i < rdlen)
+     		    	{
+			    		rx_packet[i] = buf[i];
+			    		//printf("%02x|",rx_packet[i]);//Print The RXed Hex Packet DEBUG !!!
+			    		i++;
+			    	}
+			    	char * rxdata = {0};
+			    	rxdata = clean_text(rx_packet,rdlen);
+			    	printf("Validator is a %s\n",rxdata);
+
+			    	if ( strncmp(rxdata,"SCN83",5)== 0) return(1);
+
+			    	return(0);
+}
+return(0);
 }
 /*
 ==================================================================================================================================
@@ -654,8 +728,12 @@ if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "stack",
 	  denom_detail[v] = rx_packet[v+11];
 	 v++;
 	}
+//This is were we  what denomination we have and convert it to its value in 1s of the currency
+//Then we format it so we can send it to Vsafe for processing
+//The agreed upon format is 3 Character denomination name then a colon and the the amount in pennys
+// An example would be USD:0100 for United States Denomination and 100 pennys or $1.00 US Doller.
 
-clean_text(denom_detail,9);
+	clean_text(denom_detail,9);
 sprintf(MEI_STATUS,"%s",the_clean_text);
 char denom[4] = {0};
 strncpy(denom,the_clean_text,3);//Parse Denomination from string
@@ -809,9 +887,9 @@ void mei_poll(void)
 
 		process_commands();           //Process In coming commands
 		mei_tx(tx_packet, comm_port); //Transmit Packet to MEI
-		//printf("tx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]);
+		//printf("\033[1;31m tx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n \033[0m",tx_packet[0],tx_packet[1],tx_packet[2],tx_packet[3],tx_packet[4],tx_packet[5],tx_packet[6],tx_packet[7]);
 		mei_rx(comm_port);            // Receive packet from MEI
-		//printf("rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
+		//printf("\033[1;32m rx_packet = %02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x|\n \033[0m",rx_packet[0],rx_packet[1],rx_packet[2],rx_packet[3],rx_packet[4],rx_packet[5],rx_packet[6],rx_packet[7]);
 		process_response();           // What does the Response from the MEI mean
 
 		q=0;//Reset Polling Divider
