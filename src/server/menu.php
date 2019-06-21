@@ -95,6 +95,7 @@ if (isset($input_vars['f']))
 else
 	$function="";
 
+print_rx($input_vars);
 
 print "MENU:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
@@ -599,9 +600,9 @@ case "maint":
 	break;
 
 case "mei":
-    print "<div class='menu'>";
+    print "<div class='menu' id='meimaintformID'>";
 
-    print "<form id='meimaintformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+//    print "<form id='meimaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
     print "<input type='hidden' id='fnmei' name='f' value=''>";
     print "<input type='hidden' id='mMEI' name='m' value=''>";
@@ -649,7 +650,7 @@ case "mei":
 
 
 	print "</table>";
-	print "</form>";
+//	print "</form>";
     print "</div>";
 
 
@@ -673,6 +674,7 @@ switch($function)
 case "mei_reset_left":
     print "<div class='function'>";
     print "RESETTING LEFT VALIDATOR";
+    print "<div class='data' id='mei_reset_left'></div>";
 	MEI_reset($VALIDATOR_LEFT);
     print "</div>";
 	break;
@@ -680,6 +682,7 @@ case "mei_reset_left":
 case "mei_reset_right":
     print "<div class='function'>";
     print "RESETTING RIGHT VALIDATOR";
+    print "<div class='data' id='mei_reset_right'></div>";
     MEI_reset($VALIDATOR_RIGHT);
     print "</div>";
 	break;
@@ -689,6 +692,7 @@ case "mei_reset_right":
 case "mei_verify":
     print "<div class='function'>";
     print "VALIDATOR - VERIFY BILLS";
+    print "<div class='data' id='mei_verify'></div>";
     $res=MEI_verify();
     print "</div>";
     break;
@@ -698,13 +702,15 @@ case "mei_verify":
 case "mei_stack_left":
     print "<div class='function'>";
     print "STACKING LEFT VALIDATOR";
-    $res=MEI_stack($VALIDATOR_LEFT);
+    print "<div class='data' id='mei_stack_left'></div>";
+//    $res=MEI_stack($VALIDATOR_LEFT);
     print "</div>";
     break;
 case "mei_stack_right":
     print "<div class='function'>";
     print "STACKING RIGHT VALIDATOR";
-    $res=MEI_stack($VALIDATOR_RIGHT);
+    print "<div class='data' id='mei_stack_right'></div>";
+//    $res=MEI_stack($VALIDATOR_RIGHT);
     print "</div>";
     break;
 
@@ -712,6 +718,7 @@ case "mei_stack_right":
 case "mei_info_left":
     print "<div class='function'>";
     print "LEFT VALIDATOR INFO";
+	print "<div class='data' id='mei_info_left'></div>";
     MEI_info($VALIDATOR_LEFT);
     print "</div>";
     break;
@@ -719,6 +726,7 @@ case "mei_info_left":
 case "mei_info_right":
     print "<div class='function'>";
     print "RIGHT VALIDATOR INFO";
+    print "<div class='data' id='mei_info_right'></div>";
     MEI_info($VALIDATOR_RIGHT);
     print "</div>";
     break;
@@ -1525,21 +1533,43 @@ function getvars()
 	}
 
 
-    function submitMEIMAINT(fn,startAJAX)
+    function submitMEIMAINT(fn,AJAX)
     {
-		if (startAJAX == 1)
+//		alert(fn);
+
+		if (AJAX == 1)
 			startAJAX(fn);
-		caller = theCaller;
-        $("#mMEI").val("none");
-        $("#fnmei").val(fn);
-        $("#meimaintformID").submit();
+//        $("#mMEI").val("none");
+//        $("#fnmei").val(fn);
+//        $("#meimaintformID").submit();
+		clearDIV("#meimaintformID");
+
     }
+
+
+/*
+    print "<div class='function'>";
+    print "STACKING LEFT VALIDATOR";
+    print "<div class='data' id='mei_stack_left'></div>";
+//    $res=MEI_stack($VALIDATOR_LEFT);
+    print "</div>";
+
+*/
+function clearDIV(divID)
+{
+//	alert("clearing " + divID);
+
+	cmd="<span class='hdr'>STACKING LEFT VALIDATOR</span>";
+	cmd += "<div class='data' id='mei_stack_left'><br></div>";
+	$(divID).html(cmd);
+
+}
 
 
 $(document).ready(function()
 {
 	// call getStack every 100ms
-	window.setInterval(getStack,5000);
+//	window.setInterval(getStack,5000);
 //	alert("doc is ready");
 });
 
@@ -1549,21 +1579,29 @@ var caller;	//	 will contain one of the following...
 			//"mei_reset_left|right"
 			//"mei_verify"
 
+var myTimer;
 
 function startAJAX(theCaller)
 {
+//	alert('Starting AJAX');
 	caller=theCaller;
-	setInterval(getStack,5000);
+	myTimer = setInterval(getAJAX,4000);
 }
 
 
-
-function getStack()
+function stopAJAX()
 {
-	var which="ALL";
-	var action=;
+	clearInterval(myTimer);
+}
 
-	// returns -1 if no matche, else position
+
+function getAJAX()
+{
+
+	var which="ALL";
+	var action;
+
+	// returns -1 if no match, else position
 	if (caller.indexOf("left") >0)	which="LEFT";
     if (caller.indexOf("right") >0)	which="RIGHT";
 
@@ -1573,31 +1611,68 @@ function getStack()
     if (caller.indexOf("verify")>0)	action="verify";
 
 
-//	var data = { "action": "stack": "which" : "left" };
-	var data=[];
-	data["action"] = action;
-	data["which"] = which;
+// this worked
+	var data = { "action": "stack", "which" : "left" };
 
-	data = $(this).serialize() + "&" + $.param(data);
+/*
+    var mydata=[];
+    mydata["action"] = action;
+    mydata["which"] = which;
+	var data = JSON.stringify(mydata);
+*/
+
+
+//	alert("predata:" + data);
+//    data: data, //JSON.stringify(mydata),
+
 $.ajax(
  {
 	type:"POST",
+//	contentType: "application/json",
 	dataType: "json",
 	url: "ajax_server.php",
 	data: data,
 	async: true,
+	timeout: 100000,
+	cache: false,
     success: function(data)
 	{
-		alert('Data from the server ' + data['json']);
+//		alert("Data from the server " + data['json']);
 		//Data from the server{USD:1000}
 		var res = data['json'].split(":");
 		// res[0] = USD
 		// res[1] = 1000
 //		alert(res[0] + "..." + res[1]);
+
+		switch(action)
+		{
+		case "stack":
+			var str = $("#"+caller).html();
+			str += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
+			if (which == "LEFT")
+		        $("#"+caller).html(str);
+			if (which == "RIGHT")
+	            $("#"+ caller).html(str);
+
+		// make sure last entry is visible
+//		var elmnt = document.getElementById("mei_stack_left");
+//		elmnt.scrollIntoView(false);
+
+			break;
+		case "info":
+		case "reset":
+		case "verify":
+			break;
+		}
+
 	},
-   	error: function()
+   	error: function(e)
 	{
 		alert('There was an error during the AJAX call!');
+//		console.log("ERROR : ", e);
+		var str = $("#mei_stack_left").html();
+		str += "<br> "+e.details;
+		$("#mei_stack_left").html(str);
 	}
  }); // end ajax
 }	// end fn

@@ -7,6 +7,9 @@
 	$_POST["action"] = stack, verify,reset or info
 	$_POST{"which"] = "LEFT","RIGHT","ALL"
 
+	CAUTION: any debug code that outputs anything to the screen, will totally kill
+	any JSON packet return.
+
 */
 
     GLOBAL $socket, $api_connected, $port;
@@ -29,8 +32,8 @@ if (is_ajax())
 
   if (isset($_POST["action"]) && !empty($_POST["action"]))
 	{ //Checks if action value exists
-	    $action = $_POST["action"];
-    	if (isset($_POST['which'])) $which = $_POST['which'];
+	    $action = strtolower($_POST["action"]);
+    	if (isset($_POST['which'])) $which = strtoupper($_POST['which']);
 
     	switch($action)
 	    { //Switch case for value of action
@@ -63,6 +66,7 @@ if (is_ajax())
 function is_ajax()
 {
 	 return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
 }
 
 

@@ -1,4 +1,4 @@
-/* Add a black background color to the top navigation */
+/* Add a background color to the top navigation */
 .topnav 
 {
 	background-color: gainsboro;
@@ -48,7 +48,7 @@
 	border-radius: 10%;	//25px;
 	position:absolute;
 	left:150px;
-	top:150px;
+	top:250px;
 	border: 5px solid STEELBLUE;
 	background-color:LightSteelBlue;
 	width:50%;
@@ -99,7 +99,7 @@
     border: 5px solid BLUE;
     background-color:gainsboro;
 //LightSteelBlue;
-    width:40%;
+    width:100%;
     height:450px;
 //  color:#454545;
     color:black;
@@ -212,5 +212,25 @@
 	height:5px;
 	background-color:slategray;
 //steelblue;
+}
+
+
+.data
+{
+	height:300px;
+	margin-left:130px;
+	font-family:arial,sans-serif;
+	font-weight:bold;
+	font-size:14pt;
+	overflow:scroll;
+}
+
+
+.hdr
+{
+	text-align:center;
+	margin-left:200px;
+	font-size:18pt;
+	font-weight:bold;
 }
 
