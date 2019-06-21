@@ -95,6 +95,7 @@ if (isset($input_vars['f']))
 else
 	$function="";
 
+print_rx($input_vars);
 
 print "MENU:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
@@ -599,9 +600,9 @@ case "maint":
 	break;
 
 case "mei":
-    print "<div class='menu'>";
+    print "<div class='menu' id='meimaintformID'>";
 
-    print "<form id='meimaintformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+//    print "<form id='meimaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
     print "<input type='hidden' id='fnmei' name='f' value=''>";
     print "<input type='hidden' id='mMEI' name='m' value=''>";
@@ -622,34 +623,34 @@ case "mei":
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\");'><img src='img/button_reset-left.png' /> </button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\",0);'><img src='img/button_reset-left.png' /> </button></td>";
     if ($xml->devices->validator_right == "enabled" )
-        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\");'><img src='img/button_reset-right.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\",0);'><img src='img/button_reset-right.png' /> </button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\");'><img src='img/button_info-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\",1);'><img src='img/button_info-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\");'><img src='img/button_info-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\",1);'><img src='img/button_info-right.png' /></button></td>";
     print "</tr>\n";
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\");'><img src='img/button_stack-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\",1);'><img src='img/button_stack-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\");'><img src='img/button_stack-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\",1);'><img src='img/button_stack-right.png' /></button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
-	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\");'><img src='img/button_verify.png' /> </button></td>";
+	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1);'><img src='img/button_verify.png' /> </button></td>";
     print "</tr>\n";
 
 
 	print "</table>";
-	print "</form>";
+//	print "</form>";
     print "</div>";
 
 
@@ -669,9 +670,11 @@ switch($function)
 {
 
 
+//925-VALIDATOR-RESET-(LEFT|RIGHT)
 case "mei_reset_left":
     print "<div class='function'>";
     print "RESETTING LEFT VALIDATOR";
+    print "<div class='data' id='mei_reset_left'></div>";
 	MEI_reset($VALIDATOR_LEFT);
     print "</div>";
 	break;
@@ -679,21 +682,43 @@ case "mei_reset_left":
 case "mei_reset_right":
     print "<div class='function'>";
     print "RESETTING RIGHT VALIDATOR";
+    print "<div class='data' id='mei_reset_right'></div>";
     MEI_reset($VALIDATOR_RIGHT);
     print "</div>";
 	break;
 
 //920-VALIDATOR-VERIFY
+//TODO - must make this an active display
 case "mei_verify":
+    print "<div class='function'>";
+    print "VALIDATOR - VERIFY BILLS";
+    print "<div class='data' id='mei_verify'></div>";
+    $res=MEI_verify();
+    print "</div>";
+    break;
+
 
 //921-VALIDATOR-STACK-(LEFT|RIGHT|UCD)
 case "mei_stack_left":
+    print "<div class='function'>";
+    print "STACKING LEFT VALIDATOR";
+    print "<div class='data' id='mei_stack_left'></div>";
+//    $res=MEI_stack($VALIDATOR_LEFT);
+    print "</div>";
+    break;
 case "mei_stack_right":
+    print "<div class='function'>";
+    print "STACKING RIGHT VALIDATOR";
+    print "<div class='data' id='mei_stack_right'></div>";
+//    $res=MEI_stack($VALIDATOR_RIGHT);
+    print "</div>";
+    break;
 
 //924-VALIDATOR-INFO-(LEFT|RIGHT|UCD)
 case "mei_info_left":
     print "<div class='function'>";
     print "LEFT VALIDATOR INFO";
+	print "<div class='data' id='mei_info_left'></div>";
     MEI_info($VALIDATOR_LEFT);
     print "</div>";
     break;
@@ -701,6 +726,7 @@ case "mei_info_left":
 case "mei_info_right":
     print "<div class='function'>";
     print "RIGHT VALIDATOR INFO";
+    print "<div class='data' id='mei_info_right'></div>";
     MEI_info($VALIDATOR_RIGHT);
     print "</div>";
     break;
@@ -949,6 +975,97 @@ case "vend_define":
 }
 
 
+// MUST BE CALLED AFTER CANCELLING A DEPOSIT OR VERIFY OR A TIMEOUT FOR EITHER
+//926-VALIDATOR-IDLE-(LEFT|RIGHT)
+function MEI_idle($which)
+{
+    $cmd="926-VALIDATOR-IDLE-";
+
+    switch($which)
+    {
+    case $VALIDATOR_LEFT:
+        $cmd .="LEFT";
+        break;
+    case $VALIDATOR_RIGHT:
+        $cmd .="RIGHT";
+        break;
+    case $VALIDATOR_UCD:
+        $cmd .="UCD";
+        break;
+    }
+
+    SocketConnect();
+    $res=SendMessage($cmd);
+    CloseConnection();
+
+}
+
+
+
+// need to make this an active display
+function MEI_stack($which)
+{
+	GLOBAL $cfg;
+
+    $cmd="921-VALIDATOR-STACK-";
+
+
+    switch($which)
+    {
+    case $VALIDATOR_LEFT:
+		$ext="LEFT";
+        $cmd .="LEFT";
+        break;
+    case $VALIDATOR_RIGHT:
+		$ext="RIGHT";
+        $cmd .="RIGHT";
+        break;
+    case $VALIDATOR_UCD:
+		$ext="UCD";
+        $cmd .="UCD";
+        break;
+    }
+
+    $start_time=time();
+
+    SocketConnect();
+
+	while (time() - $start_time < (int) cfg['validator_timeout'] )
+	{
+		// return is...
+		// "USD:100" for a one dollar bill
+	    $res=SendMessage($cmd);
+		$ret=ReadMessage();
+		if ($ret)
+		{
+			$res_ar = explode(":",$ret);
+			$denom= $res_arr[0];
+			$amt = (int) $res_arr[1]/100;
+
+			print "Stacked {$amt}  {$denom}";
+		}
+
+	}
+
+
+	$cmd="926-VALIDATOR-IDLE-".$ext;
+    $res=SendMessage($cmd);
+
+    CloseConnection();
+}
+
+
+// verify bills on any of the enabled validators
+function MEI_verify()
+{
+    $cmd="920-VALIDATOR-VERIFY";
+    SocketConnect();
+    $res=SendMessage($cmd);
+    CloseConnection();
+	return $res;
+}
+
+
 
 function MEI_reset($which)
 {
@@ -995,6 +1112,7 @@ function MEI_info($which)
 	print $result;
     CloseConnection();
 
+	return $result;
 }
 
 
@@ -1415,12 +1533,151 @@ function getvars()
 	}
 
 
-    function submitMEIMAINT(fn)
+    function submitMEIMAINT(fn,AJAX)
     {
-        $("#mMEI").val("none");
-        $("#fnmei").val(fn);
-        $("#meimaintformID").submit();
+//		alert(fn);
+
+		if (AJAX == 1)
+			startAJAX(fn);
+//        $("#mMEI").val("none");
+//        $("#fnmei").val(fn);
+//        $("#meimaintformID").submit();
+		clearDIV("#meimaintformID");
+
     }
+
+
+/*
+    print "<div class='function'>";
+    print "STACKING LEFT VALIDATOR";
+    print "<div class='data' id='mei_stack_left'></div>";
+//    $res=MEI_stack($VALIDATOR_LEFT);
+    print "</div>";
+
+*/
+function clearDIV(divID)
+{
+//	alert("clearing " + divID);
+
+	cmd="<span class='hdr'>STACKING LEFT VALIDATOR</span>";
+	cmd += "<div class='data' id='mei_stack_left'><br></div>";
+	$(divID).html(cmd);
+
+}
+
+
+$(document).ready(function()
+{
+	// call getStack every 100ms
+//	window.setInterval(getStack,5000);
+//	alert("doc is ready");
+});
+
+var caller;	//	 will contain one of the following...
+			//"mei_stack_left|right"
+			//"mei_info_left|right"
+			//"mei_reset_left|right"
+			//"mei_verify"
+
+var myTimer;
+
+function startAJAX(theCaller)
+{
+//	alert('Starting AJAX');
+	caller=theCaller;
+	myTimer = setInterval(getAJAX,4000);
+}
+
+
+function stopAJAX()
+{
+	clearInterval(myTimer);
+}
+
+
+function getAJAX()
+{
+
+	var which="ALL";
+	var action;
+
+	// returns -1 if no match, else position
+	if (caller.indexOf("left") >0)	which="LEFT";
+    if (caller.indexOf("right") >0)	which="RIGHT";
+
+    if (caller.indexOf("stack")>0)	action="stack";
+    if (caller.indexOf("info")>0)	action="info";
+    if (caller.indexOf("reset")>0)	action="reset";
+    if (caller.indexOf("verify")>0)	action="verify";
+
+
+// this worked
+	var data = { "action": "stack", "which" : "left" };
+
+/*
+    var mydata=[];
+    mydata["action"] = action;
+    mydata["which"] = which;
+	var data = JSON.stringify(mydata);
+*/
+
+
+//	alert("predata:" + data);
+//    data: data, //JSON.stringify(mydata),
+
+$.ajax(
+ {
+	type:"POST",
+//	contentType: "application/json",
+	dataType: "json",
+	url: "ajax_server.php",
+	data: data,
+	async: true,
+	timeout: 100000,
+	cache: false,
+    success: function(data)
+	{
+//		alert("Data from the server " + data['json']);
+		//Data from the server{USD:1000}
+		var res = data['json'].split(":");
+		// res[0] = USD
+		// res[1] = 1000
+//		alert(res[0] + "..." + res[1]);
+
+		switch(action)
+		{
+		case "stack":
+			var str = $("#"+caller).html();
+			str += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
+			if (which == "LEFT")
+		        $("#"+caller).html(str);
+			if (which == "RIGHT")
+	            $("#"+ caller).html(str);
+
+		// make sure last entry is visible
+//		var elmnt = document.getElementById("mei_stack_left");
+//		elmnt.scrollIntoView(false);
+
+			break;
+		case "info":
+		case "reset":
+		case "verify":
+			break;
+		}
+
+	},
+   	error: function(e)
+	{
+		alert('There was an error during the AJAX call!');
+//		console.log("ERROR : ", e);
+		var str = $("#mei_stack_left").html();
+		str += "<br> "+e.details;
+		$("#mei_stack_left").html(str);
+	}
+ }); // end ajax
+}	// end fn
+
+
 
 
 </script>
