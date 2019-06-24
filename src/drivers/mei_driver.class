@@ -274,7 +274,7 @@ public:
 			tx_packet[2] = '\x60';//|
 			tx_packet[3] = '\x00';//|---------Get Command
 			tx_packet[4] = '\x00';//|
-			//tx_packet[5] = '\x08';//|
+	      //tx_packet[5] = '\x08';//|
 			tx_packet[6] = '\x00';//|
 			tx_packet[7] = '\x00';//|
 
@@ -293,13 +293,17 @@ public:
 			//char log_message[100] = {0};
 			//sprintf(log_message,"MEI Response = %s",the_clean_text);
 			strcpy(MEI_STATUS,the_clean_text);
+			return_to_usb_gateway = the_clean_text;
+
 			//BECAUSE_OF_MOVEdomain_response_server();
 			//BECAUSE_OF_MOVElog_Function(log_message);//For now we will print the response in the Log file but could put it any place
 			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
 			GET_ONETIME = 1;    //Keeps this from spinning out of control
 			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
+			//DEBUGprintf("Return From MEI = %s\n",return_to_usb_gateway.c_str());
+			return_to_usb_gateway = the_clean_text;//MARK TODAY
 
-		return;
+			return;
 	}
 /*
 =====================================================================================================================
@@ -649,11 +653,9 @@ if((strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x55') ||(strnc
 // ^^^^^^^^^^^^ ALL SINGLE RUN COMMANDS NEED TO BE BELOW THIS  ^^^^^^^^^^^^^^^^
 //==================================Singel Get Replacement=======================================
 
- get(); //This will be the single run command function
+ get(); //This runs all single run command functions
 
 //==================================END of Get Replacement=======================================
-
-
 
  return;
 }
@@ -893,10 +895,16 @@ void mei_poll(void)
 
 		q=0;//Reset Polling Divider
 		if(mei_verifying == 1 || mei_stacking == 1) mei_timeout_timer();//Turn On Timeout Timer if this is a polling command
+
 		//DEBUGif (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes DEBUG !!!
 		if (strcmp(LAST_MEI_STATUS,MEI_STATUS) !=0)
 		{
-			if (strcmp(MEI_STATUS,"accepting") != 0)printf("%s\n",MEI_STATUS);//Print Only Changes THIS IS THE MEI RESPONSE dont print accepting
+			if (strcmp(MEI_STATUS,"accepting") != 0)
+
+			{
+				return_to_usb_gateway = MEI_STATUS;//JUST ADDED THIS 06-24-2019
+				//printf("%s\n",MEI_STATUS);//Print Only Changes THIS IS THE MEI RESPONSE dont print accepting
+			}
 
 			mei_timeout_timer_value = 0; //Reset the timer
 
@@ -963,21 +971,49 @@ void Rx_Command(string command, int SRF, int StackF, int VerifyF, int TOTF)
 	mei_verifying = VerifyF;//Global Status Value for the MEI
 	mei_timeout_timer_value = TOTF;//Global Timeout Timer Variable
 }
-
+/*
+==================================================================================================
+Get Results
+==================================================================================================
+*/
 
 string get_result(void)
 {
+	//DEBUGprintf("line 1 return = %s\n",return_to_usb_gateway.c_str());
+	return_to_usb_gateway = the_clean_text;
 	return return_to_usb_gateway;
 }
-
+/*
+================================================================================================
+Clear Result
+================================================================================================
+ */
 void clr_get_result(void)
 {
+
 	return_to_usb_gateway = "";
+	//memset(the_clean_text,0,30);
+	return;
+}
+/*
+===============================================================================================
+Set Done Flag
+===============================================================================================
+*/
+
+void set_done_flag(void)
+{
+
+	Rx_Command("idle", 1, 0, 0, 0);
 	return;
 }
 
 
-};
+
+
+
+
+};//END OF CLASS !!!
 /*
 ==============================================================================================
 End of MEI Class

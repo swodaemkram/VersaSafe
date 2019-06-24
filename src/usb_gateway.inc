@@ -79,7 +79,7 @@ extern string Validator_info(int which);
 extern void Validator_reset(int which);
 extern string Validator_idle(int which);
 extern string Validator_get_results(int which);
-
+extern void Validator_done(int which);
 
 
 #endif
