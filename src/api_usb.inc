@@ -63,6 +63,7 @@ retstruc api_923(char *cmd);
 retstruc api_924(char *cmd);
 retstruc api_925(char *cmd);
 retstruc api_926(char *cmd);
+retstruc api_998(char *cmd);
 
 /*
 string Validator_verify(void) {};
@@ -471,6 +472,13 @@ retstruc api_927(char *cmd)
     return retstat;
 }
 
-
+// 998-VALIDATOR_DONE(LEFT|RIGHT)
+retstruc api_998(char *cmd)
+{
+	retstruc retstat;
+	int which = FindWhich(cmd);
+	Valdiator_done(which);
+	return retstat;
+}
 #endif
 

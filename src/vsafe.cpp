@@ -4159,19 +4159,19 @@ extern "C" bool on_mei_close_btn_clicked( GtkButton *button, AppWidgets *app)
 
 extern "C" bool on_mei_reset_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-//	mei_reset_func();
+	Validator_reset(0);
 }
 
 
 extern "C" bool on_mei_stack_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-//	mei_stack();
+	Validator_stack(0);
 }
 
 
 extern "C" bool on_mei_inventory_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-//    mei_inventory();
+	Validator_info(0);
 }
 
 

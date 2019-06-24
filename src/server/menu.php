@@ -7,6 +7,22 @@
 
 
     This is a GUI designed to interact with the VSAFE API
+
+	API interaction:
+
+	some functions are directly implemented with immeidate results in ajax_server.php, however, some
+	are implemented as necessitated by the brain damaged MEI microcode as follows...
+
+	STACK
+	VERIFY
+	INFO
+
+	for the above cmds...
+	1. this module calls the API directly and issues the appropriate command, EG 94-VALIDATOR-INFO-LEFT etc
+	2. then the javaescript timed event sends 927-VALIDATOR-GET-RESULTS-LEFT etc, to get the results of the above cmd
+		if no results are ready, en empty string is returned from teh API, otherwise, the data is returned
+
+
 */
 
 
@@ -95,7 +111,7 @@ if (isset($input_vars['f']))
 else
 	$function="";
 
-print_rx($input_vars);
+//print_rx($input_vars);
 
 print "MENU:: ". $menu. "  FUNCTION::". $function ."\n</br>"
 
@@ -623,29 +639,29 @@ case "mei":
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\",0);'><img src='img/button_reset-left.png' /> </button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\",1,\"mei\");'><img src='img/button_reset-left.png' /> </button></td>";
     if ($xml->devices->validator_right == "enabled" )
-        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\",0);'><img src='img/button_reset-right.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\",1,\"mei\");'><img src='img/button_reset-right.png' /> </button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\",1);'><img src='img/button_info-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\",1,\"mei\");'><img src='img/button_info-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\",1);'><img src='img/button_info-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\",1,\"mei\");'><img src='img/button_info-right.png' /></button></td>";
     print "</tr>\n";
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\",1);'><img src='img/button_stack-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\",1,\"mei\");'><img src='img/button_stack-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\",1);'><img src='img/button_stack-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\",1,\"mei\");'><img src='img/button_stack-right.png' /></button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
-	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1);'><img src='img/button_verify.png' /> </button></td>";
+	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1,\"mei\");'><img src='img/button_verify.png' /> </button></td>";
     print "</tr>\n";
 
 
@@ -702,15 +718,15 @@ case "mei_verify":
 case "mei_stack_left":
     print "<div class='function'>";
     print "STACKING LEFT VALIDATOR";
-    print "<div class='data' id='mei_stack_left'></div>";
-//    $res=MEI_stack($VALIDATOR_LEFT);
+    print "<div class='data' id='mei_stack_left'>test</div>";
+    $res=MEI_stack($VALIDATOR_LEFT);
     print "</div>";
     break;
 case "mei_stack_right":
     print "<div class='function'>";
     print "STACKING RIGHT VALIDATOR";
     print "<div class='data' id='mei_stack_right'></div>";
-//    $res=MEI_stack($VALIDATOR_RIGHT);
+    $res=MEI_stack($VALIDATOR_RIGHT);
     print "</div>";
     break;
 
@@ -1088,6 +1104,32 @@ function MEI_reset($which)
     SendMessage($cmd);
     CloseConnection();
 }
+
+
+
+
+//998-VALIDATOR_DONE(LEFT|RIGHT)      // used for VERIFY and STACK
+function MEI_done($which)
+{
+   $cmd="998-VALIDATOR_DONE-";
+    switch($which)
+    {
+    case $VALIDATOR_LEFT:
+        $cmd .="LEFT";
+        break;
+    case $VALIDATOR_RIGHT:
+        $cmd .="RIGHT";
+        break;
+    case $VALIDATOR_UCD:
+        $cmd .="UCD";
+        break;
+    }
+    SocketConnect();
+    $res=SendMessage($cmd);
+    CloseConnection();
+    return $res;
+}
+
 
 
 //924-VALIDATOR-INFO-(LEFT|RIGHT|UCD)
@@ -1510,6 +1552,12 @@ function getvars()
 ?>
 
 <script language="javascript" type="text/javascript">
+
+    var which="ALL";
+    var action;
+	var prev_menu;
+
+
     function submitUNLOAD(fn)
 	{
         alert(fn);
@@ -1533,16 +1581,25 @@ function getvars()
 	}
 
 
-    function submitMEIMAINT(fn,AJAX)
+function subMEIDONE(fn)
+{
+	setActionWhich(fn);
+	startAJAX(fn);
+}
+
+
+    function submitMEIMAINT(fn,AJAX,prev)
     {
 //		alert(fn);
+		setActionWhich(fn);
+		prev_menu=prev;
 
 		if (AJAX == 1)
 			startAJAX(fn);
 //        $("#mMEI").val("none");
 //        $("#fnmei").val(fn);
 //        $("#meimaintformID").submit();
-		clearDIV("#meimaintformID");
+		clearDIV("#meimaintformID",fn);
 
     }
 
@@ -1555,15 +1612,51 @@ function getvars()
     print "</div>";
 
 */
-function clearDIV(divID)
+function clearDIV(divID,fn)
 {
-//	alert("clearing " + divID);
+//	alert("clearing " + divID + " "+ fn);
+	var cmd;
 
-	cmd="<span class='hdr'>STACKING LEFT VALIDATOR</span>";
-	cmd += "<div class='data' id='mei_stack_left'><br></div>";
+	switch(action)
+	{
+	case "stack":
+		cmd="<span class='hdr'>STACKING LEFT VALIDATOR</span>";
+		cmd +="<div id='doneID' class='done'>";
+		cmd+="<a href='?m="+prev_menu+"'><img src='img/button_done.png' onclick='\"submitMEIDONE(\"998-VALIDATOR-DONE-'.which.'\"');' > </a>";
+		cmd+="</div>";
+		break;
+	case "info":
+       cmd="<span class='hdr'>INFO "+ which +" VALIDATOR</span>";
+		break;
+	case "reset":
+       cmd="<span class='hdr'>RESETTING "+ which +" VALIDATOR</span>";
+		break;
+	case "verify":
+       cmd="<span class='hdr'>VERIFYING BILLS</span>";
+		break;
+	}
+
+	var id = fn;
+	cmd += "<div class='data' id='"+id+"'><br></div>";
+    cmd += "<div class='total' id='totalID'></div>";
 	$(divID).html(cmd);
+}
+
+
+function setActionWhich(fn)
+{
+    // returns -1 if no match, else position
+    if (fn.indexOf("left") >0)  which="LEFT";
+    if (fn.indexOf("right") >0) which="RIGHT";
+
+    if (fn.indexOf("stack")>0)  action="stack";
+    if (fn.indexOf("info")>0)   action="info";
+    if (fn.indexOf("reset")>0)  action="reset";
+    if (fn.indexOf("verify")>0)	action="verify";
+    if (fn.indexOf("done")>0) action="done";
 
 }
+
 
 
 $(document).ready(function()
@@ -1595,45 +1688,43 @@ function stopAJAX()
 }
 
 
+var totalStacked=0;	// must divide by 100 to display
+var denom;
+var strng;
+
 function getAJAX()
 {
 
-	var which="ALL";
-	var action;
 
-	// returns -1 if no match, else position
-	if (caller.indexOf("left") >0)	which="LEFT";
-    if (caller.indexOf("right") >0)	which="RIGHT";
+// DEBUG: this worked
+//	var data = { "action": "stack", "which" : "left" };
 
-    if (caller.indexOf("stack")>0)	action="stack";
-    if (caller.indexOf("info")>0)	action="info";
-    if (caller.indexOf("reset")>0)	action="reset";
-    if (caller.indexOf("verify")>0)	action="verify";
+	// create an object
+	var data={};
+	// add  some stuff to it
+	data.action=action;
+	data.which=which;
+//	var data = JSON.stringify(mydata);
+//	alert("predata:" + data.action);
 
-
-// this worked
-	var data = { "action": "stack", "which" : "left" };
 
 /*
-    var mydata=[];
-    mydata["action"] = action;
-    mydata["which"] = which;
-	var data = JSON.stringify(mydata);
+
+	GREAT REFERENCE
+
+	https://api.jquery.com/jquery.ajax/
 */
-
-
-//	alert("predata:" + data);
-//    data: data, //JSON.stringify(mydata),
 
 $.ajax(
  {
-	type:"POST",
-//	contentType: "application/json",
+	type:"POST",		// alias for "method"
+//	contentType: "application/json",	// using default: 'application/x-www-form-urlencoded; charset=UTF-8'
 	dataType: "json",
 	url: "ajax_server.php",
+	cache: false,
 	data: data,
 	async: true,
-	timeout: 100000,
+	timeout: 100000,			// ms timeout value
 	cache: false,
     success: function(data)
 	{
@@ -1643,16 +1734,25 @@ $.ajax(
 		// res[0] = USD
 		// res[1] = 1000
 //		alert(res[0] + "..." + res[1]);
+		denom=res[0];
+		totalStacked +=  parseInt(res[1],10);
+
+		strng = $("#"+caller).html();		// get the current string
+
 
 		switch(action)
 		{
+		case "done":
+			stopAJAX();
+			break;
 		case "stack":
-			var str = $("#"+caller).html();
-			str += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
-			if (which == "LEFT")
-		        $("#"+caller).html(str);
-			if (which == "RIGHT")
-	            $("#"+ caller).html(str);
+			// returned string: USD:0100
+			strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
+            $("#"+ caller).html(strng);
+
+            // update the total
+            var str="Total " + denom + " stacked:: "+ totalStacked/100;
+            $("#totalID").html(str);
 
 		// make sure last entry is visible
 //		var elmnt = document.getElementById("mei_stack_left");
@@ -1660,8 +1760,24 @@ $.ajax(
 
 			break;
 		case "info":
+			// Model- <info> :Serial-  <info>:
+            strng = "<br>"+which+" VALIDATOR INFO<br>";
+			for (n=0; n < res.length; n++)
+				strng += "<br>"+res[n];
+
+            $("#"+ caller).html(strng);
+			stopAJAX();
+			break;
 		case "reset":
+            strng += "<br>VALIDATOR RESET";
+			strng +="<br>"+which+ " VALIDATOR WAS RESET";
+            $("#"+ caller).html(strng);
+			stopAJAX();
+			break;
 		case "verify":
+            // returned string: USD:0100
+			strng += "<br>Verified one "+ res[1]/100 + " " + res[0] + " bill";
+            $("#"+ caller).html(strng);
 			break;
 		}
 
@@ -1674,6 +1790,8 @@ $.ajax(
 		str += "<br> "+e.details;
 		$("#mei_stack_left").html(str);
 	}
+
+
  }); // end ajax
 }	// end fn
 
