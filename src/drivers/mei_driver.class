@@ -28,7 +28,7 @@ Global Variables
 	string mei_query_type = "status";
 	string old_mei_rply1;
 	float mei_invntry;
-	char comm_port[250] = "/dev/ttyUSB0";//TODO need to get this from usb_gateway
+	char comm_port[250] = "/dev/ttyUSB0";
 	char tx_packet[30] = {0};
 	char rx_packet[40] = {0};
 	char MEI_CURRENT_COMMAND[30] = "idle";
@@ -76,12 +76,11 @@ private:
 //int mei_status;
 
 public:
-		mei(string pname, int instance)
+		mei(string pname )
 		{
 			int mei_connected = 0;
 			mei_detected=false;
 			mei_portname=pname;
-			mei_instance = instance;
 			int result;
 			mei_connected = mei_connect();
 			printf("mei connected = %d\n", mei_connected);
