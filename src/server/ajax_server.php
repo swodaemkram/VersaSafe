@@ -10,10 +10,15 @@
 	CAUTION: any debug code that outputs anything to the screen, will totally kill
 	any JSON packet return.
 
+	This module is designed to be called exclusively via AJAX, and, in fact, will not respond otherwise
+
 */
 
     GLOBAL $socket, $api_connected, $port;
     GLOBAL $xml,$cfg, $host;
+
+//NOTE: using the file option causes the client side to error out on the return data
+$USEFILE=0;
 
 //print "HELLO";
 
@@ -27,28 +32,53 @@ $cfg=array
 );
 
 
+if ($USEFILE)
+{
+	$myfile = fopen("/var/www/html/log.txt", "a+") ;
+	fwrite($myfile,"----------------------NEW\n");
+	fwrite($myfile,$_POST["action"]."\n");
+	fwrite($myfile,$_POST["which"]."\n");
+}
+
 if (is_ajax())
 {
+
+if ($USEFILE)
+	fwrite($myfile,"is ajax\n");
 
   if (isset($_POST["action"]) && !empty($_POST["action"]))
 	{ //Checks if action value exists
 	    $action = strtolower($_POST["action"]);
     	if (isset($_POST['which'])) $which = strtoupper($_POST['which']);
 
+//927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
+//998-VALIDATOR_DONE(LEFT|RIGHT)      // used for VERIFY and STACK
+
+
     	switch($action)
 	    { //Switch case for value of action
-	        case "stack":
-				$cmd="926-VALIDATOR-IDLE-".$which;
+			case "stack":
+			case "verify":
+			case "info":
+				$cmd="927-VALIDATOR-GET-RESULTS-".$which;
 				call_API($cmd);
 				break;
+			case "done":
+				$cmd="998-VALIDATOR-DONE-".$which;		// stop result polling in driver
+                call_API($cmd);
+				break;
+//	        case "stack":
+//				$cmd="926-VALIDATOR-IDLE-".$which;
+//				call_API($cmd);
+//				break;
 			case "info":
 				$cmd="924-VALIDATOR-INFO-".$which;
                 call_API($cmd);
 				break;
-			case "verify":
-				$cmd="920-VALIDATOR-VERIFY";
-                call_API($cmd);
-				break;
+//			case "verify":
+//				$cmd="920-VALIDATOR-VERIFY";
+//                call_API($cmd);
+//				break;
 			case "reset":
 				$cmd="925-VALIDATOR-RESET-".$which;
                 call_API($cmd);
@@ -59,6 +89,9 @@ if (is_ajax())
 
 }
 
+
+if ($USEFILE)
+	flcose($myfile);
 
 
 //Function to check if the request is an AJAX request
@@ -82,10 +115,13 @@ function is_ajax()
 function call_API($cmd)
 {
 
-//print"here";
 //	$return = $_POST;
 
-	$return["json"]= "USD:1000";
+	// TESTS FOR DEBUGGING
+
+	$return["json"]= "USD:1000";	// stack/verify
+//	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";
+
 /*
 
     SocketConnect();

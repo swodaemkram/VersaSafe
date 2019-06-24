@@ -468,9 +468,14 @@ retstruc CommandDispatcher(char * cmd)
         retstat.cmd=926;
         break;
 
-	case 927:		//927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
+	case 927:		//927-VALIDATOR-GET-RESULTS-(LEFT|RIGHT)
 		retstat=api_927(cmd);
 		retstat.cmd=927;
+		break;
+
+	case 998:		//998-VALIDATOR_DONE-(LEFT|RIGHT)
+		retstat=api_998(cmd);
+		retstat.cmd=998;
 		break;
 	}
 

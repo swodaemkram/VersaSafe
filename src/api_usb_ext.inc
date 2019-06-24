@@ -78,5 +78,5 @@ extern retstruc api_926(char *cmd);		//926-VALIDATOR-IDLE-(LEFT|RIGHT)
 extern retstruc api_927(char *cmd);		//927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
 
 
-
+extern retstruc api_998(char *cmd);		// 998-VALIDATOR_DONE(LEFT|RIGHT)
 extern retstruc api_999(char *cmd);		//999-GET-CONFIG

@@ -234,3 +234,19 @@
 	font-weight:bold;
 }
 
+.total
+{
+	height:80px;
+	font-weight:bold;
+	font-size:16pt;
+	text-align:center;
+}
+
+.done
+{
+	float:right;
+
+	margin-right:100px;
+	margin-top:20px;
+}
+
