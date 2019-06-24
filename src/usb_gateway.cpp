@@ -19,7 +19,6 @@
 	4. base
 */
 
-
 using namespace std;
 
 #include <string>
@@ -39,8 +38,6 @@ using namespace std;
 //Bus 002 Device 026: ID 0403:6001 Future Technology Devices International, Ltd FT232 USB-Serial (UART) IC
 #include "drivers/d8c.class"
 #include "drivers/mei_driver.class"
-
-
 
 //======================================================================================================
 //Beginning of MEI Declarations
@@ -95,13 +92,9 @@ void Enable_Lock(int index);
 //TODO implement setting serial number
 //TODO implement setting lock address
 
-
-
 //=================================================================================================
 //					USB LOCK SECTION
 //=================================================================================================
-
-
 
 // this struct holds all info about a lock
 struct alock
