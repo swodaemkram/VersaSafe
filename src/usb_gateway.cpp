@@ -671,11 +671,13 @@ string Validator_model(int which)
 	if (which == 0  && cfg.validator_left == true)
 	{
 		validator_left->Rx_Command("model", 1, 0, 0, 0);
+		Validator_get_results(0);
 	}
 
 	if (which == 1  && cfg.validator_right == true)
 	{
 		validator_right->Rx_Command("model", 1, 0, 0, 0);
+		Validator_get_results(1);
 	}
 
 	return "test";
@@ -693,7 +695,7 @@ string Validator_info(int which)
 
 	if (which == 0  && cfg.validator_left == true)
 		{
-		    validator_left->clr_get_result();
+
 		    //validator_left->Rx_Command("model", 1, 0, 0, 0);
 		    //info_string = Validator_get_results(0);
 		   	//printf("model = %s\n",info_string.c_str());
@@ -701,7 +703,14 @@ string Validator_info(int which)
 
 			validator_left->Rx_Command("serial", 1, 0, 0, 0);
 			info_string = Validator_get_results(0);
+
 			printf("Serial Number = %s\n",info_string.c_str());
+			validator_left->clr_get_result();
+
+
+
+
+
 
 
 		}
