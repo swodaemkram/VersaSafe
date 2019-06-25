@@ -17,6 +17,7 @@
     GLOBAL $socket, $api_connected, $port;
     GLOBAL $xml,$cfg, $host;
 
+
 //NOTE: using the file option causes the client side to error out on the return data
 $USEFILE=0;
 

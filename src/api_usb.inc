@@ -467,7 +467,10 @@ retstruc api_927(char *cmd)
 {
     retstruc retstat;
     int which = FindWhich(cmd);
+	// if there is no data ready, Validator_get_results() returns an empty string
 	retstat.result=Validator_get_results(which);
+	if (retstat.result=="")
+		retstat.result="none";
 
     return retstat;
 }

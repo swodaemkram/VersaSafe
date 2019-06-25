@@ -45,7 +45,8 @@ $_SESSION['logged_in']='1'
 
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 </head>
 
 <?php
@@ -360,7 +361,7 @@ case "verify_bill":
     print "</tr>";
 
     print "<tr>";
-    print "<td><a href='?m=main'><img src='img/button_done.png' /> </a> </td>";
+    print "<td><a href='?m=main'><img src='img/button_done.png' onclick='\"submitMEIDONE(\"998-VALIDATOR-DONE-'.which.'\"');'/> </a> </td>";
     print "<td><a href='?m=verify'><img src='img/button_verify.png' /> </a> </td>";
     print "</tr>";
 
@@ -614,6 +615,59 @@ case "maint":
 
 
 	break;
+
+
+case "utd":
+    print "<div class='menu' id='meimaintformID'>";
+
+//    print "<form id='meimaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+
+    print "<input type='hidden' id='fnmei' name='f' value=''>";
+    print "<input type='hidden' id='mMEI' name='m' value=''>";
+
+
+    print "<table  class='mtable'>";
+
+    print "<tr>";
+    print "<th colspan='2' style='font-size:20pt;'>";
+    print "UTD MAINT";
+    print "</th>";
+    print "</tr>";
+
+    print "<tr>";
+    print "<th colspan='2'><hr class='hrr'></th>";
+    print "</tr>";
+
+/*
+	UNLOAD COLUMN
+	UNLOAD ALL
+	LOAD
+	RESET
+*/
+
+    if ($xml->devices->utd == "enabled")
+	{
+	    print "<tr>";
+        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_reset\",1,\"mei\");'><img src='img/button_reset.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_inventory\",1,\"mei\");'><img src='img/button_inventory.png' /> </button></td>";
+	    print "</tr>\n";
+
+        print "<tr>";
+	    print "<td><button class='buttons' id='maint_unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
+	    print "<td><button class='buttons' id='maint_unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
+        print "</tr>\n";
+
+
+	}
+
+    print "</table>";
+//  print "</form>";
+    print "</div>";
+
+
+    break;
+
+
 
 case "mei":
     print "<div class='menu' id='meimaintformID'>";
@@ -1553,9 +1607,32 @@ function getvars()
 
 <script language="javascript" type="text/javascript">
 
+	var timeouttimer;
     var which="ALL";
     var action;
 	var prev_menu;
+	var caller; //   will contain one of the following...
+    	        //"mei_stack_left|right"
+	            //"mei_info_left|right"
+	            //"mei_reset_left|right"
+	            //"mei_verify"
+
+	var callTimer;
+
+	var INTERVAL=150;       // trigger AJAX calls INTERVRAL ms apart
+	var TIMEOUT=30000;		// ms, timeout for verifying or stacking bills
+	var totalStacked=0; 	// must divide by 100 to display
+	var denom;
+	var strng;
+
+
+$(document).ready(function()
+{
+    // call getStack every 100ms
+//  window.setInterval(getStack,5000);
+//  alert("doc is ready");
+});
+
 
 
     function submitUNLOAD(fn)
@@ -1581,10 +1658,11 @@ function getvars()
 	}
 
 
-function subMEIDONE(fn)
+function submitMEIDONE(fn)
 {
 	setActionWhich(fn);
 	startAJAX(fn);
+
 }
 
 
@@ -1602,6 +1680,17 @@ function subMEIDONE(fn)
 		clearDIV("#meimaintformID",fn);
 
     }
+
+
+function submitUTDMAINT(fn,AJAX,prev)
+{
+        setActionWhich(fn);
+        prev_menu=prev;
+
+        if (AJAX == 1)
+            startAJAX(fn);
+}
+
 
 
 /*
@@ -1658,39 +1747,61 @@ function setActionWhich(fn)
 }
 
 
+/*
+	STARTING
+	1. start the timeout timer
+	2. reset timer when valid data is received from ajax_server
+	3. start the interval timer that calls the AJAX function
 
-$(document).ready(function()
-{
-	// call getStack every 100ms
-//	window.setInterval(getStack,5000);
-//	alert("doc is ready");
-});
+	STOPPING
+	1. stop the timeout timer
+	2. stop the interval timer
 
-var caller;	//	 will contain one of the following...
-			//"mei_stack_left|right"
-			//"mei_info_left|right"
-			//"mei_reset_left|right"
-			//"mei_verify"
-
-var myTimer;
+*/
 
 function startAJAX(theCaller)
 {
 //	alert('Starting AJAX');
 	caller=theCaller;
-	myTimer = setInterval(getAJAX,4000);
+
+	// set a 30 timeout for all AJAX activity
+	timeouttimer = setTimeout(stopAJAX,TIMEOUT);
+	callTimer = setInterval(getAJAX,INTERVAL);
+
 }
 
+/*
+	stop and restart the timeout timer
+
+	 reset when...
+	1. a bill comes in (response from ajax_server)
+
+*/
+
+function resetTimeout()
+{
+    clearTimeout(timeouttimer);
+    timeouttimer = setTimeout(stopAJAX,TIMEOUT);
+
+}
+
+
+/*
+turn OFF the AJAX machine
+*/
 
 function stopAJAX()
 {
-	clearInterval(myTimer);
+	clearInterval(callTimer);
+    clearTimeout(timeouttimer);
 }
 
 
-var totalStacked=0;	// must divide by 100 to display
-var denom;
-var strng;
+/*
+	make an AJAX call to the server (ajax_server.php), every INTERVAL ms
+	there is a timeout timer running that expired in 30s (configurable)
+
+*/
 
 function getAJAX()
 {
@@ -1746,6 +1857,8 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "stack":
+			if (res[0] === "none") break;	// if no data ready
+			resetTimeout();
 			// returned string: USD:0100
 			strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
             $("#"+ caller).html(strng);
@@ -1760,6 +1873,7 @@ $.ajax(
 
 			break;
 		case "info":
+            if (res[0] === "none") break;   // if no data ready
 			// Model- <info> :Serial-  <info>:
             strng = "<br>"+which+" VALIDATOR INFO<br>";
 			for (n=0; n < res.length; n++)
@@ -1775,6 +1889,8 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "verify":
+            if (res[0] === "none") break;   // if no data ready
+			resetTimeout();
             // returned string: USD:0100
 			strng += "<br>Verified one "+ res[1]/100 + " " + res[0] + " bill";
             $("#"+ caller).html(strng);
@@ -1784,11 +1900,12 @@ $.ajax(
 	},
    	error: function(e)
 	{
+		stopAJAX();
 		alert('There was an error during the AJAX call!');
 //		console.log("ERROR : ", e);
-		var str = $("#mei_stack_left").html();
-		str += "<br> "+e.details;
-		$("#mei_stack_left").html(str);
+		strng = $("#"+caller).html();
+		strng += "<br> "+e.details;
+		$("#"+caller).html(strng);
 	}
 
 
