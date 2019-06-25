@@ -47,6 +47,7 @@ Global Variables
 	char LAST_MEI_STATUS[30];
 	char clean_text[30] = {0};
 	string return_to_usb_gateway = {0};
+	bool response_ready = false;
 	int fd;
 //-----------------------------------------------------------------------------------------------
 //Added New
@@ -144,7 +145,7 @@ int mei_connect(void)
 					    }
 					    /*baudrate 9600, 7 bits, even parity, 1 stop bit */
 
-					    tx_packet[0] = '\x02';//|
+					                tx_packet[0] = '\x02';//|
 					    			tx_packet[1] = '\x08';//|
 					    			tx_packet[2] = '\x60';//|
 					    			tx_packet[3] = '\x00';//|---------Get model
@@ -163,25 +164,28 @@ int mei_connect(void)
 	unsigned char buf[80];
 	int rdlen = 0;
 	int i = 0;
-    rdlen = read(fd, buf, sizeof(buf) -1);//Get Data from Comm Port was -1
-    if (rdlen > 0) {
-			    	bzero(rx_packet,40);
-
-			    	while(i < rdlen)
+   rdlen = read(fd, buf, sizeof(buf) -1);//Get Data from Comm Port was -1
+    if (rdlen > 0)
+    {
+	   	bzero(rx_packet,40);
+		    	while(i < rdlen)
      		    	{
 			    		rx_packet[i] = buf[i];
 			    		//printf("%02x|",rx_packet[i]);//Print The RXed Hex Packet DEBUG !!!
 			    		i++;
 			    	}
-			    	char * rxdata = {0};
-			    	rxdata = clean_text(rx_packet,rdlen);
-			    	printf("Validator is a %s\n",rxdata);
+    	char * rxdata = {0};
+    	rxdata = clean_text(rx_packet,rdlen);
+    	printf("Validator is a %s\n",rxdata);
+    	if ( strncmp(rxdata,"SCN83",5)== 0) return(1);
+    	//return_to_usb_gateway = rxdata;
+    	strncpy(MEI_CURRENT_COMMAND,"idle",4);
 
-			    	if ( strncmp(rxdata,"SCN83",5)== 0) return(1);
+    	return(0);
 
-			    	return(0);
-}
-return(0);
+    }
+
+    return(0);
 }
 /*
 ==================================================================================================================================
@@ -274,7 +278,7 @@ public:
 			tx_packet[2] = '\x60';//|
 			tx_packet[3] = '\x00';//|---------Get Command
 			tx_packet[4] = '\x00';//|
-			//tx_packet[5] = '\x08';//|
+	      //tx_packet[5] = '\x08';//|
 			tx_packet[6] = '\x00';//|
 			tx_packet[7] = '\x00';//|
 
@@ -293,13 +297,16 @@ public:
 			//char log_message[100] = {0};
 			//sprintf(log_message,"MEI Response = %s",the_clean_text);
 			strcpy(MEI_STATUS,the_clean_text);
+
 			//BECAUSE_OF_MOVEdomain_response_server();
 			//BECAUSE_OF_MOVElog_Function(log_message);//For now we will print the response in the Log file but could put it any place
 			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
 			GET_ONETIME = 1;    //Keeps this from spinning out of control
 			tx_packet[2] = '\x10';    //Put tx_packet back in command mode
+			//DEBUGprintf("Return From MEI = %s\n",return_to_usb_gateway.c_str());
+			//return_to_usb_gateway = the_clean_text;//MARK TODAY
 
-		return;
+			return;
 	}
 /*
 =====================================================================================================================
@@ -571,8 +578,10 @@ if((strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x55') ||(strnc
 	}
 //===============================END OF Idle Command=============================================
 //=====================================Reset Command=============================================
-		if(strncmp(MEI_CURRENT_COMMAND,"reset",5)== 0 && strncmp(MEI_STATUS, "accepting",9) == 0 )
-		{
+		//if(strncmp(MEI_CURRENT_COMMAND,"reset",5)== 0 && strncmp(MEI_STATUS, "accepting",9) == 0 )
+	      if(strncmp(MEI_CURRENT_COMMAND,"reset",5)== 0)
+
+	      {
 							tx_packet[2] = '\x60';        //Expanded Command Mode
                 			tx_packet[3] = '\x7f';        //We are sending the reset Command
 							tx_packet[4] = '\x7f';        //"\x02\x08\x60\x7f\x7f\x7f\x03"
@@ -649,11 +658,9 @@ if((strncmp(MEI_CURRENT_COMMAND,"stack",5)==0 && rx_packet[11]=='\x55') ||(strnc
 // ^^^^^^^^^^^^ ALL SINGLE RUN COMMANDS NEED TO BE BELOW THIS  ^^^^^^^^^^^^^^^^
 //==================================Singel Get Replacement=======================================
 
- get(); //This will be the single run command function
+ get(); //This runs all single run command functions
 
 //==================================END of Get Replacement=======================================
-
-
 
  return;
 }
@@ -676,7 +683,7 @@ void process_response (void)
 		  strcpy(MEI_STATUS,"idling");
 		  break;
 	case '\x01':
-		  strcpy(MEI_STATUS,"accepting");//We dont want to display this message
+		  //strcpy(MEI_STATUS,"accepting");//We dont want to display this message
 		  break;
 	case '\x02':
 		  strcpy(MEI_STATUS,"drawing_in");
@@ -727,7 +734,7 @@ if (strncmp(MEI_STATUS,"escrowed",8)==0 && strncmp(MEI_CURRENT_COMMAND, "stack",
 	  denom_detail[v] = rx_packet[v+11];
 	 v++;
 	}
-//This is were we  what denomination we have and convert it to its value in 1s of the currency
+//This is were we decide what denomination we have and convert it to its value in 1s of the currency
 //Then we format it so we can send it to Vsafe for processing
 //The agreed upon format is 3 Character denomination name then a colon and the the amount in pennys
 // An example would be USD:0100 for United States Denomination and 100 pennys or $1.00 US Doller.
@@ -747,7 +754,7 @@ if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000;/
 if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
 // DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
 sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
-
+return_to_usb_gateway = MEI_STATUS;// SEND TO USB GATEWAY
 //sprintf(MEI_STATUS,"stacked a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
@@ -780,6 +787,7 @@ if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000; 
 if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
 //DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
 sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
+return_to_usb_gateway = MEI_STATUS;//SEND TO USB GATEWAY
 //sprintf(MEI_STATUS,"Verified a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
@@ -796,7 +804,9 @@ if (strcmp(MEI_STATUS,LAST_MEI_STATUS)!=0)
 }
 //============================END OF STATUS LOGGING==========================================
 */
-	return;
+if (GET_ONETIME == 1)return_to_usb_gateway = MEI_STATUS;
+response_ready = true;
+return;
 }
 /*
 =============================================================================================
@@ -882,6 +892,29 @@ void mei_poll(void)
 			tx_packet[7] = tx_crc;
 		}
 		//==================End of Polling=============================
+
+		if (rx_packet[2] == '\x60') //BUG FIX
+				{
+					tx_packet[2] = '\x11';
+				    tx_packet[6] = '\x00';
+				    tx_packet[7] = '\x00';
+				    tx_crc = 0;
+				    tx_crc = do_crc(tx_packet,8);
+				    tx_packet[6] = '\x03';
+				    tx_packet[7] = tx_crc;
+				}
+
+		if (rx_packet[2] == '\x61') //BUG FIX
+				{
+					tx_packet[2] = '\x10';
+					tx_packet[6] = '\x00';
+					tx_packet[7] = '\x00';
+					tx_crc = 0;
+					tx_crc = do_crc(tx_packet,8);
+					tx_packet[6] = '\x03';
+					tx_packet[7] = tx_crc;
+				}
+
 		//===============Business  Logic for MEI=======================
 
 		process_commands();           //Process In coming commands
@@ -893,10 +926,15 @@ void mei_poll(void)
 
 		q=0;//Reset Polling Divider
 		if(mei_verifying == 1 || mei_stacking == 1) mei_timeout_timer();//Turn On Timeout Timer if this is a polling command
+
 		//DEBUGif (strcmp(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND)!= 0) printf("MEI_CURRENT_COMMAND = %s\n",MEI_CURRENT_COMMAND);//Print Only Changes DEBUG !!!
 		if (strcmp(LAST_MEI_STATUS,MEI_STATUS) !=0)
 		{
-			if (strcmp(MEI_STATUS,"accepting") != 0)printf("%s\n",MEI_STATUS);//Print Only Changes THIS IS THE MEI RESPONSE dont print accepting
+			if (strcmp(MEI_STATUS,"accepting") != 0)
+
+			{
+				//printf("%s\n",MEI_STATUS);//Print Only Changes THIS IS THE MEI RESPONSE dont print accepting
+			}
 
 			mei_timeout_timer_value = 0; //Reset the timer
 
@@ -908,7 +946,7 @@ void mei_poll(void)
 			mei_single_run_command = 0;
 		}
 
-		if (strncmp(LAST_MEI_STATUS,"drawing_in",10) == 0) return_to_usb_gateway = MEI_STATUS;
+		//if (strncmp(LAST_MEI_STATUS,"drawing_in",10) == 0) return_to_usb_gateway = MEI_STATUS;
 		strcpy(MEI_LAST_COMMAND,MEI_CURRENT_COMMAND);
 		memset(LAST_MEI_STATUS,0,30);
 		strcpy(LAST_MEI_STATUS,MEI_STATUS);
@@ -957,27 +995,52 @@ void Rx_Command(string command, int SRF, int StackF, int VerifyF, int TOTF)
 {
 	memset(MEI_CURRENT_COMMAND,0,30);
 	strcpy(MEI_CURRENT_COMMAND,command.c_str());
-	//printf("Validator has been told to %s\n",MEI_CURRENT_COMMAND); //DEBUG !!!
+	printf("Validator has been told to %s\n",MEI_CURRENT_COMMAND); //DEBUG !!!
 	mei_single_run_command = SRF;//Flag for a single run command
 	mei_stacking = StackF; //Global Status Value for the MEI
 	mei_verifying = VerifyF;//Global Status Value for the MEI
 	mei_timeout_timer_value = TOTF;//Global Timeout Timer Variable
 }
-
+/*
+==================================================================================================
+Get Results
+==================================================================================================
+*/
 
 string get_result(void)
 {
+	//DEBUGprintf("line 1 return = %s\n",return_to_usb_gateway.c_str());
+
+	return_to_usb_gateway = the_clean_text;
 	return return_to_usb_gateway;
 }
-
+/*
+================================================================================================
+Clear Result
+================================================================================================
+ */
 void clr_get_result(void)
 {
+
 	return_to_usb_gateway = "";
+	response_ready = false;
+	return;
+}
+/*
+===============================================================================================
+Set Done Flag
+===============================================================================================
+*/
+
+void set_done_flag(void)
+{
+
+	Rx_Command("idle", 1, 0, 0, 0);
 	return;
 }
 
 
-};
+};//END OF CLASS !!!
 /*
 ==============================================================================================
 End of MEI Class

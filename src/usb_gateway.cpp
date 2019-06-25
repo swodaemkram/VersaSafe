@@ -19,7 +19,6 @@
 	4. base
 */
 
-
 using namespace std;
 
 #include <string>
@@ -40,8 +39,6 @@ using namespace std;
 #include "drivers/d8c.class"
 #include "drivers/mei_driver.class"
 
-
-
 //======================================================================================================
 //Beginning of MEI Declarations
 //======================================================================================================
@@ -49,10 +46,11 @@ using namespace std;
 mei * validator_left = NULL;
 mei * validator_right = NULL;
 //ucd_val * validator_ucd = NULL;
-//int init_mei(void);
+
 int init_validators(void);
-//void get_mei_serialNumber(void);
-//char Logbuff[50];
+string Validator_get_results(int which);
+string Validator_idle(int which);
+
 //======================================================================================================
 //End of MEI Declarations
 //======================================================================================================
@@ -95,13 +93,9 @@ void Enable_Lock(int index);
 //TODO implement setting serial number
 //TODO implement setting lock address
 
-
-
 //=================================================================================================
 //					USB LOCK SECTION
 //=================================================================================================
-
-
 
 // this struct holds all info about a lock
 struct alock
@@ -182,8 +176,6 @@ void USB_shutdown(void)
     printf("deleting validator\n");
     delete validator_right;
     }
-
-
 
     return;
 }
@@ -679,11 +671,13 @@ string Validator_model(int which)
 	if (which == 0  && cfg.validator_left == true)
 	{
 		validator_left->Rx_Command("model", 1, 0, 0, 0);
+		Validator_get_results(0);
 	}
 
 	if (which == 1  && cfg.validator_right == true)
 	{
 		validator_right->Rx_Command("model", 1, 0, 0, 0);
+		Validator_get_results(1);
 	}
 
 	return "test";
@@ -696,6 +690,35 @@ string Validator_model(int which)
 string Validator_info(int which)
 {
 	//TODO Need to think about how I will implement this
+
+	string info_string = {0}; //This will be all each element returned from the validator delimited by a colon example model:serialNumber:varname ect
+
+	if (which == 0  && cfg.validator_left == true)
+		{
+
+		    //validator_left->Rx_Command("model", 1, 0, 0, 0);
+		    //info_string = Validator_get_results(0);
+		   	//printf("model = %s\n",info_string.c_str());
+
+
+			validator_left->Rx_Command("serial", 1, 0, 0, 0);
+			info_string = Validator_get_results(0);
+
+			printf("Serial Number = %s\n",info_string.c_str());
+			validator_left->clr_get_result();
+
+
+
+
+
+
+
+		}
+
+		if (which == 1  && cfg.validator_right == true)
+		{
+			validator_right->Rx_Command("model", 1, 0, 0, 0);
+		}
 
 	return "test";
 }
@@ -778,9 +801,24 @@ string Validator_idle(int which)
 
 	  	return the_result;
   }
+//-----------------------------------------------------------------------------------------------------
+//Validator Done Function
+//-----------------------------------------------------------------------------------------------------
+  void Validator_done(int which)
+  {
 
+	  if (which == 0  && cfg.validator_left == true)
+	  	  	{
+	  	  		validator_left->Rx_Command("idle", 1, 0, 0, 0);
+	  	  	}
 
+	  if (which == 1  && cfg.validator_right == true)
+	  	  	{
+	  	  		validator_left->Rx_Command("idle", 1, 0, 0, 0);
+	  	  	}
 
+	  return;
+  }
 
 //------------------------------------------------------------------------------------------------------
 //End of MEI Commands
