@@ -439,6 +439,10 @@ retstruc CommandDispatcher(char * cmd)
 		api_906(cmd);
         retstat.cmd=906;
 		break;
+	case 907:
+		api_907(cmd);	//907-UTD-INFO
+		retstat.cmd=907;
+		break;
 
 	case 920:		//920-VALIDATOR-VERIFY
 		retstat = api_920(cmd);

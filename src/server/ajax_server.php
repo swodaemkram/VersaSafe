@@ -17,7 +17,6 @@
     GLOBAL $socket, $api_connected, $port;
     GLOBAL $xml,$cfg, $host;
 
-
 //NOTE: using the file option causes the client side to error out on the return data
 $USEFILE=0;
 
@@ -58,6 +57,15 @@ if ($USEFILE)
 
     	switch($action)
 	    { //Switch case for value of action
+			case "utd_reset":
+				$cmd="904-UTD-RESET";
+                call_API($cmd);
+				break;
+			case "utd_inventory":
+				// returns a string "0,0,0,0,0,0,0,0"
+				$cmd="905-UTD-INVENTORY";
+				call_API($cmd);
+				break;
 			case "stack":
 			case "verify":
 			case "info":
@@ -120,7 +128,8 @@ function call_API($cmd)
 
 	// TESTS FOR DEBUGGING
 
-	$return["json"]= "USD:1000";	// stack/verify
+//	$return["json"]= "USD:1000";	// stack/verify
+	$return["json"]="1,2,3,4,5,6,7,8";
 //	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";
 
 /*
