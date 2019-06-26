@@ -66,6 +66,7 @@ extern retstruc api_903(char *cmd);		//903-UTD-LOAD-STOP
 extern retstruc api_904(char *cmd);		//904-UTD-RESET
 extern retstruc api_905(char *cmd);		//905-UTD-INVENTORY
 extern retstruc api_906(char *cmd);		//906-UTD-UNLOAD-COLS-1,2,3,4,5
+extern retstruc api_907(char *cmd);		//907-UTD-INFO
 
 // validator
 extern retstruc api_920(char *cmd);		//920-VALIDATOR-VERIFY

@@ -620,7 +620,7 @@ case "maint":
 case "utd":
     print "<div class='menu' id='meimaintformID'>";
 
-//    print "<form id='meimaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+//    print "<form id='utdmaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
     print "<input type='hidden' id='fnmei' name='f' value=''>";
     print "<input type='hidden' id='mMEI' name='m' value=''>";
@@ -648,8 +648,8 @@ case "utd":
     if ($xml->devices->utd == "enabled")
 	{
 	    print "<tr>";
-        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_reset\",1,\"mei\");'><img src='img/button_reset.png' /> </button></td>";
-        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_inventory\",1,\"mei\");'><img src='img/button_inventory.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_reset\",1,\"utd\");'><img src='img/button_reset.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitUTDMAINT(\"utd_inventory\",1,\"utd\");'><img src='img/button_inventory.png' /> </button></td>";
 	    print "</tr>\n";
 
         print "<tr>";
@@ -1735,14 +1735,19 @@ function clearDIV(divID,fn)
 function setActionWhich(fn)
 {
     // returns -1 if no match, else position
-    if (fn.indexOf("left") >0)  which="LEFT";
-    if (fn.indexOf("right") >0) which="RIGHT";
+    if (fn.indexOf("left") != -1)  which="LEFT";
+    if (fn.indexOf("right") != -1) which="RIGHT";
 
-    if (fn.indexOf("stack")>0)  action="stack";
-    if (fn.indexOf("info")>0)   action="info";
-    if (fn.indexOf("reset")>0)  action="reset";
-    if (fn.indexOf("verify")>0)	action="verify";
-    if (fn.indexOf("done")>0) action="done";
+
+    if (fn.indexOf("stack") != -1)  action="stack";
+    if (fn.indexOf("info") != -1)   action="info";
+    if (fn.indexOf("reset") != -1)  action="reset";
+    if (fn.indexOf("verify") != -1)	action="verify";
+    if (fn.indexOf("done") != -1) 	action="done";
+
+	// these need to be last beause "reset" above will find "utd_reset"
+    if (fn.indexOf("utd_reset") != -1)     		action="utd_reset";
+    if (fn.indexOf("utd_inventory") != -1)		action="utd_inventory";
 
 }
 
@@ -1856,6 +1861,15 @@ $.ajax(
 		case "done":
 			stopAJAX();
 			break;
+		case "utd_reset":
+			stopAJAX();
+			break;
+		case "utd_inventory":
+			// data is:: "0,0,0,0,0,0,0,0"
+			alert(data['json']);
+			var inv = data['json'].split(",");
+			stopAJAX();
+			break;
 		case "stack":
 			if (res[0] === "none") break;	// if no data ready
 			resetTimeout();
@@ -1902,7 +1916,7 @@ $.ajax(
 	{
 		stopAJAX();
 		alert('There was an error during the AJAX call!');
-//		console.log("ERROR : ", e);
+		console.log("ERROR : ", e);
 		strng = $("#"+caller).html();
 		strng += "<br> "+e.details;
 		$("#"+caller).html(strng);

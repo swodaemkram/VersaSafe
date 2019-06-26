@@ -54,6 +54,7 @@ retstruc api_903(char *cmd);
 retstruc api_904(char *cmd);
 retstruc api_905(char *cmd);
 retstruc api_906(char *cmd);
+retstruc api_907(char *cmd);
 
 // validator
 retstruc api_920(char *cmd);
@@ -387,6 +388,15 @@ retstruc api_905(char *cmd)
     }
 
     return retstat;
+}
+
+
+//907-UTD-INFO
+retstruc api_907(char *cmd)
+{
+	retstruc retstat;
+	retstat.result=GetUTDInfo();
+	return retstat;
 }
 
 
