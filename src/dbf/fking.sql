@@ -1,9 +1,8 @@
-
--- MySQL dump 10.13  Distrib 5.7.25, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.26, for Linux (x86_64)
 --
 -- Host: localhost    Database: fking
 -- ------------------------------------------------------
--- Server version	5.7.25-0ubuntu0.18.04.2
+-- Server version	5.7.26-0ubuntu0.18.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -53,9 +52,9 @@ CREATE TABLE `currency` (
   `type` varchar(5) COLLATE utf8_bin NOT NULL,
   `value` int(4) NOT NULL,
   `symbol` varchar(10) COLLATE utf8_bin NOT NULL,
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
+  `denom_code` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`denom_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='currency';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -92,6 +91,113 @@ LOCK TABLES `depts` WRITE;
 /*!40000 ALTER TABLE `depts` DISABLE KEYS */;
 INSERT INTO `depts` VALUES ('DEFAULT','2019-04-23 14:53:51','2019-04-23 14:53:51',1);
 /*!40000 ALTER TABLE `depts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `device_class`
+--
+
+DROP TABLE IF EXISTS `device_class`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `device_class` (
+  `class` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `class_id` int(5) DEFAULT NULL,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='device_class';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `device_class`
+--
+
+LOCK TABLES `device_class` WRITE;
+/*!40000 ALTER TABLE `device_class` DISABLE KEYS */;
+INSERT INTO `device_class` VALUES ('validator',100,1),('utd',200,2),('ucd',300,3),('lock',400,4),('pelicano',500,5),('gsr50',600,6);
+/*!40000 ALTER TABLE `device_class` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `devices`
+--
+
+DROP TABLE IF EXISTS `devices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `devices` (
+  `device_id` int(5) DEFAULT NULL,
+  `class_id` int(5) DEFAULT NULL,
+  `mfg` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `model` varchar(25) COLLATE utf8_bin DEFAULT NULL,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='devices';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `devices`
+--
+
+LOCK TABLES `devices` WRITE;
+/*!40000 ALTER TABLE `devices` DISABLE KEYS */;
+INSERT INTO `devices` VALUES (100,100,'MEI','SCNL6627R',1),(101,200,'fki','xUTD-model',2);
+/*!40000 ALTER TABLE `devices` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inv_map`
+--
+
+DROP TABLE IF EXISTS `inv_map`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inv_map` (
+  `device_id` int(5) DEFAULT NULL,
+  `field` int(5) DEFAULT NULL,
+  `denom` int(5) DEFAULT NULL,
+  `units` varchar(10) COLLATE utf8_bin DEFAULT NULL,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inv_map';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inv_map`
+--
+
+LOCK TABLES `inv_map` WRITE;
+/*!40000 ALTER TABLE `inv_map` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inv_map` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inventory`
+--
+
+DROP TABLE IF EXISTS `inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inventory` (
+  `device_id` int(5) DEFAULT NULL,
+  `field_1` float(12,2) DEFAULT '0.00',
+  `field_2` float(12,2) DEFAULT '0.00',
+  `field_3` float(12,2) DEFAULT '0.00',
+  `field_4` float(12,2) DEFAULT '0.00',
+  `field_5` float(12,2) DEFAULT '0.00',
+  `field_6` float(12,2) DEFAULT '0.00',
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inventory';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventory`
+--
+
+LOCK TABLES `inventory` WRITE;
+/*!40000 ALTER TABLE `inventory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inventory` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -168,6 +274,62 @@ INSERT INTO `locks` VALUES ('outterdoor','10:20','01:10','00:00','01:15','00:00'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `mei_field_map`
+--
+
+DROP TABLE IF EXISTS `mei_field_map`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mei_field_map` (
+  `device_id` int(5) DEFAULT NULL,
+  `field` int(5) DEFAULT NULL,
+  `denom_code` int(5) DEFAULT NULL,
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='mei_field_map';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mei_field_map`
+--
+
+LOCK TABLES `mei_field_map` WRITE;
+/*!40000 ALTER TABLE `mei_field_map` DISABLE KEYS */;
+INSERT INTO `mei_field_map` VALUES (100,1,2,1),(100,2,3,2),(100,3,4,4);
+/*!40000 ALTER TABLE `mei_field_map` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `mei_inventory`
+--
+
+DROP TABLE IF EXISTS `mei_inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mei_inventory` (
+  `device_id` int(5) DEFAULT NULL,
+  `field_1` int(5) DEFAULT '0',
+  `field_2` int(5) DEFAULT '0',
+  `field_3` int(5) DEFAULT '0',
+  `field_4` int(5) DEFAULT '0',
+  `field_5` int(5) DEFAULT '0',
+  `field_6` int(5) DEFAULT '0',
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='mei_inventory';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mei_inventory`
+--
+
+LOCK TABLES `mei_inventory` WRITE;
+/*!40000 ALTER TABLE `mei_inventory` DISABLE KEYS */;
+INSERT INTO `mei_inventory` VALUES (100,11,12,13,14,15,16,1);
+/*!40000 ALTER TABLE `mei_inventory` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `perms`
 --
 
@@ -177,10 +339,10 @@ DROP TABLE IF EXISTS `perms`;
 CREATE TABLE `perms` (
   `user_level` int(5) NOT NULL DEFAULT '-1',
   `cr` tinyint(4) DEFAULT '0',
-  `add_users` tinyint DEFAULT '0',
-  `edit_users` tinyint DEFAULT '0',
-  `deposits` tinyint DEFAULT '0',
-  `reports` tinyint DEFAULT '0'
+  `add_users` tinyint(4) DEFAULT '0',
+  `edit_users` tinyint(4) DEFAULT '0',
+  `deposits` tinyint(4) DEFAULT '0',
+  `reports` tinyint(4) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='permissions';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -262,7 +424,7 @@ CREATE TABLE `users` (
   `active` tinyint(4) NOT NULL DEFAULT '0',
   `id` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='users';
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='users';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -271,39 +433,37 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',99,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1);
-INSERT INTO `users` VALUES ('1111','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Admin','',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,2);
-INSERT INTO `users` VALUES ('2222','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Bob','Fergus',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,3);
+INSERT INTO `users` VALUES ('0000','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Gary','Conway',99,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,1),('1111','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Admin','',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,2),('2222','*97E7471D816A37E38510728AEA47440F9C6E2585','en','Bob','Fergus',999,'GOD','2019-04-23 14:53:49','2019-04-23 14:53:49',1,3);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `utd_denom`
+-- Table structure for table `utd_inventory`
 --
 
-DROP TABLE IF EXISTS `utd_denom`;
+DROP TABLE IF EXISTS `utd_inventory`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `utd_denom` (
+CREATE TABLE `utd_inventory` (
   `col` int(1) NOT NULL,
   `tube_name` varchar(20) COLLATE utf8_bin NOT NULL,
   `tube_value` int(5) NOT NULL,
   `tube_count` int(2) DEFAULT '0',
   `modified_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `currency_code` varchar(8) COLLATE utf8_bin DEFAULT 'USD',
+  `denom_code` int(2) DEFAULT NULL,
   `id` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='locks';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='utd_inventory';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `utd_denom`
+-- Dumping data for table `utd_inventory`
 --
 
-LOCK TABLES `utd_denom` WRITE;
-/*!40000 ALTER TABLE `utd_denom` DISABLE KEYS */;
-INSERT INTO `utd_denom` VALUES (1,'PENNIES',50,0,'2019-04-23 14:53:43','USD',1),(2,'NICKELS',200,0,'2019-04-23 14:53:43','USD',2),(3,'DIMES',500,0,'2019-04-23 14:53:43','USD',3),(4,'QUARTERS',1000,0,'2019-04-23 14:53:43','USD',4),(5,'ONES',1000,0,'2019-04-23 14:53:43','USD',5),(6,'FIVES',2000,0,'2019-04-23 14:53:43','USD',6),(7,'TENS',2000,0,'2019-04-23 14:53:43','USD',7),(8,'TWENTIES',4000,0,'2019-04-23 14:53:43','USD',8);
-/*!40000 ALTER TABLE `utd_denom` ENABLE KEYS */;
+LOCK TABLES `utd_inventory` WRITE;
+/*!40000 ALTER TABLE `utd_inventory` DISABLE KEYS */;
+INSERT INTO `utd_inventory` VALUES (1,'PENNIES',50,2,'2019-04-23 14:53:43',7,1),(2,'NICKELS',200,3,'2019-04-23 14:53:43',8,2),(3,'DIMES',500,6,'2019-04-23 14:53:43',9,3),(4,'QUARTERS',1000,3,'2019-04-23 14:53:43',10,4),(5,'ONES',1000,3,'2019-04-23 14:53:43',1,5),(6,'FIVES',2000,4,'2019-04-23 14:53:43',2,6),(7,'TENS',2000,5,'2019-04-23 14:53:43',3,7),(8,'TWENTIES',4000,5,'2019-04-23 14:53:43',4,8);
+/*!40000 ALTER TABLE `utd_inventory` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -315,74 +475,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-DROP TABLE IF EXISTS `inventory`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `inventory` (
-  `device_id` int(5),
-  `field_1` float(12,2) DEFAULT 0,
-  `field_2` float(12,2) DEFAULT 0,
-  `field_3` float(12,2) DEFAULT 0,
-  `field_4` float(12,2) DEFAULT 0,
-  `field_5` float(12,2) DEFAULT 0,
-  `field_6` float(12,2) DEFAULT 0,
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inventory';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-DROP TABLE IF EXISTS `inv_map`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `inv_map` (
-  `device_id` int(5),
-  `field` int(5),
-  `denom` int(5),
-  `units` varchar(10),
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='inv_map';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
-
-DROP TABLE IF EXISTS `devices`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `devices` (
-  `device_id` int(5),
-  `class_id` int(5),
-  `mfg` varchar(20),
-  `model` varchar(25),
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='devices';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-LOCK TABLES `devices` WRITE;
-/*!40000 ALTER TABLE `devices` DISABLE KEYS */;
-INSERT INTO `devices` VALUES (100,100,'MEI','SCNL6627R',1),(101,200,'fki','xUTD-model',2);
-/*!40000 ALTER TABLE `devices` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
-DROP TABLE IF EXISTS `device_class`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `device_class` (
-  `class` varchar(30),
-  `class_id` int(5),
-  `id` int(5) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='device_class';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
-LOCK TABLES `device_class` WRITE;
-/*!40000 ALTER TABLE `device_class` DISABLE KEYS */;
-INSERT INTO `device_class` VALUES ('validator',100,1),('utd',200,2),('ucd',300,3),('lock',400,4),('pelicano',500,5),('gsr50',600,6);
-/*!40000 ALTER TABLE `device_class` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
--- Dump completed on 2019-04-24  9:49:52
+-- Dump completed on 2019-06-27 15:24:36
