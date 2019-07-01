@@ -67,6 +67,30 @@ INSERT INTO `currency` VALUES ('USD','NOTE',100,'$',1),('USD','NOTE',500,'$',2),
 /*!40000 ALTER TABLE `currency` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
+-- Table structure for table `utd_denom`
+--
+
+DROP TABLE IF EXISTS `utd_denom`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `utd_denom` (
+  `col` int(2) COLLATE utf8_bin NOT NULL,
+  `tube_name` varchar(20) COLLATE utf8_bin NOT NULL,
+  `tube_value` int(4) NOT NULL,
+  `currency_code` varchar(5) COLLATE utf8_bin NOT NULL,
+  `type` varchar(10) COLLATE utf8_bin NOT NULL,
+  `symbol` varchar(5) COLLATE utf8_bin NOT NULL,
+  `denom_code` int(5) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`denom_code`)
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='utd_denom';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+INSERT INTO `utd_denom` VALUES(1,'PENNIES',50,'USD','c','COIN');
+
+
+
 --
 -- Table structure for table `depts`
 --

@@ -57,6 +57,10 @@ if ($USEFILE)
 
     	switch($action)
 	    { //Switch case for value of action
+			case "utd_info":
+				$cmd="907-UTD-INFO";
+				call_API($cmd);
+				break;
 			case "utd_reset":
 				$cmd="904-UTD-RESET";
                 call_API($cmd);
@@ -128,17 +132,18 @@ function call_API($cmd)
 
 	// TESTS FOR DEBUGGING
 
-//	$return["json"]= "USD:1000";	// stack/verify
-	$return["json"]="1,2,3,4,5,6,7,8";
-//	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";
+//	$return["json"]= "USD:1000";					// stack/verify
+//	$return["json"]="1,2,3,4,5,6,7,8";				// UTD INVENTORY
+//	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";	// MEI INFO
+	$return["json"]="UTD DRIVER - v1.01:UTD FIRMWARE - v2.05";
 
 /*
 
     SocketConnect();
 //    $cmd="926-VALIDATOR-IDLE-".$which;
     $res=SendMessage($cmd);
-    $ret=ReadMessage();
-    $res_ar = explode(":",$ret);
+    $return=ReadMessage();
+    $res_arr = explode(":",$return);
     $denom= $res_arr[0];
     $amt = (int) $res_arr[1]/100;
 

@@ -10,7 +10,7 @@
 
 	API interaction:
 
-	some functions are directly implemented with immeidate results in ajax_server.php, however, some
+	some functions are directly implemented with immediate results in ajax_server.php, however, some
 	are implemented as necessitated by the brain damaged MEI microcode as follows...
 
 	STACK
@@ -19,8 +19,8 @@
 
 	for the above cmds...
 	1. this module calls the API directly and issues the appropriate command, EG 94-VALIDATOR-INFO-LEFT etc
-	2. then the javaescript timed event sends 927-VALIDATOR-GET-RESULTS-LEFT etc, to get the results of the above cmd
-		if no results are ready, en empty string is returned from teh API, otherwise, the data is returned
+	2. then the javascript timed event sends 927-VALIDATOR-GET-RESULTS-LEFT etc, to get the results of the above cmd
+		if no results are ready, en empty string is returned from the API, otherwise, the data is returned
 
 
 */
@@ -52,7 +52,10 @@ $_SESSION['logged_in']='1'
 <?php
 
 
-GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars;
+GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars, $maxpacket;
+
+$maxpacket=2000;
+
 
 $input_vars = array();
 require_once 'utils.inc';
@@ -74,9 +77,9 @@ $cfg=array
 // try to get the config info from the API, if that fails
 // fall back to trying to read the local file
 if (!GetConfig())
-ReadXML();
-//print_rx($xml);
-//exit();
+//ReadXML();
+print_rx($xml);
+exit();
 
 get_input_vars();	// place all GET|POST vars in $input_vars array
 //var_dump($input_vars);
@@ -85,7 +88,6 @@ if (extension_loaded('simplexml'))
 	ConnectDBF();
 else
 	print "simplexml extension not loaded";
-
 
 
 
@@ -155,6 +157,14 @@ function CheckLoggedIn()
 }
 
 
+/*
+	get the configuration information via API
+
+	RETURNS: TRUE on success
+			else FALSE
+
+
+*/
 function GetConfig()
 {
 	GLOBAL $xml, $cfg;
@@ -162,13 +172,27 @@ function GetConfig()
     $cmd="999-GET-CONFIG";
     $ret=SocketConnect();
 
-if ($ret !== TRUE)
+if ($ret != true)
     {
-		return FALSE;
+//print "<br><br> CONNECT FAILED1 <br><br>";
+		return false;
  	}
 
+	// returns false on error
+	// else returns data from server
     $result=SendMessage($cmd);
-//    print $result;
+
+print "RESULT::".$result;
+
+	if ($result === false)
+	{
+		print "ERROR receiving data from server";
+		$cfg["validator_timeout"]=30;
+		CloseConnection();
+		return false;
+	}
+
+    print $result;
     CloseConnection();
 
 	$xml=simplexml_load_string($result);
@@ -176,7 +200,7 @@ if ($ret !== TRUE)
 	// access vars as
 	// $xml->localDBF->ip;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -618,12 +642,12 @@ case "maint":
 
 
 case "utd":
-    print "<div class='menu' id='meimaintformID'>";
+    print "<div class='menu' id='utdmaintformID'>";
 
-//    print "<form id='utdmaintformID1' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
+//    print "<form id='utdmaintformID' action='". htmlspecialchars($_SERVER["PHP_SELF"]) ."' method='post'>";
 
-    print "<input type='hidden' id='fnmei' name='f' value=''>";
-    print "<input type='hidden' id='mMEI' name='m' value=''>";
+    print "<input type='hidden' id='fnutd' name='f' value=''>";
+    print "<input type='hidden' id='mUTD' name='m' value=''>";
 
 
     print "<table  class='mtable'>";
@@ -653,15 +677,20 @@ case "utd":
 	    print "</tr>\n";
 
         print "<tr>";
-	    print "<td><button class='buttons' id='maint_unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
-	    print "<td><button class='buttons' id='maint_unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
+        print "<td><button class='buttons' id='utd_info_btn' onclick='submitUTDMAINT(\"utd_info\",1,\"utd\");'><img src='img/button_info.png'/></button></td>";
+	    print "<td><button class='buttons' id='utd_unloadall' onclick='submitUNLOAD(\"vend_unload_all\");'><img src='img/button_unload-all.png'/></button></td>";
+        print "</tr>\n";
+
+		print "<tr>";
+        print "<td></td>";
+        print "<td><button class='buttons' id='utd_unloadnow' onclick='submitUNLOAD(\"vend_unload_now\");'><img src='img/button_unload-now.png'/></button></td>";
         print "</tr>\n";
 
 
 	}
 
     print "</table>";
-//  print "</form>";
+//	print "</form>";
     print "</div>";
 
 
@@ -739,6 +768,20 @@ $VALIDATOR_UCD=2;
 switch($function)
 {
 
+case "utd_info":
+    print "<div class='function'>";
+    print "UTD INFO";
+    print "<div class='data' id='utd_info'>test</div>";
+    print "</div>";
+    break;
+
+
+case "utd_inventory":
+    print "<div class='function'>";
+    print "UTD INVENTORY";
+    print "<div class='data' id='utd_inventory'>test</div>";
+    print "</div>";
+	break;
 
 //925-VALIDATOR-RESET-(LEFT|RIGHT)
 case "mei_reset_left":
@@ -1470,21 +1513,28 @@ function SocketConnect()
 
 	$api_connected=false;
 
+
 //	$host="127.0.0.1";
 //	$cfg["api_port"]=$xml->api->port;
 
 //print "API_PORT:: ". $cfg['api_port'];
 
-	set_time_limit(0);	// no time out
+	set_time_limit(30);	// no time out
 
 
 	$port = (int) $cfg["api_port"];
+
+//print $cfg["api_port"];
 
 	// create a socket
     // returns a socket resource on success, else false on error
 	$socket = socket_create(AF_INET, SOCK_STREAM, 0);
 
-	if (! $socket)
+	if ( $socket)
+	{
+		print "Socket created<br>";
+	}
+	else
 	{
         $errorcode = socket_last_error();
         $errormsg = socket_strerror($errorcode);
@@ -1496,49 +1546,81 @@ function SocketConnect()
 	// returns true on success, else false
 	$result = socket_connect($socket, $host, $port);
 
-	if (! $result)
+	if ($result)
+	{
+		print "Socket Connected<br>";
+	}
+	else
 	{
 		$errorcode = socket_last_error();
 		$errormsg = socket_strerror($errorcode);
 		socket_clear_error();
+print "SOCKETCONNECT:: ".$errormsg."<br>";
 		return $errormsg;
 	}
+
+	socket_set_nonblock($socket);
+//	stream_set_timeout ( resource $stream , int $seconds [, int $microseconds = 0 ] ) : bool
+	socket_set_timeout($socket,30);
+//	$status = sock_get_status($socket);
 
 	$api_connected=true;
 	return true;
 }
 
 
+/*
+	sends msg and receives response
+
+	RETURNS: received data
+			-or- false on error
+
+*/
 
 function SendMessage($message)
 {
-	GLOBAL $socket, $port, $api_connected;
+	GLOBAL $socket, $port, $api_connected, $maxpacket;
 
-	if (!$api_connected) return;
+	if (!$api_connected) return false;
 
 	// write to server socket
 	// returns number of bytes written, or false on error
-	socket_write($socket, $message, strlen($message)) or die("Could not send data to server\n");
+	$sent =socket_write($socket, $message, strlen($message));
+
+	if ($sent == false)
+	{
+		return false;
+	}
+
+	sleep(1);
+
+	//    PHP_BINARY_READ (Default) - use the system recv() function. Safe for reading binary data.
+	//    PHP_NORMAL_READ - reading stops at \n or \r.
 
 	// get the reply
 	// returns a string on success, false on failure
-	$result = socket_read ($socket, $port) or die("Could not read server response\n");
+	$result = socket_read ($socket, $maxpacket,PHP_BINARY_READ);
 
-	if (! $result)
+/*
+	if ($result == "")
 	{
         $errorcode = socket_last_error();
         $errormsg = socket_strerror($errorcode);
         socket_clear_error();
-        return $errormsg;
+print "GCMSG:".$errormsg."<br>";
+//        return $errormsg;
+		return false;
 	}
+*/
 
 	echo "Reply From Server  :".$result ."</br>";
 
+/*
     if ($message == $result)
 	{
 		print "<br>SENT:RCVD messages match:: ". $result ."</br>";
 	}
-
+*/
 	return $result;
 }
 
@@ -1551,11 +1633,13 @@ function SendMessage($message)
 
 function ReadMessage()
 {
-	GLOBAL $socket, $port;
+	GLOBAL $socket, $maxpacket;
+
+
     // get the reply
     // returns a string on success, false on failure
 	// returns "" when there is no data to read
-    $result = socket_read ($socket, $port) or die("Could not read server response\n");
+    $result = socket_read ($socket, $maxpacket,PHP_BINARY_READ);
 
 	if ($ret === "") return "";
 
@@ -1682,14 +1766,21 @@ function submitMEIDONE(fn)
     }
 
 
-function submitUTDMAINT(fn,AJAX,prev)
-{
+	function submitUTDMAINT(fn,AJAX,prev)
+	{
         setActionWhich(fn);
         prev_menu=prev;
 
         if (AJAX == 1)
             startAJAX(fn);
-}
+
+//		$("#fnutd").val(fn);
+//		$("mUTD").val("none");
+//		$("#utdmaintformID").submit();
+//		caller = "utdmaintformID";
+		clearDIV("#utdmaintformID",fn);
+
+	}
 
 
 
@@ -1708,6 +1799,22 @@ function clearDIV(divID,fn)
 
 	switch(action)
 	{
+	case "utd_reset":
+		cmd = $(divID).html();	// just get the original string, we wont change it
+		break;
+	case "utd_info":
+       cmd="<span class='hdr'>UTD INFO</span>";
+        cmd +="<div id='doneID' class='done'>";
+        cmd+="<a href='?m="+prev_menu+"'><img src='img/button_done.png'  > </a>";
+        cmd+="</div>";
+		break;
+	case"utd_inventory":
+        cmd="<span class='hdr'>UTD INVENTORY</span>";
+        cmd +="<div id='doneID' class='done'>";
+        cmd+="<a href='?m="+prev_menu+"'><img src='img/button_done.png'  > </a>";
+        cmd+="</div>";
+        break;
+
 	case "stack":
 		cmd="<span class='hdr'>STACKING LEFT VALIDATOR</span>";
 		cmd +="<div id='doneID' class='done'>";
@@ -1746,8 +1853,10 @@ function setActionWhich(fn)
     if (fn.indexOf("done") != -1) 	action="done";
 
 	// these need to be last beause "reset" above will find "utd_reset"
+    if (fn.indexOf("utd_info") != -1)			action="utd_info";
     if (fn.indexOf("utd_reset") != -1)     		action="utd_reset";
     if (fn.indexOf("utd_inventory") != -1)		action="utd_inventory";
+
 
 }
 
@@ -1808,6 +1917,10 @@ function stopAJAX()
 
 */
 
+
+
+
+
 function getAJAX()
 {
 
@@ -1861,13 +1974,20 @@ $.ajax(
 		case "done":
 			stopAJAX();
 			break;
+		case "utd_info":
+            var info= data['json'].split(":");
+			Show_UTD_Info(info);
+			stopAJAX();
+			break;
 		case "utd_reset":
+            alert("UTD has been reset");
 			stopAJAX();
 			break;
 		case "utd_inventory":
 			// data is:: "0,0,0,0,0,0,0,0"
-			alert(data['json']);
+//			alert(data['json']);
 			var inv = data['json'].split(",");
+			Show_UTD_Inventory(inv);
 			stopAJAX();
 			break;
 		case "stack":
@@ -1926,6 +2046,38 @@ $.ajax(
  }); // end ajax
 }	// end fn
 
+
+
+/*
+	display the returned inventory counts of the UTD
+
+*/
+function Show_UTD_Inventory(inv)
+{
+	var strng ="<table class='mtable'>";
+	strng +="<tr><th>COL</th><th>COUNT</th></tr>";
+
+	for (n=0; n < inv.length; n++)
+		strng += "<tr><td>"+(n+1)+"</td><td>"+  inv[n] +"</td></tr>";
+
+
+	strng +="</table>";
+	$("#"+ caller).html(strng);
+
+}
+
+function Show_UTD_Info(info)
+{
+	var strng="<table class='mtable'>";
+	strng +="<tr><td>"+ info[0]+"</td></tr>";
+    strng +="<tr><td>"+ info[1]+"</td></tr>";
+
+
+    strng +="</table>";
+    $("#"+ caller).html(strng);
+
+
+}
 
 
 

@@ -190,7 +190,7 @@ int SOCKET::MakeBuffers(void)
 {
 	char buffer[100];
 
-	my_buffer = new (nothrow) char[255];
+	my_buffer = new (nothrow) char[2000];
 	if (my_buffer == NULL)
 	{
 		sprintf(buffer,"SOCKET::MakeBuffers() Unable to allocate my_buffer");
