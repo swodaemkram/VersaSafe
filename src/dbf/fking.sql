@@ -1,3 +1,4 @@
+
 -- MySQL dump 10.13  Distrib 5.7.26, for Linux (x86_64)
 --
 -- Host: localhost    Database: fking
@@ -84,10 +85,20 @@ CREATE TABLE `utd_denom` (
   `denom_code` int(5) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`denom_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='utd_denom';
+
 /*!40101 SET character_set_client = @saved_cs_client */;
-
-
-INSERT INTO `utd_denom` VALUES(1,'PENNIES',50,'USD','c','COIN');
+LOCK TABLES `utd_denom` WRITE;
+/*!40000 ALTER TABLE `utd_denom` DISABLE KEYS */;
+INSERT INTO `utd_denom` VALUES(1,'PENNIES',50,'USD','c','COIN',7);
+INSERT INTO `utd_denom` VALUES(2,'NICKELS',200,'USD','c','COIN',8);
+INSERT INTO `utd_denom` VALUES(3,'DIMES',500,'USD','c','COIN',9);
+INSERT INTO `utd_denom` VALUES(4,'QUARTERS',1000,'USD','c','COIN',10);
+INSERT INTO `utd_denom` VALUES(5,'ONES',1000,'USD','$','NOTES',1);
+INSERT INTO `utd_denom` VALUES(6,'FIVES',2000,'USD','$','NOTE',2);
+INSERT INTO `utd_denom` VALUES(7,'TENS',2000,'USD','$','NOTE',3);
+INSERT INTO `utd_denom` VALUES(8,'TWENTIES',4000,'USD','$','NOTE',4);
+/*!40000 ALTER TABLE `utd_denom` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 

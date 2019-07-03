@@ -1,4 +1,3 @@
-
 mysql> show tables;
 +-----------------+
 | Tables_in_fking |
@@ -212,6 +211,10 @@ INNER JOIN currency AS b ON b.denom_code=a.denom_code;
 8 rows in set (0.00 sec)
 
 // get the dollar amounts held in each column
+// TWO TABLES USED:
+// 1. utd_inventory
+// 2. currency
+
 SELECT a.col,a.tube_name,a.tube_value,a.tube_count, b.currency_code,b.type,b.symbol, (a.tube_count*a.tube_value)/100 AS dollars
 FROM utd_inventory AS a
 INNER JOIN currency AS b ON b.denom_code=a.denom_code;

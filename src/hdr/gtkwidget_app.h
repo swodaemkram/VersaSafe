@@ -1,5 +1,5 @@
 /*
-	Program: FlowForm OSL (FOSL)
+	Program:Vsafe
 	Module: gtkwidget_app.h
 	Author: Gary Conway <gconway@flowcorp.com>
 	Created: 6-1-2013

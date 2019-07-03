@@ -159,13 +159,15 @@ printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
 			ptr=my_buffer;
 			break;
 		case 999:		// return serialized config.xml file
-			sprintf(my_buffer,"%s",retstat.result.c_str());
+
+			sprintf(my_buffer,"%s",(retstat.result.substr(0,50)).c_str() );
+printf("GRC:%s\n",my_buffer);
+sprintf(my_buffer,"%s",retstat.result.c_str() );
 //sprintf(my_buffer,"we are testing here");
 			ptr=my_buffer;
 printf("returning 999\n");
 		}
 
-		printf("API-REPLY: %s\n",ptr);
 		ret=api->SendMessage(ptr);	// echo what we received (or a result)
 		if (!ret)
 		{

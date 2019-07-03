@@ -11,6 +11,7 @@
 */
 
 
+
 #include "hdr/fire.h"	// for TRUE,FALSE
 
 typedef struct
@@ -55,6 +56,7 @@ typedef struct
     char dbfportal[10];
 
     // remoteserver
+	bool remoteserver=FALSE;
     char cloud_ip[20];
     char cloud_port[10];
 
