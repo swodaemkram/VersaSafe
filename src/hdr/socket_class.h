@@ -1,12 +1,12 @@
 
 /*
 	SOCKET Class Declaration Module
-    Author: Gary Conway <gconway@flowcorp.com>
+    Author: Gary Conway <codeboy@iglou.com>
     Created: 10-10-2012
     Revised:
     Compiler: C++
     Platform: Linux (Ubuntu)
-    Notice: Copyright 2012 Flow Robotics
+    Notice: Copyright 2012 Gary Conway
 
 
 	This module is the class declaration for the SOCKET class and implements an IP connection
@@ -165,7 +165,7 @@ struct RecvBlock
 };
 
 #define RECV_BUFFER 5000
-
+#define BUF_SIZE 2000
 
 
 
@@ -220,6 +220,7 @@ public:
 	int master_counter;	// counter for members of master
 
 
+
 private:
 	int MakeBuffers(void);				// create recv_buffer and buffer
 	int InitSocket(int port);			// construct, bind and listen on a socket
@@ -229,7 +230,10 @@ private:
 	int GetIndex(int socket_descriptor);
 	int GetFreeIndex(void);
 	int ReceiveData (int socket_descriptor);
+	char* GetErrCode();
 
+	char buff[30];
+	string error_string;
 };
 
 

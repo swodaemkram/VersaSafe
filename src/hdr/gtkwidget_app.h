@@ -114,7 +114,7 @@
 
 
 	// reports window
-	appGET(reprint_receipts_btn);
+	appGET(print_receipts_btn);
 	appGET(day_totals_btn);
 	appGET(user_trans_hist_btn);
 	appGET(user_totals_btn);
