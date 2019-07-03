@@ -86,7 +86,7 @@ typedef struct
 	GtkWidget *deposit_cash_listbox;
 
 	// reports window
-	GtkWidget *reprint_receipts_btn;
+	GtkWidget *print_receipts_btn;
 	GtkWidget *day_totals_btn;
 	GtkWidget *user_trans_hist_btn;
 	GtkWidget *user_totals_btn;
