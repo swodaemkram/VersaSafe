@@ -39,7 +39,7 @@ CC=g++
 SOURCEDIR=../
 TARFILE=$(SOURCEDIR)$(EXECUTABLE).tar
 ZIPFILE=$(EXECUTABLE)_$(DT).zip
-BACKUP=/home/mark/Desktop/$(PROJECT)/backup/
+BACKUP=/home/vsafe_backup/
 
 # set the source modules
 SOURCES=$(EXECUTABLE).cpp \
@@ -233,7 +233,7 @@ back:
 	@cp -frpv hdr/ $(BACKUP)hdr
 	@cp -frpv xml/ $(BACKUP)xml
 	@cp -frpv drivers/ $(BACKUP)drivers
-	@cp -frpv installer/ $(BACKUP)installer
+#	@cp -frpv installer/ $(BACKUP)installer
 	@cp -frpv images/ $(BACKUP)images
 	@cp -frpv locale/ $(BACKUP)locale
 	@cp -frpv tinyxml $(BACKUP)tinyxml

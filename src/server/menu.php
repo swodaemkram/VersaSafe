@@ -1519,7 +1519,7 @@ function SocketConnect()
 
 //print "API_PORT:: ". $cfg['api_port'];
 
-	set_time_limit(30);	// no time out
+	set_time_limit(0);	// no time out
 
 
 	$port = (int) $cfg["api_port"];
@@ -1559,9 +1559,9 @@ print "SOCKETCONNECT:: ".$errormsg."<br>";
 		return $errormsg;
 	}
 
-	socket_set_nonblock($socket);
+//	socket_set_nonblock($socket);
 //	stream_set_timeout ( resource $stream , int $seconds [, int $microseconds = 0 ] ) : bool
-	socket_set_timeout($socket,30);
+//	socket_set_timeout($socket,30);
 //	$status = sock_get_status($socket);
 
 	$api_connected=true;
@@ -1657,6 +1657,7 @@ function ReadMessage()
 
 function CloseConnection()
 {
+
 	GLOBAL $socket, $api_connected;
 
 	if (! $api_connected) return;
