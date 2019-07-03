@@ -616,7 +616,7 @@ DAY</property>
                 <property name="vscrollbar_policy">always</property>
                 <property name="shadow_type">in</property>
                 <property name="min_content_height">100</property>
-                <property name="max_content_height">50</property>
+                <property name="max_content_height">100</property>
                 <child>
                   <object class="GtkViewport">
                     <property name="height_request">100</property>
@@ -789,12 +789,6 @@ CASSETTES</property>
                 <property name="left_attach">1</property>
                 <property name="top_attach">1</property>
               </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
             </child>
             <child>
               <placeholder/>
@@ -3167,12 +3161,6 @@ RECEIPTS</property>
             <child>
               <placeholder/>
             </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -4090,4 +4078,3 @@ ADDR</property>
     </child>
   </object>
 </interface>
-

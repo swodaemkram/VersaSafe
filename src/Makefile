@@ -38,7 +38,7 @@ CFLAGS+=-std=c++11
 CC=g++
 SOURCEDIR=../
 TARFILE=$(SOURCEDIR)$(EXECUTABLE).tar
-ZIPFILE=$(EXECUTABLE)_$(DT).zip
+ZIPFILE=zipfiles/$(EXECUTABLE)_$(DT).zip
 BACKUP=/home/vsafe_backup/
 
 # set the source modules
@@ -218,7 +218,7 @@ zip:
 	@echo "DT $(DT)"
 #	ZIPFILE=$(EXECUTABLE)_$(DT)
 	@echo $(ZIPFILE)
-	@zip -r $(ZIPFILE) * -x *.zip *shared* *_archive* *template* *keyboard* *function*
+	@zip -r $(ZIPFILE) * -x *.zip *shared* *_archive* *template* *keyboard* *function* -x "zipfiles/*" "NewDebug/*" "tinyxml/*"
 	@echo "Zip done [$(ZIPFILE)"
 	@cp $(ZIPFILE) $(BACKUP)
 
@@ -237,6 +237,6 @@ back:
 	@cp -frpv images/ $(BACKUP)images
 	@cp -frpv locale/ $(BACKUP)locale
 	@cp -frpv tinyxml $(BACKUP)tinyxml
-	@cp -frpv * $(BACKUP)
+	@cp -fpv * $(BACKUP)
 
 
