@@ -15,7 +15,6 @@
  */
 
 
-
 function get_input_vars()
 {
 	global $input_vars;
