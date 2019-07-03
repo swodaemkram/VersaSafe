@@ -16,13 +16,6 @@
 
 	several connections & listeners must be set up
 
-	1. CMC listener on port 1100
-	2. THIN client listener on port 1200
-		create a TCP listener and listen for messages
-
-	3. UDP connection for Maestro PDO messages starting on port 43211
-		first, we connect to the Maestro and send a subscription message
-		then we monitor for incoming messages
 
 
 
@@ -74,7 +67,7 @@ using namespace std;
 // enables deubbging messages
 #define DEBUG
 
-#include "hdr/config.h"
+#include "hdr/config.h"	// includes socket_class.h
 
 //#include "hdr/socket_class.h"
 
@@ -190,7 +183,7 @@ int SOCKET::MakeBuffers(void)
 {
 	char buffer[100];
 
-	my_buffer = new (nothrow) char[2000];
+	my_buffer = new (nothrow) char[BUF_SIZE];
 	if (my_buffer == NULL)
 	{
 		sprintf(buffer,"SOCKET::MakeBuffers() Unable to allocate my_buffer");
@@ -202,7 +195,7 @@ int SOCKET::MakeBuffers(void)
 
 	// allocate a receive buffer
 	if ( ! InitReceiver() )
-	{	
+	{
 		sprintf(buffer,"SOCKET::MakeBuffers() Unable to allocate recieve buffer");
 		printf("%s\n",buffer);
 		WriteSystemLog(buffer);
@@ -241,8 +234,8 @@ int SOCKET::Client(char * ip, int port)
 {
     struct sockaddr_in serv_addr;
     struct hostent *server;
-//	char my_buffer[200];
-//	bzero(my_buffer,200);
+//	char my_buffer[BUF_SIZE];
+//	bzero(my_buffer,BUF_SIZE);
 
 
 //	int res=MakeBuffers();
@@ -315,7 +308,7 @@ int SOCKET::Client(char * ip, int port)
 		printf("SOCKET::Client->Connected to IP:%s:%d\r\n",ip,port);
 	#endif
 
-	sprintf(my_buffer,"SOCKET::Client->Connected to IP:%s:%d",ip,port);
+	sprintf(my_buffer,"SOCKET::[%s:%s:%d]Client->Connected to IP:%s:%d",__FILE__,__func__,__LINE__,ip,port);
 	WriteSystemLog(my_buffer);
 
 	connected=TRUE;
@@ -342,15 +335,15 @@ void SOCKET::InitMaster(int socket)
 
 /*
 	Allocate and Initialize the recv_buffer for receiving data
-	
+
 	RETURNS: TRUE on success
 			FALSE otherwise
 */
 
 bool SOCKET::InitReceiver(void)
 {
-//	char my_buffer[200];
-	bzero(my_buffer,200);
+//	char my_buffer[BUF_SIZE];
+	bzero(my_buffer,BUF_SIZE);
 
 
 	recv_buffer = new (nothrow) char[RECV_BUFFER];
@@ -381,23 +374,52 @@ bool SOCKET::InitReceiver(void)
 
 bool SOCKET::SendMessage(char *msg)
 {
-//	char my_buffer[200];
-	bzero(my_buffer,200);
+//	char my_buffer[BUF_SIZE];
+	bzero(my_buffer,BUF_SIZE);
+	string errstr;
 
 	// if we're not connected, then just return
 	if (!connected)
 		return FALSE;
 
+	// returns bytes written. on error, -1 and errno is set
     int bytes_written = write(my_socket,msg,strlen(msg));
 
     if (bytes_written < 0)
 	{
-		sprintf(my_buffer,"ERROR writing to socket");
+		errstr=GetErrCode();
+
+		sprintf(my_buffer,"SOCKET::[%s:%s:%d]::ERROR writing to socket:%d [%s]",__FILE__,__func__,__LINE__,my_socket,errstr.c_str() );
 		WriteSystemLog(my_buffer);
 		return FALSE;
 	}
 
 	return TRUE;
+}
+
+
+char*  SOCKET::GetErrCode()
+{
+	string errstr;
+
+        switch(errno)
+        {
+//        case EAGAIN:        errstr="EAGAIN"; break;
+        case EWOULDBLOCK:   errstr="EWOULDBLOCK"; break;
+        case EBADF:         errstr="EBADF"; break;			// bad file descriptor
+        case EDESTADDRREQ:  errstr="EDESTADDRREQ"; break;	// dest address required
+        case EDQUOT:        errstr="EDQUOT"; break;			// disk quota exceeded
+        case EFAULT:        errstr="EFAULT"; break;			// badd address
+        case EFBIG:         errstr="EFBIG"; break;			// file too large
+        case EINTR:         errstr="EINTR"; break;			//  interrupted fn call
+        case EINVAL:        errstr="EINVAL"; break;			// invalid argument
+        case EIO:           errstr="EIO"; break;			// I/O error
+        case ENOSPC:        errstr="ENOSPC"; break;			// no space left on device
+        case EPIPE:         errstr="EPIPE"; break;			// broken pipe
+        }
+
+	sprintf(buff,"%s",errstr.c_str() );
+	return buff;
 }
 
 
@@ -410,8 +432,8 @@ bool SOCKET::SendMessage(char *msg)
 
 bool SOCKET::SendMessageBinary(char *msg, int count)
 {
-//	char my_buffer[200];
-	bzero(my_buffer,200);
+//	char my_buffer[BUF_SIZE];
+	bzero(my_buffer,BUF_SIZE);
 
 	// if we're not connected, then just return
 	if (!connected)
@@ -452,8 +474,8 @@ char * SOCKET::ReceiveMessage(int *bytecount)
 	unsigned int size = sizeof(temp_recv_struc);
 	int counter;
 	int filesindex;
-	char my_buffer[200];
-	bzero(my_buffer,200);
+	char my_buffer[BUF_SIZE];
+	bzero(my_buffer,BUF_SIZE);
 
 
 	*bytecount= (int) 0;
@@ -744,8 +766,8 @@ int SOCKET::InitSocket(int port)
 {
 	int reuse_addr=1;
 	int rv;
-//	char my_buffer[200];
-	bzero(my_buffer,200);
+//	char my_buffer[BUF_SIZE];
+	bzero(my_buffer,BUF_SIZE);
 
 	struct addrinfo hints, *servinfo, *p;
 	memset(&hints, 0, sizeof hints);

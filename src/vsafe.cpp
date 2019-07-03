@@ -3346,9 +3346,9 @@ extern "C" bool on_reports_close_btn_clicked( GtkButton *button, AppWidgets *app
 }
 
 
-extern "C" bool on_reprint_receipts_btn_clicked( GtkButton *button, AppWidgets *app)
+extern "C" bool on_print_receipts_btn_clicked( GtkButton *button, AppWidgets *app)
 {
-printf("REPRINT RECEIPTS\n");
+printf("PRINT RECEIPTS\n");
 }
 
 extern "C" bool on_day_totals_btn_clicked( GtkButton *button, AppWidgets *app)
@@ -5373,6 +5373,7 @@ void SetLabels(void)
     gtk_button_set_label( GTK_BUTTON(app_ptr->user_save_btn),msg.c_str() );
 
 
+
 // showconfig window
 //    msg = getMessage(102,FALSE);
 //    gtk_window_set_title( GTK_WINDOW(app_ptr->load_window), msg.c_str() );
@@ -5393,6 +5394,8 @@ void SetLabels(void)
 */
 
 // maint_window
+
+
 
     msg = getMessage(240,FALSE);
     gtk_window_set_title( GTK_WINDOW(app_ptr->maint_window), msg.c_str() );
@@ -5446,6 +5449,7 @@ void SetLabels(void)
     gtk_button_set_label(GTK_BUTTON(app_ptr->utd_close_btn),msg.c_str() );
 
 
+
 // mei_maint_window
 
     msg=getMessage(260,FALSE);
@@ -5495,11 +5499,12 @@ void SetLabels(void)
 
 // reports window
 
+
     msg=getMessage(50,FALSE);   // "CLOSE"
     gtk_button_set_label(GTK_BUTTON(app_ptr->reports_close_btn),msg.c_str() );
 
     msg=getMessage(140,FALSE);   // "REPRINT RECEIPTS"
-    gtk_button_set_label(GTK_BUTTON(app_ptr->reprint_receipts_btn),msg.c_str() );
+    gtk_button_set_label(GTK_BUTTON(app_ptr->print_receipts_btn),msg.c_str() );
 
     msg=getMessage(141,FALSE);   // "DAY TOTALS"
     gtk_button_set_label(GTK_BUTTON(app_ptr->day_totals_btn),msg.c_str() );
@@ -6552,6 +6557,22 @@ bool ConfigSetup(bool silent)
 
         if(elemName == "remoteserver")
         {
+            pelem = elem->FirstChildElement("enabled");
+			if (pelem)
+            {
+                strcpy(gen_buffer,(char *)pelem->GetText());
+                lcase(gen_buffer);
+                if (strcmp(gen_buffer,"yes") == 0)
+                    cfg.remoteserver=TRUE;
+                else
+                    cfg.remoteserver=FALSE;
+            }
+            else
+                cfg.remoteserver=FALSE;
+
+
+
+
             pelem = elem->FirstChildElement("ip");
             if (pelem)
                 strcpy(cfg.cloud_ip, (char*) pelem->GetText());
@@ -6793,14 +6814,13 @@ struct
 	int col;
 	string tube_name;
 	int tube_value;
-	int tube_count;
 	float dollars;
 } utd_inv[MAX_UTD_COLS];
 
 
 void Get_UTD_Data(void)
 {
-    char query[]="SELECT col,tube_name,tube_value,tube_count  FROM utd_denom";
+    char query[]="SELECT col,tube_name,tube_value  FROM utd_denom";
     int result =  QueryDBF(&localDBF,query);
     int numrows = GetRow(&localDBF);    // populate gen_buffer
 //    printf("Data Returned: %s\n",localDBF.row[1]);
@@ -6810,8 +6830,7 @@ void Get_UTD_Data(void)
 		utd_inv[n].col= atoi(localDBF.row[0]);				// column
         utd_inv[n].tube_name= string(localDBF.row[1]);    	// tube_name
 		utd_inv[n].tube_value= atoi(localDBF.row[2]);		// tube_value
-		utd_inv[n].tube_count= atoi(localDBF.row[3]);		// tube_count
-		utd_inv[n].dollars= (utd_inv[n].tube_count * utd_inv[n].tube_value) /100.0;
+//		utd_inv[n].dollars= (utd_inv[n].tube_count * utd_inv[n].tube_value) /100.0;
 //		printf("col %d:: %s  Dollars %4.2f\n",utd_inv[n].col,utd_inv[n].tube_name.c_str(),  utd_inv[n].dollars);
 		GetRow(&localDBF);	// get next row
 	}
@@ -6989,6 +7008,9 @@ void ConnectCloud(void)
 {
     int res;
 	string msg1;
+
+	if (!cfg.remoteserver) return;
+
 
     res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) );
     if (res !=0 )

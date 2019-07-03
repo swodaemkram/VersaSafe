@@ -131,6 +131,8 @@ char * ListenAPI(void)
     char *ptr;
 	retstruc retstat;
 
+	retstat.result.reserve(2000);
+
     if (!api_avail) return NULL;  // API disabled if no CMD file
 
 
@@ -158,19 +160,21 @@ printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
 			break;
 		case 999:		// return serialized config.xml file
 			sprintf(my_buffer,"%s",retstat.result.c_str());
+//sprintf(my_buffer,"we are testing here");
 			ptr=my_buffer;
+printf("returning 999\n");
 		}
 
 		printf("API-REPLY: %s\n",ptr);
 		ret=api->SendMessage(ptr);	// echo what we received (or a result)
 		if (!ret)
 		{
-	        sprintf(my_buffer,"ERROR writing to socket");
+	        sprintf(my_buffer,"ListenAPI::ERROR writing to socket");
 	        WriteSystemLog(my_buffer);
 		}
 
 //        ptr points to our char[] data
-//        bytecount has number of bytes in the buffer
+//        bytecount has number of received bytes
 		return ptr;
     }
 
@@ -265,6 +269,7 @@ retstruc CommandDispatcher(char * cmd)
 	switch(cmd_num)
 	{
 	case 999:	//999-GET-CONFIG
+	    retstat.result.reserve(2000);
 		retstat=api_999(cmd);
 		retstat.cmd=999;
 		break;
