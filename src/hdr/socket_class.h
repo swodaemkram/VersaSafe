@@ -182,11 +182,11 @@ public:
 	int Server(int port);					// create a listener for port (sets listen_port)
 	int Client(char * ip, int port);		// connect to ip:port (sets remote_ip and remote_port)
 
-	bool SendMessage(char *msg);					// send ASCII message
+	bool SendMessage(char *msg, int socket);		// send ASCII message
 	bool SendMessageBinary(char *msg, int count);	// send BINARY message
 
 	// for server
-	char * ReceiveMessage(int *bytecount);
+	char * ReceiveMessage(int *bytecount, int*socket);
 	char * GetReceivePtr( int *bytecount);			// return ptr to received data and set bytecount
 
 	// for client

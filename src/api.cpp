@@ -12,7 +12,7 @@
 	1. read API.TXT file containing all valid API commands
 	2. create a listener socket on cfg.api_port
 	3. make connections and receive commands from client
-	4. echo cmds back to client as ACK
+	4. echo cmds back to client as ACK (or a result)
 	5. process any valid commands and execute via CommandDispatcher()
 
 
@@ -129,6 +129,7 @@ char * ListenAPI(void)
 	bool status;
 	int bytecount;
     char *ptr;
+	int socket;
 	retstruc retstat;
 
 	retstat.result.reserve(2000);
@@ -136,7 +137,8 @@ char * ListenAPI(void)
     if (!api_avail) return NULL;  // API disabled if no CMD file
 
 
-    ptr=api->ReceiveMessage(&bytecount);         // see if any data recieved from other computer
+	// call ReceiveMessage() in socket_class.cpp
+    ptr=api->ReceiveMessage(&bytecount,&socket);         // see if any data recieved from other computer
     if (ptr == NULL)
     {
         // no data
@@ -144,7 +146,7 @@ char * ListenAPI(void)
     }
     else
     {
-printf("%s\n",ptr);
+printf("RECVD FROM CLIENT::%s\n",ptr);
 		retstat=CommandDispatcher(ptr);		// execute the command
 
 printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
@@ -160,7 +162,7 @@ printf("RETSTAT::  cmd:%d  status:%d\n",retstat.cmd,retstat.status);
 			break;
 		case 999:		// return serialized config.xml file
 
-			sprintf(my_buffer,"%s",(retstat.result.substr(0,50)).c_str() );
+			sprintf(my_buffer,"%s",(retstat.result.substr(0,100)).c_str() );
 printf("GRC:%s\n",my_buffer);
 sprintf(my_buffer,"%s",retstat.result.c_str() );
 //sprintf(my_buffer,"we are testing here");
@@ -168,7 +170,7 @@ sprintf(my_buffer,"%s",retstat.result.c_str() );
 printf("returning 999\n");
 		}
 
-		ret=api->SendMessage(ptr);	// echo what we received (or a result)
+		ret=api->SendMessage(ptr,socket);	// echo what we received (or a result)
 		if (!ret)
 		{
 	        sprintf(my_buffer,"ListenAPI::ERROR writing to socket");
