@@ -78,7 +78,6 @@ void Validator_idle(int which) {};
 
 
 
-
 int FindWhich(char *cmd)
 {
 	int which;
@@ -494,7 +493,7 @@ retstruc api_998(char *cmd)
 {
 	retstruc retstat;
 	int which = FindWhich(cmd);
-	Valdiator_done(which);
+	Validator_done(which);
 	return retstat;
 }
 #endif
