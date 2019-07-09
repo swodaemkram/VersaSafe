@@ -12,7 +12,7 @@ string GetUTDInfo(void)
 	string driver=Get_d8_driver();
 	string firmware=utd->GetFirmwareVersion();
 
-	res="UTD DRIVER -"+ driver + ":UTD FIRMWARE - "+firmware+":";
+	res="UTD DRIVER -"+ driver + ":UTD FIRMWARE - "+firmware;
 	return res;
 }
 
@@ -36,7 +36,7 @@ string GetLockInfo(int index)
 	else
 		il="NO";
 
-	res="LOCKTYPE -" +locktype+":LOCKDELAY -" + string(ld) + ":LOCKDRIVER -"+ lockdriver + ":LOCKFIRMWARE -"+ lockfirmware +":LOCKVOLTS -"+lockvolts+":LOOCKSERIAL -"+lockserial +":ISLOCKED -"+ il +":";
+	res="LOCK TYPE -" +locktype+":LOCK DELAY -" + string(ld) + ":LOCK DRIVER -"+ lockdriver + ":LOCK FIRMWARE -"+ lockfirmware +":LOCK VOLTS -"+lockvolts+":LOOCK SERIAL -"+lockserial +":ISLOCKED -"+ il +":";
 
 	return res;
 }
