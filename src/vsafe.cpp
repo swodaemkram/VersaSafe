@@ -269,6 +269,7 @@ void PrintConfig(void);
 
 // CLOUD CONNECTION
 SOCKET * cloud_server = new SOCKET(TCP_CONNECTION); // instantiate our cloud socket
+int cloud_socket;
 void ConnectCloud(void);
 bool SendCloud(string pkttype, string filename, char * msg);
 
@@ -7011,7 +7012,7 @@ void ConnectCloud(void)
 	if (!cfg.remoteserver) return;
 
 
-    res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) );
+    res=cloud_server->Client(cfg.cloud_ip, atoi(cfg.cloud_port) , &cloud_socket);
     if (res !=0 )
     {
        // res has the error code (usable with getMessage()
@@ -7088,7 +7089,7 @@ bool SendCloud(string ptype, string fname, char * msg)
 	memcpy(&packet[CLOUD_PTYPE_LEN+CLOUD_FNAME_LEN],msg,strlen(msg));
 
 
-    res=cloud_server->SendMessageBinary(packet,pktlen);	// returns bool, TRUE= success, else FALSE
+    res=cloud_server->SendMessageBinary(packet,pktlen,cloud_socket);	// returns bool, TRUE= success, else FALSE
     if (!res)
     {
 		printf("ERROR sending data\n");
@@ -7104,8 +7105,9 @@ for (n=0; n<10; n++)
 {
 
     int bytecount;
+	int socket;
     char *ptr;
-    ptr=cloud_server->ReceiveMessage(&bytecount);
+    ptr=cloud_server->ReceiveMessage(&bytecount,&socket);
     if (ptr == NULL)
     {
         // no data

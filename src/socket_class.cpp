@@ -160,7 +160,7 @@ int SOCKET::Server(int port)
 	if (res!= 0)
 		return my_socket;
 
-	// set various parms for calls to ReadNessage()
+	// set various parms for calls to ReadMessage()
 	InitMaster(my_socket);
 
 	connected=TRUE;
@@ -272,7 +272,7 @@ int SOCKET::Client(char * ip, int port)
 		WriteSystemLog(my_buffer);
 	}
 
-	// set various parms for calls to ReadNessage()
+	// set various parms for calls to ReadMessage()
 	InitMaster(my_socket);
 
     server = gethostbyname(remote_ip);
@@ -368,34 +368,56 @@ bool SOCKET::InitReceiver(void)
 
 /*
 	transmit an ASCII message
+
+	msg is the message to send
+	socket is the sockeet to send msg on
+
 	RETURNS: TRUE on success
 			FALSE otherwise
 */
 
-bool SOCKET::SendMessage(char *msg)
+bool SOCKET::SendMessage(char *msg, int socket)
 {
 //	char my_buffer[BUF_SIZE];
 	bzero(my_buffer,BUF_SIZE);
 	string errstr;
+//	int socket = my_socket;
+
+//========================================================
+//GRC - this fixed the sendmessage() failure on the server
+// THIS IS A TEMP WORK-AROUND, NOT A SOLUTION
+//========================================================
+//	socket+=2;
+//========================================================
+//========================================================
+
 
 	// if we're not connected, then just return
 	if (!connected)
 		return FALSE;
 
 	// returns bytes written. on error, -1 and errno is set
-    int bytes_written = write(my_socket,msg,strlen(msg));
+    int bytes_written = write(socket,msg,strlen(msg));
 
     if (bytes_written < 0)
 	{
 		errstr=GetErrCode();
 
-		sprintf(my_buffer,"SOCKET::[%s:%s:%d]::ERROR writing to socket:%d [%s]",__FILE__,__func__,__LINE__,my_socket,errstr.c_str() );
+		sprintf(my_buffer,"SOCKET::[%s:%s:%d]::ERROR writing to socket:%d [%s]",__FILE__,__func__,__LINE__,socket,errstr.c_str() );
 		WriteSystemLog(my_buffer);
 		return FALSE;
 	}
+	else
+	{
+        sprintf(my_buffer,"SOCKET::[%s:%s:%d]:: wrote data to socket:%d",__FILE__,__func__,__LINE__,socket);
+		WriteSystemLog(my_buffer);
+	}
+
 
 	return TRUE;
 }
+
+
 
 
 char*  SOCKET::GetErrCode()
@@ -458,11 +480,14 @@ bool SOCKET::SendMessageBinary(char *msg, int count)
 	check our socket to see if we have a connection or data
 	if data is present on the socket, then store it to *data
 
+	socket is a returned value, the socket we received the message ON. this normally needs to be saved by the caller
+	for subsequent calls to SendMessage()
+
 	RETURNS:	if no data, sets bytecount=0 and returns a NULL ptr
 				if we have received data, set bytecount and return &recieve_buffer
 */
 
-char * SOCKET::ReceiveMessage(int *bytecount)
+char * SOCKET::ReceiveMessage(int *bytecount, int *socket)
 {
 
 
@@ -477,8 +502,9 @@ char * SOCKET::ReceiveMessage(int *bytecount)
 	char my_buffer[BUF_SIZE];
 	bzero(my_buffer,BUF_SIZE);
 
-
+	// preset the passbacks
 	*bytecount= (int) 0;
+	*socket= (int) 0;
 
 
 	// if we're not connected, then just return
@@ -606,7 +632,7 @@ if ( rsd == -1 )
 					#endif
 					continue;
 				}
-				sprintf(my_buffer,"Server: connect from IP:%s:%d",inet_ntoa(temp_recv_struc.sin_addr), ntohs(temp_recv_struc.sin_port));
+				sprintf(my_buffer,"Server: connect from IP:%s:%d, socket:%d",inet_ntoa(temp_recv_struc.sin_addr), ntohs(temp_recv_struc.sin_port),my_socket);
 				WriteSystemLog(my_buffer);
 				#ifdef DEBUG
 					printf("%s\n",my_buffer);
@@ -692,9 +718,18 @@ if ( rsd == -1 )
 					return NULL;
 					break;
 				default:
+
+//========================================================
+// THIS MAY BE THE SOLUTION
+//GRC 7-7-19
+//========================================================
+//my_socket=sd;
+//========================================================
+
+					*socket=sd;			// push our socket back to caller
 					bytes_received=res;
 					*bytecount=res;
-					sprintf(my_buffer,"Received message: %s",recv_buffer);
+					sprintf(my_buffer,"Received message: %s on socket: %d",recv_buffer,sd);
 					WriteSystemLog(my_buffer);
 					return recv_buffer;
 					break;
@@ -782,7 +817,7 @@ int SOCKET::InitSocket(int port)
 	else
 	{
 		hints.ai_family = AF_UNSPEC;			// says use either IP4 or IP6
-		hints.ai_socktype = SOCK_STREAM;		// use straming
+		hints.ai_socktype = SOCK_STREAM;		// use streaming
 		hints.ai_protocol = IPPROTO_TCP;		// TCP connection
 		hints.ai_flags = AI_PASSIVE; 			// use my IP
 	}
@@ -916,7 +951,7 @@ void SOCKET::CloseConnection(void)
 //          -2 on error
 //          bytecount if recv_buffer has data
 
-
+// https://www.linuxjournal.com/article/9815
 // http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html#select
 // http://pubs.opengroup.org/onlinepubs/009695399/functions/recv.html
 // http://linux.die.net/man/3/recv
@@ -991,7 +1026,7 @@ int SOCKET::ReceiveData (int socket_descriptor)
 		#ifdef DEBUG
 			printf("timeout error on receive\n");
 		#endif
-		sprintf(my_buffer,"Remote connection closed by remote end, on %d",socket_descriptor);
+		sprintf(my_buffer,"Remote connection closed by remote end, on socket: %d",socket_descriptor);
 		WriteSystemLog(my_buffer);
 		return -1;	// connection was closed by remote
 	}
@@ -1001,7 +1036,7 @@ int SOCKET::ReceiveData (int socket_descriptor)
        #ifdef DEBUG
             printf("error on receive packet\n");
         #endif
-		sprintf(my_buffer,"General error retrieving data on socket descriptor %d",socket_descriptor);
+		sprintf(my_buffer,"General error retrieving data on socket: %d",socket_descriptor);
 		WriteSystemLog(my_buffer);
 		return -2;
 	}

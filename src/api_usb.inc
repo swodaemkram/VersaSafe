@@ -141,7 +141,7 @@ retstruc api_999(char *cmd)
 	retstat.result.reserve(2000);
 	retstat.result = SerializeConfig();	// in vsafe.cpp
 
-	printf("%s",retstat.result.c_str());
+//	printf("%s",retstat.result.c_str());
 
 //printf("result size: %d\n",retstat.result.capacity() );
 std::cout << "MAX SIZE IS " << retstat.result.max_size() << "\n";
