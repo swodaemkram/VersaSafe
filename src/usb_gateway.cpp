@@ -21,6 +21,8 @@
 
 using namespace std;
 
+
+
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -376,7 +378,7 @@ string GetLockType(int index)
 	return ltype;
 }
 
-
+#include "gary.inc"
 // returns 1 on success
 // 0 on error
 

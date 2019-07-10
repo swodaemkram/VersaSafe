@@ -960,6 +960,29 @@ printf("user: %s\n",localDBF.user);
 
 
 
+// changed by  Mark 07-10-2019 We need to check to see if command line argument was provided
+// If No_Local_Display is the argument passed we will dissable the local display
+// This will help in troubleshooting the API and will also allow a prospective customer
+// the ability to provide their own GUI
+// if its not one of the arguments
+bool No_gui_Flag = false;
+
+	if(argc > 1)
+	{
+		if (strncmp(argv[1],"No_gui",6) == 0) No_gui_Flag = true;
+
+			if (No_gui_Flag == false)
+			{
+				printf("Unknown Argument passed from the command line .....\n");
+				exit(0);
+			}
+	}
+
+
+// if command line argument = No_Local_Display then set the No_Local_Display_Flag
+
+
+
 Get_UTD_Data();
 GetLangs();
 //exit(0);
@@ -1191,7 +1214,19 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 	#endif
 
 	ShowSplashWindow();
-//	ShowStatus("this is a test message");
+
+//MARK CHANGED 07-10-2019 this code disables the dissplay when the command line argument of  No_Local_Display is given to vsafe
+
+	if(No_gui_Flag == true)
+	{
+	gtk_widget_hide(app_ptr->splash_window);
+    gtk_widget_hide(app_ptr->main_menu) ;
+	}
+
+// End of No_Local_Display
+
+
+    //	ShowStatus("this is a test message");
 	REPARENT(app_ptr->numpad_window,app_ptr->login_pad_target,app_ptr->numpad_grid)
 
 	// enter the GTK event loop
