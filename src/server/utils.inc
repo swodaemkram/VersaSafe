@@ -1,3 +1,5 @@
+<?php
+
 /*
 	Module: util.inc
 
@@ -64,4 +66,6 @@ function get_input_vars()
 	}
 }
 
+
+?>
 
