@@ -2,58 +2,17 @@
 	Module: socket_class.cpp
     Author: Gary Conway <gary.conway@fireking.com>
     Created: 6-14-2012
-	Functional: 10-14-2012, 8:20pm 
-    Revised:
+	Functional: 10-14-2012, 8:20pm
+    Revised: 7-09-2019	- add socket to ReadMessage() and SendMessage() functions
     Compiler: C++
     Platform: Linux (Ubuntu)
-    Notice: Copyright 2018 FireKing Security
+    Notice: Copyright 2012 Gary Conway
     Version: 1.0
 
 	This file has the socket handling functions. It will create a socket and listener, handle connections
 	and receive and trasmit data.
 
 	see socket_class.h for a complete description of the class initialization and functions
-
-	several connections & listeners must be set up
-
-
-
-
-	Maestro
-	-------
-
-	All CANopen PDO messages have 8 bytes in lil endian notation
-	0-3		// message type, always 1
-	4-7		// message ID
-		4 = node number
-		5 = bus number
-		7 = message ID (message type)
-	8-11	// WParm
-	12-15	// LParm
-	16-20	// timestamp
-
-	To subscribe:
-		char bytes[] = (1,0,0,0);
-		send(bytes, bytes.length);
-
-	Unsubscribe:
-		char bytes[] = (2,0,0,0);
-		send(bytes, bytes.length);
-
-	Acknowledge:
-		char bytes[] = (3,0,0,0);
-		send(bytes, bytes.length);
-
-
-	Startup:
-
-		1. connect to port 43211
-		2. subscribe by sending the subscription string above
-		3. listen on the connection for data from the Maestro
-
-	Close:
-		1. simply close the connection
-
 
 
 
@@ -64,7 +23,7 @@
 
 using namespace std;
 
-// enables deubbging messages
+// enables debbugging messages
 #define DEBUG
 
 #include "hdr/config.h"	// includes socket_class.h
@@ -221,6 +180,8 @@ int SOCKET::MakeBuffers(void)
 	connect to a remote IP:PORT
 	RETURNS: 0 on success, else error string number for use by getMessage()
 
+	set client_socket on the caller side after the connection is made
+
 	error returns
 	700		unable to create socket
 	701		no such host ip
@@ -230,7 +191,7 @@ int SOCKET::MakeBuffers(void)
 	705		unable to create general purpose buffer
 */
 
-int SOCKET::Client(char * ip, int port)
+int SOCKET::Client(char * ip, int port, int *client_socket)
 {
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -271,6 +232,8 @@ int SOCKET::Client(char * ip, int port)
 		printf("SOCKET::Client: %s\n",my_buffer);
 		WriteSystemLog(my_buffer);
 	}
+
+	*client_socket=my_socket;	// pass back to caller
 
 	// set various parms for calls to ReadMessage()
 	InitMaster(my_socket);
@@ -381,15 +344,7 @@ bool SOCKET::SendMessage(char *msg, int socket)
 //	char my_buffer[BUF_SIZE];
 	bzero(my_buffer,BUF_SIZE);
 	string errstr;
-//	int socket = my_socket;
 
-//========================================================
-//GRC - this fixed the sendmessage() failure on the server
-// THIS IS A TEMP WORK-AROUND, NOT A SOLUTION
-//========================================================
-//	socket+=2;
-//========================================================
-//========================================================
 
 
 	// if we're not connected, then just return
@@ -447,12 +402,12 @@ char*  SOCKET::GetErrCode()
 
 
 /*
-	transmit a BINARY message
+	transmit a BINARY message on socket
 	RETURNS: TRUE on success
 			FALSE otherwise
 */
 
-bool SOCKET::SendMessageBinary(char *msg, int count)
+bool SOCKET::SendMessageBinary(char *msg, int count, int socket)
 {
 //	char my_buffer[BUF_SIZE];
 	bzero(my_buffer,BUF_SIZE);
@@ -461,7 +416,7 @@ bool SOCKET::SendMessageBinary(char *msg, int count)
 	if (!connected)
 		return FALSE;
 
-    int bytes_written = write(my_socket,msg,count);
+    int bytes_written = write(socket,msg,count);
 
     if (bytes_written < 0)
 	{
@@ -477,11 +432,12 @@ bool SOCKET::SendMessageBinary(char *msg, int count)
 
 
 /*
+	this function is meant to be called on the server side to receive data/accept new connection
 	check our socket to see if we have a connection or data
 	if data is present on the socket, then store it to *data
 
 	socket is a returned value, the socket we received the message ON. this normally needs to be saved by the caller
-	for subsequent calls to SendMessage()
+	for subsequent calls to SendMessage() or SendMessageBinary()
 
 	RETURNS:	if no data, sets bytecount=0 and returns a NULL ptr
 				if we have received data, set bytecount and return &recieve_buffer
@@ -719,12 +675,6 @@ if ( rsd == -1 )
 					break;
 				default:
 
-//========================================================
-// THIS MAY BE THE SOLUTION
-//GRC 7-7-19
-//========================================================
-//my_socket=sd;
-//========================================================
 
 					*socket=sd;			// push our socket back to caller
 					bytes_received=res;
@@ -945,6 +895,7 @@ void SOCKET::CloseConnection(void)
 
 
 
+// called by [server] ReceiveMessage() and [client] ClientReceiveMessage()
 // the connection has already been accepted
 // try to retrieve any client data else return with a timeout status
 // RETURNS: -1 on timeout or connection closed
