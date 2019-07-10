@@ -44,12 +44,17 @@
 
 	CONNECT CHANNEL
 	---------------
-	bool Client(char * ip, int port);	// connect to ip:port (sets remote_ip and remote_port)
+	bool Client(char * ip, int port, int *socket);	// connect to ip:port (sets remote_ip and remote_port)
 
 
 
 	each instantiation of this class can be set up as EITHER a listener -or- initiate a connection, but not both
 	both of these connections are bi-directional
+
+	Usage:
+
+	#include socket_class.h
+
 
 
 	EXAMPLES:
@@ -57,20 +62,22 @@
 	// TCP example
 	// ----------------------------------------------------------------------------------------
 	int res;
-	SOCKET * tcp_connection = new SOCKET(TCP_CONNECTION);	// instantiate
-	res=tcp_connection->Client(ip_address, port);			// connect to another computer
+	int client_socket;	// filled in by Client()
+	SOCKET * tcp_connection = new SOCKET(TCP_CONNECTION);					// instantiate
+	res=tcp_connection->Client(ip_address, port, &client_socket);			// connect to another computer
 	if (res != 0)
 	{
 		// res has the error code
 	}
-	res=tcp_connection->SendMessage(gen_buffer);			// send a message
+	res=tcp_connection->SendMessage(gen_buffer,client_socket);			// send a message
 	if (res != 0)
 	{
 		// res has the error code
 	}
 	int bytecount;
 	char *ptr;
-	ptr=tcp_connection->ReceiveMessage(&bytecount);			// see if any data recieved from other computer
+	int my_socket;
+	ptr=tcp_connection->ClientReceiveMessage(&bytecount);			// see if any data recieved from other computer
 	if (ptr == NULL)
 	{
 		// no data
@@ -89,23 +96,30 @@
 	{
 		// res has the error code
 	}
-	res=udp_connection->SendMessage(gen_buffer);			// send a message
+
+	int bytecount;	// filld in by ReceiveMessage()
+	int my_socket;	// filld in by ReceiveMessage()
+    char *ptr;
+    ptr=udp_connection->ReceiveMessage(&bytecount,&my_socket);          // see if any data recieved from other computer
+    if (ptr == NULL)
+    {
+        // no data
+    }
+    else
+    {
+        ptr points to our char[] received data
+        bytecount has number of bytes in the buffer
+    }
+
+
+
+	res=udp_connection->SendMessage(gen_buffer,my_socket);			// send a message
 	if (res != 0)
 	{
 		// res has the error code
 	}
-	int bytecount;
-	char *ptr;
-	ptr=udp_connection->ReceiveMessage(&bytecount);			// see if any data recieved from other computer
-	if (ptr == NULL)
-	{
-		// no data
-	}
-	else
-	{
-		ptr points to our char[] received data
-		bytecount has number of bytes in the buffer
-	}
+
+
 
 
 */
@@ -180,10 +194,10 @@ public:
 
 	// with each instantiation, you may call one of the following two functions, BUT NOT BOTH
 	int Server(int port);					// create a listener for port (sets listen_port)
-	int Client(char * ip, int port);		// connect to ip:port (sets remote_ip and remote_port)
+	int Client(char * ip, int port, int *client_socket);		// connect to ip:port (sets remote_ip and remote_port)
 
-	bool SendMessage(char *msg, int socket);		// send ASCII message
-	bool SendMessageBinary(char *msg, int count);	// send BINARY message
+	bool SendMessage(char *msg, int socket);					// send ASCII message
+	bool SendMessageBinary(char *msg, int count, int socket);	// send BINARY message
 
 	// for server
 	char * ReceiveMessage(int *bytecount, int*socket);
@@ -192,7 +206,7 @@ public:
 	// for client
 	char * ClientReceiveMessage(int *bytecount);
 
-	void CloseConnection(void);						// close the connection
+	void CloseConnection(void);				// close the connection
 
 	char * recv_buffer;						// receiver buffers for all connections
 	char * my_buffer;						// general purpose buffer
