@@ -19,6 +19,8 @@
 
 //NOTE: using the file option causes the client side to error out on the return data
 $USEFILE=0;
+$DEBUG=0;
+
 
 //print "HELLO";
 
@@ -40,23 +42,34 @@ if ($USEFILE)
 	fwrite($myfile,$_POST["which"]."\n");
 }
 
-if (is_ajax())
+if (is_ajax()  || $DEBUG)
 {
 
-if ($USEFILE)
-	fwrite($myfile,"is ajax\n");
+	if ($USEFILE)
+		fwrite($myfile,"is ajax\n");
+
+ 	if (isset($_GET["action"]) && !empty($_GET["action"]))
+		$action = strtolower($_GET["action"]);
 
   if (isset($_POST["action"]) && !empty($_POST["action"]))
+		$action = strtolower($_POST["action"]);
+
+	if ($action)
 	{ //Checks if action value exists
-	    $action = strtolower($_POST["action"]);
-    	if (isset($_POST['which'])) $which = strtoupper($_POST['which']);
+
+		if (isset($_GET['which']) && $DEBUG) $which = strtoupper($_GET['which']);
+    	if (isset($_POST['which']) && !$DEBUG) $which = strtoupper($_POST['which']);
 
 //927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
 //998-VALIDATOR_DONE(LEFT|RIGHT)      // used for VERIFY and STACK
 
-
+//echo "<br>".$action;
     	switch($action)
 	    { //Switch case for value of action
+			case "config":
+				$cmd="999-GET-CONFIG";
+				call_API($cmd);
+				break;
 			case "utd_info":
 				$cmd="907-UTD-INFO";
 				call_API($cmd);
@@ -135,9 +148,9 @@ function call_API($cmd)
 //	$return["json"]= "USD:1000";					// stack/verify
 //	$return["json"]="1,2,3,4,5,6,7,8";				// UTD INVENTORY
 //	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";	// MEI INFO
-	$return["json"]="UTD DRIVER - v1.01:UTD FIRMWARE - v2.05";
+//	$return["json"]="UTD DRIVER - v1.01:UTD FIRMWARE - v2.05";
 
-/*
+
 
     SocketConnect();
 //    $cmd="926-VALIDATOR-IDLE-".$which;
@@ -149,7 +162,7 @@ function call_API($cmd)
 
     $return["json"] =  $denom .":". $amt;
     CloseConnection();
-*/
+
 //	$return["json"]= json_encode($return);
 	echo json_encode($return);
 
