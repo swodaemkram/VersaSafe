@@ -789,10 +789,13 @@ string Validator_idle(int which)
   string Validator_get_results(int which)
   {
 	  string the_result;
+	  string buffer;
 	  if (which == 0  && cfg.validator_left == true)
 	  	{
 	  		the_result = validator_left->get_result();
 	  		validator_left->clr_get_result();
+	  		sprintf(Logbuff,"Result From Validator was = %s",the_result.c_str());
+	  		WriteSystemLog(Logbuff);//log that this was called
 	  	}
 
 	  	if (which == 1  && cfg.validator_right == true)

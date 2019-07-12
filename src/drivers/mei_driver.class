@@ -754,7 +754,7 @@ if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000;/
 if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
 // DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
 sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
-return_to_usb_gateway = MEI_STATUS;// SEND TO USB GATEWAY
+//MARK07return_to_usb_gateway = MEI_STATUS;// SEND TO USB GATEWAY
 //sprintf(MEI_STATUS,"stacked a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
@@ -787,7 +787,7 @@ if (denom_value5 == 1) denom_total_pennys = denom_value3 * denom_value5 * 1000; 
 if (denom_value5 == 0) denom_total_pennys = denom_value3 * 100;//convert to the penny
 //DEBUG printf("denom_value1 = %s:%ld\n",denom,denom_total_pennys);
 sprintf(MEI_STATUS,"%s:%ld",denom,denom_total_pennys);
-return_to_usb_gateway = MEI_STATUS;//SEND TO USB GATEWAY
+//MARK07return_to_usb_gateway = MEI_STATUS;//SEND TO USB GATEWAY
 //sprintf(MEI_STATUS,"Verified a %s",the_clean_text);//We need to do some math here to make all denoms the same
 //strncpy(MEI_STATUS,the_clean_text,8);
 }
@@ -804,7 +804,7 @@ if (strcmp(MEI_STATUS,LAST_MEI_STATUS)!=0)
 }
 //============================END OF STATUS LOGGING==========================================
 */
-if (GET_ONETIME == 1)return_to_usb_gateway = MEI_STATUS;
+//MARK07if (GET_ONETIME == 1)return_to_usb_gateway = MEI_STATUS;
 response_ready = true;
 return;
 }
@@ -1010,7 +1010,6 @@ Get Results
 string get_result(void)
 {
 	//DEBUGprintf("line 1 return = %s\n",return_to_usb_gateway.c_str());
-
 	return_to_usb_gateway = the_clean_text;
 	return return_to_usb_gateway;
 }
@@ -1022,7 +1021,8 @@ Clear Result
 void clr_get_result(void)
 {
 
-	return_to_usb_gateway = "";
+	strncpy(the_clean_text,"NODATA",6);
+	return_to_usb_gateway = "NODATA";
 	response_ready = false;
 	return;
 }
