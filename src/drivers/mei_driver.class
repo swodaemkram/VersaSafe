@@ -180,7 +180,9 @@ int mei_connect(void)
     	if ( strncmp(rxdata,"SCN83",5)== 0) return(1);
     	//return_to_usb_gateway = rxdata;
     	strncpy(MEI_CURRENT_COMMAND,"idle",4);
-
+    	strncpy(the_clean_text,"NODATA",6);
+    	return_to_usb_gateway = "NODATA";
+    	response_ready = false;
     	return(0);
 
     }
@@ -1020,7 +1022,6 @@ Clear Result
  */
 void clr_get_result(void)
 {
-
 	strncpy(the_clean_text,"NODATA",6);
 	return_to_usb_gateway = "NODATA";
 	response_ready = false;
@@ -1034,7 +1035,6 @@ Set Done Flag
 
 void set_done_flag(void)
 {
-
 	Rx_Command("idle", 1, 0, 0, 0);
 	return;
 }
