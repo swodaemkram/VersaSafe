@@ -971,7 +971,7 @@ bool No_gui_Flag = false;
 if(argc > 1)
 	{
 		if (strncmp(argv[1],"No_gui",6) == 0) No_gui_Flag = true;
-
+		printf("%d\n",No_gui_Flag);
 			if (No_gui_Flag == false && strncmp(argv[1],"-h",2) != 0)
 			{
 				printf("Unknown Argument passed from the command line ..... \n");
@@ -981,6 +981,7 @@ if(argc > 1)
 			// This is the Vsafe help file it will grow as we add command line switches
 
 			if (No_gui_Flag == false && strncmp(argv[1],"-h",2) == 0)
+			{
 			printf("\n");
 			printf("=======================================================\n");
 			printf("                       Vsafe Help\n");
@@ -991,7 +992,7 @@ if(argc > 1)
 			printf("\n");
 			printf("\n");
 			exit(0);
-
+			}
 	}
 
 // if command line argument = No_Local_Display then set the No_Local_Display_Flag
