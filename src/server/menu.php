@@ -19,7 +19,7 @@
 
 	for the above cmds...
 	1. this module calls the API directly and issues the appropriate command, EG 94-VALIDATOR-INFO-LEFT etc
-	2. then the javaescript timed event sends 927-VALIDATOR-GET-RESULTS-LEFT etc, to get the results of the above cmd
+	2. then the javascript timed event sends 927-VALIDATOR-GET-RESULTS-LEFT etc, to get the results of the above cmd
 		if no results are ready, en empty string is returned from the API, otherwise, the data is returned
 
 
@@ -52,7 +52,10 @@ $_SESSION['logged_in']='1'
 <?php
 
 
-GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars;
+GLOBAL $conn,$xml,$cfg,$socket,$port, $host, $api_connected, $input_vars, $maxpacket;
+
+$maxpacket=2000;
+
 
 $input_vars = array();
 require_once 'utils.inc';
@@ -85,7 +88,6 @@ if (extension_loaded('simplexml'))
 	ConnectDBF();
 else
 	print "simplexml extension not loaded";
-
 
 
 
@@ -155,6 +157,14 @@ function CheckLoggedIn()
 }
 
 
+/*
+	get the configuration information via API
+
+	RETURNS: TRUE on success
+			else FALSE
+
+
+*/
 function GetConfig()
 {
 	GLOBAL $xml, $cfg;
@@ -162,21 +172,37 @@ function GetConfig()
     $cmd="999-GET-CONFIG";
     $ret=SocketConnect();
 
-if ($ret !== TRUE)
+if ($ret != true)
     {
-		return FALSE;
+//print "<br><br> CONNECT FAILED1 <br><br>";
+		return false;
  	}
 
+	// returns false on error
+	// else returns data from server
     $result=SendMessage($cmd);
+
+//print "RESULT::".$result;
+
+	if ($result === false)
+	{
+		print "ERROR receiving data from server";
+		$cfg["validator_timeout"]=30;
+		CloseConnection();
+		return false;
+	}
+
 //    print $result;
     CloseConnection();
 
 	$xml=simplexml_load_string($result);
+print_rx($xml);
+
 	$cfg["validator_timeout"] = $xml->timeouts->validator;
 	// access vars as
 	// $xml->localDBF->ip;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1124,7 +1150,6 @@ function MEI_stack($which)
 		// return is...
 		// "USD:100" for a one dollar bill
 	    $res=SendMessage($cmd);
-		$ret=ReadMessage();
 		if ($ret)
 		{
 			$res_ar = explode(":",$ret);
@@ -1489,6 +1514,7 @@ function SocketConnect()
 
 	$api_connected=false;
 
+
 //	$host="127.0.0.1";
 //	$cfg["api_port"]=$xml->api->port;
 
@@ -1499,11 +1525,17 @@ function SocketConnect()
 
 	$port = (int) $cfg["api_port"];
 
+//print $cfg["api_port"];
+
 	// create a socket
     // returns a socket resource on success, else false on error
 	$socket = socket_create(AF_INET, SOCK_STREAM, 0);
 
-	if (! $socket)
+	if ( $socket)
+	{
+		print "Socket created<br>";
+	}
+	else
 	{
         $errorcode = socket_last_error();
         $errormsg = socket_strerror($errorcode);
@@ -1515,43 +1547,75 @@ function SocketConnect()
 	// returns true on success, else false
 	$result = socket_connect($socket, $host, $port);
 
-	if (! $result)
+	if ($result)
+	{
+		print "Socket Connected<br>";
+	}
+	else
 	{
 		$errorcode = socket_last_error();
 		$errormsg = socket_strerror($errorcode);
 		socket_clear_error();
+print "SOCKETCONNECT:: ".$errormsg."<br>";
 		return $errormsg;
 	}
+
+//	socket_set_nonblock($socket);
+//	stream_set_timeout ( resource $stream , int $seconds [, int $microseconds = 0 ] ) : bool
+//	socket_set_timeout($socket,30);
+//	$status = sock_get_status($socket);
 
 	$api_connected=true;
 	return true;
 }
 
 
+/*
+	sends msg and receives response
+
+	RETURNS: received data
+			-or- false on error
+
+*/
 
 function SendMessage($message)
 {
-	GLOBAL $socket, $port, $api_connected;
+	GLOBAL $socket, $port, $api_connected, $maxpacket;
 
-	if (!$api_connected) return;
+	if (!$api_connected) return false;
 
 	// write to server socket
 	// returns number of bytes written, or false on error
-	socket_write($socket, $message, strlen($message)) or die("Could not send data to server\n");
+	$sent =socket_write($socket, $message, strlen($message));
+
+	if ($sent == false)
+	{
+		return false;
+	}
+
+//	sleep(1);
+
+	//    PHP_BINARY_READ (Default) - use the system recv() function. Safe for reading binary data.
+	//    PHP_NORMAL_READ - reading stops at \n or \r.
 
 	// get the reply
 	// returns a string on success, false on failure
-	$result = socket_read ($socket, $port) or die("Could not read server response\n");
+	$result = socket_read ($socket, $maxpacket,PHP_BINARY_READ);
 
-	if (! $result)
+
+	if ($result == "")
 	{
         $errorcode = socket_last_error();
         $errormsg = socket_strerror($errorcode);
         socket_clear_error();
-        return $errormsg;
+//print "GCMSG:".$errormsg."<br>";
+//        return $errormsg;
+		return false;
 	}
 
-	echo "Reply From Server  :".$result ."</br>";
+
+//	echo "Reply From Server  :".$result ."</br>";
+
 
     if ($message == $result)
 	{
@@ -1570,11 +1634,13 @@ function SendMessage($message)
 
 function ReadMessage()
 {
-	GLOBAL $socket, $port;
+	GLOBAL $socket, $maxpacket;
+
+
     // get the reply
     // returns a string on success, false on failure
 	// returns "" when there is no data to read
-    $result = socket_read ($socket, $port) or die("Could not read server response\n");
+    $result = socket_read ($socket, $maxpacket,PHP_BINARY_READ);
 
 	if ($ret === "") return "";
 
@@ -1592,6 +1658,7 @@ function ReadMessage()
 
 function CloseConnection()
 {
+
 	GLOBAL $socket, $api_connected;
 
 	if (! $api_connected) return;
@@ -1734,6 +1801,9 @@ function clearDIV(divID,fn)
 
 	switch(action)
 	{
+	case "utd_reset":
+		cmd = $(divID).html();	// just get the original string, we wont change it
+		break;
 	case "utd_info":
        cmd="<span class='hdr'>UTD INFO</span>";
         cmd +="<div id='doneID' class='done'>";
@@ -1838,6 +1908,7 @@ turn OFF the AJAX machine
 
 function stopAJAX()
 {
+	alert("WE TIMED OUT");
 	clearInterval(callTimer);
     clearTimeout(timeouttimer);
 }
@@ -1912,6 +1983,7 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "utd_reset":
+            alert("UTD has been reset");
 			stopAJAX();
 			break;
 		case "utd_inventory":
@@ -1922,7 +1994,7 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "stack":
-			if (res[0] === "none") break;	// if no data ready
+			if (res[0] === "NODATA") break;	// if no data ready
 			resetTimeout();
 			// returned string: USD:0100
 			strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
