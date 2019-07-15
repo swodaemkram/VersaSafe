@@ -3,6 +3,7 @@
 
 
 extern bool WriteSystemLog(char * newmsg);
+//extern bool WriteSystemLog(string newmsgstring);
 extern bool WritePartLog(char *msg);
 
 

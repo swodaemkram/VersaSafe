@@ -48,6 +48,7 @@ extern string getMessage(int msgID, int add_msgnum=TRUE);
 
 // PUBLIC FUNCTIONS
 bool WriteSystemLog(char * newmsg);
+bool WriteSystemLog(string newmsgstring);
 bool WritePartLog(char * newmsg);
 
 
@@ -100,13 +101,34 @@ bool WriteSystemLog(char * newmsg)
 //    Sat Jan 27 10:32:12 2007
 	sprintf(sysmsg,"%s,%s,%s", ptr, newmsg, msg.c_str() );
 
-
 	// returns OK or ERROR
 	if ( WriteFile(syslog,sysmsg) == OK)
 		return TRUE;
 
 	return FALSE;
 }
+
+/*
+==========================================================================================================================
+Over Loaded By Mark Meadows to accept a string value
+==========================================================================================================================
+ */
+
+bool WriteSystemLog(string newmsgstring)
+{
+	char sysmsg[500];
+	char *ptr = TimeStamp();
+	sprintf(sysmsg,"%s,%s",  ptr, newmsgstring.c_str());
+	if ( WriteFile(syslog,sysmsg) == OK) return TRUE;
+	return FALSE;
+
+}
+/*
+==========================================================================================================================
+End of Over Loaded Function By Mark Meadows to accept a string value
+==========================================================================================================================
+ */
+
 
 
 
