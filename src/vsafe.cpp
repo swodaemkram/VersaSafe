@@ -973,7 +973,7 @@ bool No_gui_Flag = false;
 
 			if (No_gui_Flag == false)
 			{
-				printf("Unknown Argument passed from the command line .....\n");
+				printf("Unknown Argument passed from the command line ..... Try No_gui \n");
 				exit(0);
 			}
 	}
@@ -1215,7 +1215,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 	ShowSplashWindow();
 
-//MARK CHANGED 07-10-2019 this code disables the dissplay when the command line argument of  No_Local_Display is given to vsafe
+//MARK CHANGED 07-10-2019 this code disables the dissplay when the command line argument of  No_gui is given to vsafe
 
 	if(No_gui_Flag == true)
 	{
