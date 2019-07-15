@@ -146,6 +146,7 @@ function call_API($cmd)
 	// TESTS FOR DEBUGGING
 
 //	$return["json"]= "USD:1000";					// stack/verify
+//	$return["json"]= "NODATA";
 //	$return["json"]="1,2,3,4,5,6,7,8";				// UTD INVENTORY
 //	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";	// MEI INFO
 //	$return["json"]="UTD DRIVER - v1.01:UTD FIRMWARE - v2.05";

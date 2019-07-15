@@ -1150,7 +1150,6 @@ function MEI_stack($which)
 		// return is...
 		// "USD:100" for a one dollar bill
 	    $res=SendMessage($cmd);
-		$ret=ReadMessage();
 		if ($ret)
 		{
 			$res_ar = explode(":",$ret);
@@ -1909,6 +1908,7 @@ turn OFF the AJAX machine
 
 function stopAJAX()
 {
+	alert("WE TIMED OUT");
 	clearInterval(callTimer);
     clearTimeout(timeouttimer);
 }
@@ -1994,7 +1994,7 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "stack":
-			if (res[0] === "none") break;	// if no data ready
+			if (res[0] === "NODATA") break;	// if no data ready
 			resetTimeout();
 			// returned string: USD:0100
 			strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
