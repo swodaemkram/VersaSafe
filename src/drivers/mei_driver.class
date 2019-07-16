@@ -112,6 +112,7 @@ public:
 int mei_connect(void)
 {
 
+
 	struct termios tty;
 
 					    cfsetospeed(&tty, (speed_t)B9600);
@@ -167,7 +168,7 @@ int mei_connect(void)
    rdlen = read(fd, buf, sizeof(buf) -1);//Get Data from Comm Port was -1
     if (rdlen > 0)
 
-    	WriteSystemLog("This is a test");
+
     {
 	   	bzero(rx_packet,40);
 		    	while(i < rdlen)
@@ -188,6 +189,8 @@ int mei_connect(void)
     	return(0);
 
     }
+
+
 
     return(0);
 }

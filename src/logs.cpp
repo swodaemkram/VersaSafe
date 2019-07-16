@@ -47,10 +47,9 @@ extern string getMessage(int msgID, int add_msgnum=TRUE);
 
 
 // PUBLIC FUNCTIONS
+bool WriteSystemLog(string newmsg);
 bool WriteSystemLog(char * newmsg);
-bool WriteSystemLog(string newmsgstring);
 bool WritePartLog(char * newmsg);
-
 
 
 
@@ -62,6 +61,14 @@ bool WritePartLog(char * newmsg);
 
 */
 
+bool WriteSystemLog(string newmsg)
+{
+	bool ret;
+	ret=WriteSystemLog(newmsg.c_str());
+	return ret;
+
+}
+
 
 bool WriteSystemLog(char * newmsg)
 {
@@ -69,29 +76,7 @@ bool WriteSystemLog(char * newmsg)
 	char sysmsg[500];
 
 	chomp(newmsg);
-/*
-	switch(OpMode)
-	{
-	case Manual_mode:
-		msg = getMessage(620,FALSE);
-		break;
-	case Load_mode:
-		msg = getMessage(621,FALSE);
-		break;
-	case Unload_mode:
-		msg = getMessage(622,FALSE);
-		break;
-	case CMC_mode:
-		msg = getMessage(623,FALSE);
-		break;
-	case Prod_mode:
-		msg = getMessage(624,FALSE);
-		break;
-	default:
-		msg = "unknown";
-		break;
-	}
-*/
+
 	char *ptr = TimeStamp();
 	chomp(ptr);
 	
@@ -107,27 +92,6 @@ bool WriteSystemLog(char * newmsg)
 
 	return FALSE;
 }
-
-/*
-==========================================================================================================================
-Over Loaded By Mark Meadows to accept a string value
-==========================================================================================================================
- */
-
-bool WriteSystemLog(string newmsgstring)
-{
-	char sysmsg[500];
-	char *ptr = TimeStamp();
-	sprintf(sysmsg,"%s,%s",  ptr, newmsgstring.c_str());
-	if ( WriteFile(syslog,sysmsg) == OK) return TRUE;
-	return FALSE;
-
-}
-/*
-==========================================================================================================================
-End of Over Loaded Function By Mark Meadows to accept a string value
-==========================================================================================================================
- */
 
 
 
