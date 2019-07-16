@@ -966,22 +966,36 @@ printf("user: %s\n",localDBF.user);
 // the ability to provide their own GUI
 // if its not one of the arguments
 bool No_gui_Flag = false;
-
-	if(argc > 1)
+// Check for command line arguments.
+// If the command line argument is No_gui we will set a No_gui_Flag so we dont show the local gui
+if(argc > 1)
 	{
 		if (strncmp(argv[1],"No_gui",6) == 0) No_gui_Flag = true;
-
-			if (No_gui_Flag == false)
+		printf("%d\n",No_gui_Flag);
+			if (No_gui_Flag == false && strncmp(argv[1],"-h",2) != 0)
 			{
-				printf("Unknown Argument passed from the command line .....\n");
+				printf("Unknown Argument passed from the command line ..... \n");
 				exit(0);
+			}
+
+			// This is the Vsafe help file it will grow as we add command line switches
+
+			if (No_gui_Flag == false && strncmp(argv[1],"-h",2) == 0)
+			{
+			printf("\n");
+			printf("=======================================================\n");
+			printf("                       Vsafe Help\n");
+			printf("=======================================================\n");
+			printf("\n");
+			printf("Accepted arguments are No_gui \n");
+			printf("Usage: vsafe No_gui");
+			printf("\n");
+			printf("\n");
+			exit(0);
 			}
 	}
 
-
 // if command line argument = No_Local_Display then set the No_Local_Display_Flag
-
-
 
 Get_UTD_Data();
 GetLangs();
@@ -1215,7 +1229,7 @@ printf("XML is read, ret:%d\n",gtk_builder_ret);
 
 	ShowSplashWindow();
 
-//MARK CHANGED 07-10-2019 this code disables the dissplay when the command line argument of  No_Local_Display is given to vsafe
+//MARK CHANGED 07-10-2019 this code disables the dissplay when the command line argument of  No_gui is given to vsafe
 
 	if(No_gui_Flag == true)
 	{
