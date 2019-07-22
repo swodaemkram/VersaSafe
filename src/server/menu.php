@@ -1778,7 +1778,7 @@ $(document).ready(function()
 
     function submitMEIMAINT(fn,AJAX,prev,divID)
     {
-		alert(fn+ " "+divID);
+//		alert(fn+ " "+divID);
 		setActionWhich(fn);
 		prev_menu=prev;
 
