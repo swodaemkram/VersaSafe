@@ -48,11 +48,26 @@ if (is_ajax()  || $DEBUG)
 	if ($USEFILE)
 		fwrite($myfile,"is ajax\n");
 
+	// action
  	if (isset($_GET["action"]) && !empty($_GET["action"]))
 		$action = strtolower($_GET["action"]);
 
-  if (isset($_POST["action"]) && !empty($_POST["action"]))
+	if (isset($_POST["action"]) && !empty($_POST["action"]))
 		$action = strtolower($_POST["action"]);
+
+define("START_STATE",0);
+define ("RESULTS_STATE",1);
+define ("IDLE_STATE",2);
+
+
+	// state
+	if (isset($_GET['state']) && !empty($_GET['state']) )
+		$state = $_GET['state'];
+
+    if (isset($_POST['state']) && !empty($_POST['state']) )
+        $state = $_POST['state'];
+
+
 
 	if ($action)
 	{ //Checks if action value exists
@@ -83,12 +98,62 @@ if (is_ajax()  || $DEBUG)
 				$cmd="905-UTD-INVENTORY";
 				call_API($cmd);
 				break;
+
 			case "stack":
-			case "verify":
-			case "info":
-				$cmd="927-VALIDATOR-GET-RESULTS-".$which;
-				call_API($cmd);
+
+
+				switch($state)
+				{
+				case START_STATE:
+					$cmd="921-VALIDATOR-STACK-".$which;
+					call_API($cmd);
+					break;
+				case RESULTS_STATE:
+	                $cmd="927-VALIDATOR-GET-RESULTS-".$which;
+					call_API($cmd);
+					break;
+				case IDLE_STATE:
+					$cmd="926-VALIDATOR-IDLE-".$which;
+					call_API($cmd);
+					break;
+				}
+
 				break;
+
+			case "verify":
+            /*
+                for verify, we turn on all connected/enabled validators and users may insert
+                bills into any of them, returned results come from whichever device was used
+                all this is handled at the driver level.
+            */
+
+                switch($state)
+                {
+                case START_STATE:
+                    $cmd="920-VALIDATOR-VERIFY";
+                    call_API($cmd);
+                    break;
+                case RESULTS_STATE:
+                    $cmd="927-VALIDATOR-GET-RESULTS-".$which;
+                    call_API($cmd);
+                    break;
+                case IDLE_STATE:
+                    $cmd="926-VALIDATOR-IDLE-LEFT";
+                    call_API($cmd);
+                    $cmd="926-VALIDATOR-IDLE-RIGHT";
+                    call_API($cmd);
+
+                    break;
+                }
+
+                break;
+
+
+
+//			case "info":
+//				$cmd="927-VALIDATOR-GET-RESULTS-".$which;
+//				call_API($cmd);
+//				break;
 			case "done":
 				$cmd="998-VALIDATOR-DONE-".$which;		// stop result polling in driver
                 call_API($cmd);
@@ -117,7 +182,7 @@ if (is_ajax()  || $DEBUG)
 
 
 if ($USEFILE)
-	flcose($myfile);
+	fclose($myfile);
 
 
 //Function to check if the request is an AJAX request
@@ -154,7 +219,6 @@ function call_API($cmd)
 
 
     SocketConnect();
-//    $cmd="926-VALIDATOR-IDLE-".$which;
     $res=SendMessage($cmd);
     $return=ReadMessage();
     $res_arr = explode(":",$return);
