@@ -241,6 +241,8 @@ case "main":
 	    print "<td><a  href='?m=login'><img id='loginimg' src='img/button_login.png' /> </a> </td>";
 
     print "<td><a href='?m=verify_bill'><img src='img/button_verify-bill.png' /></a> </td>";
+//	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1,\"main\");'><img src='img/button_verify-bill.png' /> </button></td>";
+ 
     print "</tr>";
 
     print "</table>";
@@ -348,6 +350,7 @@ print $errormsg;
 
 case "verify":
 
+/*
 	$errormsg=false;
     $ret=SocketConnect();	//returns TRUE on connection
 	if ($ret ===TRUE)
@@ -364,11 +367,11 @@ case "verify":
 	}
 
 	$waiting=true;
-
+*/
 // the above must fall thru to the next case
 
 case "verify_bill":
-    print "<div class='menu'>";
+    print "<div class='menu' id='mainformID'>";
     print "<table class='mtable'>";
 
     print "<tr>";
@@ -388,12 +391,16 @@ case "verify_bill":
 
     print "<tr>";
     print "<td><a href='?m=main'><img src='img/button_done.png' onclick='\"submitMEIDONE(\"998-VALIDATOR-DONE-'.which.'\"');'/> </a> </td>";
-    print "<td><a href='?m=verify'><img src='img/button_verify.png' /> </a> </td>";
+//    print "<td><a href='?m=verify'><img src='img/button_verify.png' /> </a> </td>";
+    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1,\"mei\",\"mainformID\");'><img src='img/button_verify-bill.png' /> </button></td>";
+
     print "</tr>";
 
 
 
     print "</table>";
+
+/*
 	$start_time=time();
 
     if ($waiting)
@@ -420,11 +427,11 @@ case "verify_bill":
 
         print "</div>";
     }
-
+*/
 
     print "</div>";
 
-    CloseConnection();
+//    CloseConnection();
 
 	break;
 
@@ -724,29 +731,29 @@ case "mei":
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\",1,\"mei\");'><img src='img/button_reset-left.png' /> </button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_left\",1,\"mei\",\"meimaintformID\");'><img src='img/button_reset-left.png' /> </button></td>";
     if ($xml->devices->validator_right == "enabled" )
-        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\",1,\"mei\");'><img src='img/button_reset-right.png' /> </button></td>";
+        print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_reset_right\",1,\"mei\",\"meimaintformID\");'><img src='img/button_reset-right.png' /> </button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\",1,\"mei\");'><img src='img/button_info-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_left\",1,\"mei\",\"meimaintformID\");'><img src='img/button_info-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\",1,\"mei\");'><img src='img/button_info-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_info_right\",1,\"mei\",\"meimaintformID\");'><img src='img/button_info-right.png' /></button></td>";
     print "</tr>\n";
 
     print "<tr>";
     if ($xml->devices->validator_left =="enabled")
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\",1,\"mei\");'><img src='img/button_stack-left.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_left\",1,\"mei\",\"meimaintformID\");'><img src='img/button_stack-left.png' /></button></td>";
     if ($xml->devices->validator_right == "enabled" )
-	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\",1,\"mei\");'><img src='img/button_stack-right.png' /></button></td>";
+	    print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_stack_right\",1,\"mei\",\"meimaintformID\");'><img src='img/button_stack-right.png' /></button></td>";
     print "</tr>\n";
 
 
     print "<tr>";
-	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1,\"mei\");'><img src='img/button_verify.png' /> </button></td>";
+	print "<td><br><button class='buttons' onclick='submitMEIMAINT(\"mei_verify\",1,\"mei\",\"meimaintformID\");'><img src='img/button_verify.png' /> </button></td>";
     print "</tr>\n";
 
 
@@ -1141,9 +1148,10 @@ function MEI_stack($which)
         break;
     }
 
+/*
     $start_time=time();
 
-    SocketConnect();
+    SocketConnect();	// connect to the API
 
 	while (time() - $start_time < (int) cfg['validator_timeout'] )
 	{
@@ -1153,8 +1161,11 @@ function MEI_stack($which)
 		if ($ret)
 		{
 			$res_ar = explode(":",$ret);
+			if ($res_arr[0]="NODATA") continue;
 			$denom= $res_arr[0];
 			$amt = (int) $res_arr[1]/100;
+			// reset the timeout
+			$start_time=time();
 
 			print "Stacked {$amt}  {$denom}";
 		}
@@ -1166,16 +1177,21 @@ function MEI_stack($which)
     $res=SendMessage($cmd);
 
     CloseConnection();
+*/
 }
 
 
 // verify bills on any of the enabled validators
 function MEI_verify()
 {
+
+alert("MEI VERIFY");
+/*
     $cmd="920-VALIDATOR-VERIFY";
     SocketConnect();
     $res=SendMessage($cmd);
     CloseConnection();
+*/
 	return $res;
 }
 
@@ -1507,7 +1523,9 @@ echo "</html>";
 // zend has insisted on that for some time
 
 
+// connect to the API directly
 // returns true on success, else error message
+
 function SocketConnect()
 {
 	GLOBAL $xml,$cfg,$socket,$port, $host, $api_connected;
@@ -1705,12 +1723,15 @@ function getvars()
 
 	var callTimer;
 
-	var INTERVAL=150;       // trigger AJAX calls INTERVRAL ms apart
+	var INTERVAL=150;       // trigger AJAX calls INTERVAL ms apart
 	var TIMEOUT=30000;		// ms, timeout for verifying or stacking bills
 	var totalStacked=0; 	// must divide by 100 to display
 	var denom;
 	var strng;
-
+	const START_STATE=0;
+	const RESULTS_STATE=1;
+	const IDLE_STATE=2;
+	var datastate=START_STATE;
 
 $(document).ready(function()
 {
@@ -1744,17 +1765,20 @@ $(document).ready(function()
 	}
 
 
-function submitMEIDONE(fn)
-{
-	setActionWhich(fn);
-	startAJAX(fn);
+	// we are stacking or verifying, in either case, user has said we are DONE
+	//
 
-}
+	function submitMEIDONE(fn)
+	{
+		datastate=IDLE_STATE;
+		setActionWhich(fn);
+//		stopAJAX(fn);
+	}
 
 
-    function submitMEIMAINT(fn,AJAX,prev)
+    function submitMEIMAINT(fn,AJAX,prev,divID)
     {
-//		alert(fn);
+		alert(fn+ " "+divID);
 		setActionWhich(fn);
 		prev_menu=prev;
 
@@ -1762,14 +1786,15 @@ function submitMEIDONE(fn)
 			startAJAX(fn);
 //        $("#mMEI").val("none");
 //        $("#fnmei").val(fn);
-//        $("#meimaintformID").submit();
-		clearDIV("#meimaintformID",fn);
+//        $("#/meimaintformID").submit();
+		clearDIV("#"+divID,fn);
 
     }
 
 
 	function submitUTDMAINT(fn,AJAX,prev)
 	{
+		resetDataState();
         setActionWhich(fn);
         prev_menu=prev;
 
@@ -1831,6 +1856,9 @@ function clearDIV(divID,fn)
 		break;
 	case "verify":
        cmd="<span class='hdr'>VERIFYING BILLS</span>";
+        cmd +="<div id='doneID' class='done'>";
+        cmd+="<a href='?m="+prev_menu+"'><img src='img/button_done.png' onclick='\"submitMEIDONE(\"998-VALIDATOR-DONE-'.which.'\"');' > </a>";
+        cmd+="</div>";
 		break;
 	}
 
@@ -1843,6 +1871,7 @@ function clearDIV(divID,fn)
 
 function setActionWhich(fn)
 {
+	which="LEFT";	// preset
     // returns -1 if no match, else position
     if (fn.indexOf("left") != -1)  which="LEFT";
     if (fn.indexOf("right") != -1) which="RIGHT";
@@ -1880,7 +1909,7 @@ function startAJAX(theCaller)
 //	alert('Starting AJAX');
 	caller=theCaller;
 
-	// set a 30 timeout for all AJAX activity
+	// set a 30s timeout for all AJAX activity
 	timeouttimer = setTimeout(stopAJAX,TIMEOUT);
 	callTimer = setInterval(getAJAX,INTERVAL);
 
@@ -1898,7 +1927,6 @@ function resetTimeout()
 {
     clearTimeout(timeouttimer);
     timeouttimer = setTimeout(stopAJAX,TIMEOUT);
-
 }
 
 
@@ -1909,9 +1937,51 @@ turn OFF the AJAX machine
 function stopAJAX()
 {
 	alert("WE TIMED OUT");
-	clearInterval(callTimer);
-    clearTimeout(timeouttimer);
+	clearInterval(callTimer);	// stop calling getAJAX()
+    clearTimeout(timeouttimer);	// reset the timeout timer
+	resetDataState();
 }
+
+
+/*
+
+
+	this is the data state machine reset function for all API calls that
+	retuire the initial call to request data (such as STACK)
+	subsequent timed calls call GET_RESULTS and when all finished via
+	either a timeout or user presses DONE, then senda and IDLE cmd to the device
+
+    START_STATE:
+		921-VALIDATOR-STACK-LEFT			// start the function
+    RESULTS_STATE:
+		927-VALIDATOR-GET-RESULTS-LEFT		// get results of the function
+    IDLE_STATE:
+		926-VALIDATOR-IDLE-LEFT				// return device to IDLE state
+
+	-OR-
+
+	START_STATE:
+		920-VALIDATOR-VERIFY
+
+	RESULTS_STATE: which=LEFT
+	    927-VALIDATOR-GET-RESULTS-LEFT      // get results of the function
+	RESULTS_STATE: which=RIGHT
+	    927-VALIDATOR-GET-RESULTS-RIGHT      // get results of the function
+
+	IDLE_STATE:
+	    926-VALIDATOR-IDLE-LEFT             // return device to IDLE state
+	    926-VALIDATOR-IDLE-RIGHT             // return device to IDLE state
+
+
+
+*/
+
+function resetDataState()
+{
+	datastate=START_STATE;
+
+}
+
 
 
 /*
@@ -1933,12 +2003,19 @@ function getAJAX()
 
 	// create an object
 	var data={};
+
 	// add  some stuff to it
 	data.action=action;
 	data.which=which;
+	data.state=datastate;	// set = 0, for first call (means ajax_server gets $iter=1
+							// set = -1 for final call (timed out or DONE), causes
+							// ajax_server to send "926-VALIDATOR-IDLE-".$which
+
 //	var data = JSON.stringify(mydata);
 //	alert("predata:" + data.action);
 
+//var str="AJAX CALL " + action + " " + which;
+//alert(str);
 
 /*
 
@@ -1949,6 +2026,7 @@ function getAJAX()
 
 $.ajax(
  {
+
 	type:"POST",		// alias for "method"
 //	contentType: "application/json",	// using default: 'application/x-www-form-urlencoded; charset=UTF-8'
 	dataType: "json",
@@ -1966,8 +2044,6 @@ $.ajax(
 		// res[0] = USD
 		// res[1] = 1000
 //		alert(res[0] + "..." + res[1]);
-		denom=res[0];
-		totalStacked +=  parseInt(res[1],10);
 
 		strng = $("#"+caller).html();		// get the current string
 
@@ -1975,6 +2051,7 @@ $.ajax(
 		switch(action)
 		{
 		case "done":
+alert("ALL DONE");
 			stopAJAX();
 			break;
 		case "utd_info":
@@ -1994,21 +2071,39 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "stack":
-			if (res[0] === "NODATA") break;	// if no data ready
-			resetTimeout();
-			// returned string: USD:0100
-			strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
-            $("#"+ caller).html(strng);
 
-            // update the total
-            var str="Total " + denom + " stacked:: "+ totalStacked/100;
-            $("#totalID").html(str);
+	        denom=res[0];
+    	    totalStacked +=  parseInt(res[1],10);
+
+			switch(datastate)
+			{
+			case START_STATE:
+				datastate=RESULTS_STATE;	// we requested data, now wait for it
+				break;
+			case RESULTS_STATE:
+
+				if (res[0] === "NODATA") break;	// if no data ready
+				resetTimeout();
+				// returned string: USD:0100
+				strng += "<br>Stacked one "+ res[1]/100 + " " + res[0] + " bill";
+	            $("#"+ caller).html(strng);
+
+    	        // update the total
+	            var str="Total " + denom + " stacked:: "+ totalStacked/100;
+	            $("#totalID").html(str);
 
 		// make sure last entry is visible
 //		var elmnt = document.getElementById("mei_stack_left");
 //		elmnt.scrollIntoView(false);
 
+			case IDLE_STATE:		// we just told ajax_server to send 926-VALIDATOR-IDLE-
+//				datastate=START_STATE;
+				stopAJAX();
+				break;
+			}
+
 			break;
+
 		case "info":
             if (res[0] === "none") break;   // if no data ready
 			// Model- <info> :Serial-  <info>:
@@ -2026,11 +2121,37 @@ $.ajax(
 			stopAJAX();
 			break;
 		case "verify":
-            if (res[0] === "none") break;   // if no data ready
-			resetTimeout();
-            // returned string: USD:0100
-			strng += "<br>Verified one "+ res[1]/100 + " " + res[0] + " bill";
-            $("#"+ caller).html(strng);
+
+//alert("VERIFY CASE");
+			/*
+				for verify, we turn on all connected/enabled validators and users may insert
+				bills into any of them, returned results come from whichever device was used
+				all this is handled at the driver level.
+			*/
+			switch(datastate)
+			{
+            case START_STATE:
+//				alert("START_STATE");
+                datastate=RESULTS_STATE;    // we requested data, now wait for it
+                break;
+
+			case RESULTS_STATE:
+//                alert("RESULTS_STATE");
+	            if (res[0] === "none") break;   // if no data ready
+				resetTimeout();
+	            // returned string: USD:0100
+				strng += "<br>Verified one "+ res[1]/100 + " " + res[0] + " bill";
+	            $("#"+ caller).html(strng);
+
+//				alert(strng);
+				break;
+			case IDLE_STATE:
+                alert("IDLE_STATE");
+                stopAJAX();
+				break;
+
+			}
+
 			break;
 		}
 
