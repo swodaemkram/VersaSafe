@@ -1,5 +1,4 @@
 <?php
-
 /*
     File: menu.php
     Author: Gary Conway <gary.conway@fireking.com>
@@ -197,7 +196,7 @@ if ($ret != true)
     CloseConnection();
 
 	$xml=simplexml_load_string($result);
-print_rx($xml);
+//print_rx($xml);
 
 	$cfg["validator_timeout"] = $xml->timeouts->validator;
 	// access vars as
@@ -1937,10 +1936,11 @@ turn OFF the AJAX machine
 
 function stopAJAX()
 {
+    clearInterval(callTimer);   // stop calling getAJAX()
+    clearTimeout(timeouttimer); // reset the timeout timer
+    resetDataState();
+
 	alert("WE TIMED OUT");
-	clearInterval(callTimer);	// stop calling getAJAX()
-    clearTimeout(timeouttimer);	// reset the timeout timer
-	resetDataState();
 }
 
 
@@ -2132,12 +2132,12 @@ alert("ALL DONE");
 			switch(datastate)
 			{
             case START_STATE:
-//				alert("START_STATE");
+				alert("START_STATE::"+res[0]);
                 datastate=RESULTS_STATE;    // we requested data, now wait for it
                 break;
 
 			case RESULTS_STATE:
-//                alert("RESULTS_STATE");
+                alert("RESULTS_STATE");
 	            if (res[0] === "none") break;   // if no data ready
 				resetTimeout();
 	            // returned string: USD:0100
@@ -2147,7 +2147,7 @@ alert("ALL DONE");
 //				alert(strng);
 				break;
 			case IDLE_STATE:
-                alert("IDLE_STATE");
+                alert("IDLE_STATE"+res[0]);
                 stopAJAX();
 				break;
 

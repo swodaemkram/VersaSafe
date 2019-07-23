@@ -1,5 +1,4 @@
 <?php
-
 /*
 	Author: Gary Conway
 	ajax_server.php
@@ -15,12 +14,17 @@
 
 */
 
-    GLOBAL $socket, $api_connected, $port;
-    GLOBAL $xml,$cfg, $host;
+    GLOBAL $socket, $api_connected, $port, $SIMDATA, $REALDATA;
+    GLOBAL $xml,$cfg, $host, $state, $USEFILE, $DEBUG,$myfile;
 
 //NOTE: using the file option causes the client side to error out on the return data
-$USEFILE=0;
-$DEBUG=0;
+$USEFILE=1;
+$SIMDATA=1;
+
+if ($SIMDATA)
+	$REALDATA=0;
+else
+	$REALDATA=1;
 
 
 //print "HELLO";
@@ -35,46 +39,59 @@ $cfg=array
 );
 
 
-if ($USEFILE)
-{
-	$myfile = fopen("/var/www/html/log.txt", "a+") ;
-	fwrite($myfile,"----------------------NEW\n");
-	fwrite($myfile,$_POST["action"]."\n");
-	fwrite($myfile,$_POST["which"]."\n");
-}
+   // action
+    if (isset($_GET["action"]) && !empty($_GET["action"]))
+        $action = strtolower($_GET["action"]);
 
-if (is_ajax()  || $DEBUG)
-{
-
-	if ($USEFILE)
-		fwrite($myfile,"is ajax\n");
-
-	// action
- 	if (isset($_GET["action"]) && !empty($_GET["action"]))
-		$action = strtolower($_GET["action"]);
-
-	if (isset($_POST["action"]) && !empty($_POST["action"]))
-		$action = strtolower($_POST["action"]);
+    if (isset($_POST["action"]) && !empty($_POST["action"]))
+        $action = strtolower($_POST["action"]);
 
 define("START_STATE",0);
 define ("RESULTS_STATE",1);
 define ("IDLE_STATE",2);
 
 
-	// state
-	if (isset($_GET['state']) && !empty($_GET['state']) )
-		$state = $_GET['state'];
+    // state
+    if (isset($_GET['state']) && !empty($_GET['state']) )
+        $state = $_GET['state'];
 
     if (isset($_POST['state']) && !empty($_POST['state']) )
         $state = $_POST['state'];
 
 
+	// which
+        if (isset($_GET['which']) && !empty($_GET['which']) )
+			$which = strtoupper($_GET['which']);
+        if (isset($_POST['which'])  && !empty($_POST['which']) )
+			$which = strtoupper($_POST['which']);
+
+
+
+if ($USEFILE)
+{
+	$myfile = fopen("/var/www/html/log.txt", "a+") ;
+	fwrite($myfile,"----------------------NEW\n");
+if ($state==NULL) 	$estate=0;
+else				$estate=$state;
+	$str = "ACTION: ".$action ."   WHICH: ". $which . "  STATE: ". $estate ."\n";
+	fwrite($myfile,$str);
+
+
+}
+
+if (is_ajax()  || $SIMDATA)
+{
+
+	if ($USEFILE)
+		fwrite($myfile,"is ajax\n");
+
+
+
 
 	if ($action)
-	{ //Checks if action value exists
+	{
 
-		if (isset($_GET['which']) && $DEBUG) $which = strtoupper($_GET['which']);
-    	if (isset($_POST['which']) && !$DEBUG) $which = strtoupper($_POST['which']);
+
 
 //927-VALIDATOR-GET-RESULTS(LEFT|RIGHT)
 //998-VALIDATOR_DONE(LEFT|RIGHT)      // used for VERIFY and STACK
@@ -132,13 +149,16 @@ define ("IDLE_STATE",2);
                 {
                 case START_STATE:
                     $cmd="920-VALIDATOR-VERIFY";
+			        fwrite($myfile,"VERIFY-START_STATE\n");
                     call_API($cmd);
                     break;
                 case RESULTS_STATE:
                     $cmd="927-VALIDATOR-GET-RESULTS-".$which;
+			        fwrite($myfile,"VERIFY-RESULTS\n");
                     call_API($cmd);
                     break;
                 case IDLE_STATE:
+			        fwrite($myfile,"VERIFY-IDLE\n");
                     $cmd="926-VALIDATOR-IDLE-LEFT";
                     call_API($cmd);
                     $cmd="926-VALIDATOR-IDLE-RIGHT";
@@ -177,7 +197,7 @@ define ("IDLE_STATE",2);
 				break;
 	    }
 
-  	}
+  	} // endif $action
 
 }
 
@@ -206,18 +226,48 @@ function is_ajax()
 
 function call_API($cmd)
 {
+	GLOBAL $state, $myfile;
+    GLOBAL $USEFILE, $SIMDATA, $REALDATA;	// debug vars
+
 
 //	$return = $_POST;
 
 	// TESTS FOR DEBUGGING
 
-//	$return["json"]= "USD:1000";					// stack/verify
+
+	if ($USEFILE)
+	{
+		fwrite($myfile,"CMD: ".$cmd."\n");
+	}
+
+if ($SIMDATA)
+{
+	fwrite($myfile,"FAKE DATA\n");
+	switch($state)
+	{
+		case START_STATE:
+			$return["json"]= "OK";
+			break;
+		case RESULTS_STATE:
+			$return["json"]= "USD:1000";					// stack/verify
+			break;
+		case IDLE_STATE:
+			$return["json"]= "OK";
+			break;
+	}
+
+
+
 //	$return["json"]= "NODATA";
 //	$return["json"]="1,2,3,4,5,6,7,8";				// UTD INVENTORY
 //	$return["json"]= "MODEL- JQN609:SERIAL- 1234:";	// MEI INFO
 //	$return["json"]="UTD DRIVER - v1.01:UTD FIRMWARE - v2.05";
 
 
+}
+
+if ($REALDATA)
+{
 
     SocketConnect();
     $res=SendMessage($cmd);
@@ -228,7 +278,7 @@ function call_API($cmd)
 
     $return["json"] =  $denom .":". $amt;
     CloseConnection();
-
+}
 //	$return["json"]= json_encode($return);
 	echo json_encode($return);
 
