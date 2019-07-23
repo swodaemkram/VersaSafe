@@ -1,4 +1,5 @@
 <?php
+
 /*
 	Author: Gary Conway
 	ajax_server.php
